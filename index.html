@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="OTTIMIZZAZIONE BARRE C.A. — gestione giacenza, richiesta e ottimizzazione del taglio di barre per cemento armato.">
+<title>OTTIMIZZAZIONE BARRE C.A. — v. 1.02</title>
+<style>
+:root{--navy:#102b46;--navy2:#163b5e;--teal:#168b83;--teal-dark:#0d6e68;--green:#17835f;--green-dark:#126b4d;--ink:#1f2e3d;--muted:#66788a;--bg:#f2f5f8;--panel:#fff;--line:#dbe3ea;--soft:#eaf2f6;--warn:#8b4d1b;--warnbg:#fff3e5;--danger:#a62e3e;--dangerbg:#fff0f2;--good:#16765f;--goodbg:#e8f6f0;--shadow:0 5px 18px rgba(16,43,70,.055);--radius:12px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-size:14px;line-height:1.4}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(22,139,131,.24);outline-offset:1px}
+.topbar{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:17px max(14px,calc((100vw - 1080px)/2));box-shadow:0 4px 15px rgba(16,43,70,.14)}.brandline{max-width:1080px;margin:auto;display:flex;align-items:center;gap:11px}.brandmark{width:40px;height:40px;border:1px solid rgba(255,255,255,.22);border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.08);flex:none}.brandmark svg{width:25px;height:25px}.brand{min-width:0}.brand h1{font-size:clamp(17px,2.2vw,24px);letter-spacing:-.025em;line-height:1.1;margin:0;font-weight:800}.brand p{color:#c7d6e3;margin:5px 0 0;font-size:11px}.version{color:#c7d6e3;font-weight:800;margin-left:5px;white-space:nowrap}.top-actions{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.top-actions button{border-color:rgba(255,255,255,.27);background:rgba(255,255,255,.08);color:#fff}.top-actions button:hover{background:rgba(255,255,255,.15)}.file-input{display:none}
+.shell{max-width:1080px;margin:0 auto;padding:14px}.nav{display:flex;gap:4px;overflow-x:auto;padding:4px;background:#e4ebf1;border-radius:11px;margin-bottom:14px;scrollbar-width:thin}.nav button{border:0;color:#516478;background:transparent;font-weight:700;white-space:nowrap;padding:9px 13px;border-radius:8px}.nav button.active{background:#fff;color:var(--navy);box-shadow:0 2px 6px rgba(16,43,70,.08)}.nav button .nicon{margin-right:5px;opacity:.8}.page{display:none}.page.active{display:block}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:3px 0 13px}.section-head h2{font-size:20px;letter-spacing:-.025em;margin:0 0 4px;color:var(--navy)}.section-head p{color:var(--muted);margin:0;max-width:780px;font-size:12px}.grid{display:grid;gap:12px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);min-width:0}.panel-head{padding:12px 13px 10px;display:flex;align-items:center;justify-content:space-between;gap:9px;border-bottom:1px solid #edf1f4}.panel-head h3{font-size:14px;margin:0;color:var(--navy)}.panel-head p{font-size:11px;color:var(--muted);margin:3px 0 0}.panel-body{padding:12px 13px}.panel-head-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.toolbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.toolbar.end{justify-content:flex-end}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.field label,.field-label{font-size:12px;font-weight:750;color:#526579}.field input,.field select{width:100%;min-width:0;min-height:37px;background:#fff;border:1px solid #cfd9e2;border-radius:8px;padding:8px 9px;color:var(--ink)}.field .help{font-size:11px;color:var(--muted)}.parameter-grid{display:grid;grid-template-columns:minmax(150px,230px);gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 11px;border:1px solid #cad6df;background:#fff;color:var(--navy);font-size:12px;font-weight:750;border-radius:8px;min-height:34px;transition:background .15s,border-color .15s}.btn:hover{background:#f6f9fb;border-color:#9fb4c4}.btn.primary{background:var(--green);color:#fff;border-color:var(--green)}.btn.primary:hover{background:var(--green-dark);border-color:var(--green-dark)}.btn.dark{background:var(--navy);color:#fff;border-color:var(--navy)}.btn.small{min-height:28px;padding:5px 8px;font-size:11px;border-radius:7px}.btn:disabled{opacity:.48;cursor:not-allowed}.icon-btn{width:25px;height:25px;padding:0;border:1px solid #e5c9ce;background:#fff;color:var(--danger);border-radius:6px;font-size:16px;line-height:1}.pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;padding:4px 7px;border-radius:99px;background:var(--soft);color:#31536c;white-space:nowrap}.pill.good{background:var(--goodbg);color:var(--good)}.pill.warn{background:var(--warnbg);color:var(--warn)}
+.table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px}table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}th{background:#f4f7f9;color:#53677a;font-size:10px;text-align:center;font-weight:800;padding:7px 5px;white-space:nowrap;border-bottom:1px solid var(--line)}td{padding:4px 4px;border-bottom:1px solid #edf1f4;background:#fff;vertical-align:middle;text-align:center;font-size:12px}tbody tr:last-child td{border-bottom:0}tbody tr:hover td{background:#fbfdfe}.cell-input{width:100%;min-width:0;min-height:30px;background:#fff;border:1px solid #dbe3e9;border-radius:6px;padding:5px 3px;text-align:center;color:var(--ink);font-size:12px;font-variant-numeric:tabular-nums}.cell-input:focus{border-color:var(--teal)}.master-table{table-layout:fixed;min-width:0}.master-table col.dia{width:22%}.master-table col.qty{width:17%}.master-table col.length{width:25%}.master-table col.weight{width:36%}.master-table td{padding:4px 3px}.weight-cell{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:11px;color:#42566a}.weight-cell-inner{display:flex;align-items:center;justify-content:center;gap:4px;min-width:0}.weight-cell-inner [data-weight]{min-width:0}.weight-cell-inner .icon-btn{flex:none;width:22px;height:23px;font-size:14px}.quick-table{table-layout:fixed;min-width:0}.quick-table col.rownum{width:10%}.quick-table col.qty{width:31%}.quick-table col.length{width:39%}.quick-table col.action{width:20%}.quick-table td{padding:4px 3px}.quick-table .cell-input{font-size:12px}.quick-table input[data-field="qty"]{max-width:76px;margin-inline:auto}.quick-table input[data-field="length"]{max-width:88px;margin-inline:auto}.row-number{color:#7a8b9a;font-size:11px}.table-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px}.table-actions .note{font-size:10px;color:var(--muted)}.empty{padding:17px;text-align:center;color:var(--muted);font-size:12px}.calc-total{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.summary-box{padding:9px 11px;background:#f6f9fb;border:1px solid #e5edf2;border-radius:8px;min-width:0}.summary-box .s-label{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:850;letter-spacing:.045em}.summary-box .s-value{font-size:18px;line-height:1.2;color:var(--navy);font-weight:850;margin-top:4px;white-space:nowrap}.summary-box .s-unit{font-size:10px;font-weight:650;color:var(--muted);margin-left:3px}.help-note{margin-top:11px;font-size:11px;color:var(--muted)}.optimize-action{display:flex;justify-content:center;margin-top:14px}.optimize-action .btn{min-width:220px;min-height:42px;font-size:14px}.message{padding:9px 11px;border-radius:8px;font-size:12px;border:1px solid #cce4e2;background:#f0faf9;color:#315b5b;margin:0 0 11px}.message.warn{border-color:#f0d4af;background:var(--warnbg);color:var(--warn)}.message.danger{border-color:#ebc8ce;background:var(--dangerbg);color:#842c3a}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:12px}.kpi{padding:10px 11px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);min-width:0}.kpi .label{font-size:9px;line-height:1.25;text-transform:uppercase;letter-spacing:.045em;color:var(--muted);font-weight:850}.kpi .value{margin-top:5px;color:var(--navy);font-size:clamp(16px,1.9vw,22px);font-weight:850;letter-spacing:-.035em;white-space:nowrap}.kpi .sub{font-size:9px;color:var(--muted);margin-top:2px}.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.result-panel .panel-body{padding:10px}.result-table{min-width:0;table-layout:auto}.result-table th,.result-table td{text-align:center;padding:6px 5px;white-space:nowrap}.result-table .total-row td{background:#edf3f6;font-weight:850;color:var(--navy)}.result-table .empty{white-space:normal}.result-panel .table-wrap{max-width:100%}.scrap-check{width:17px;height:17px;accent-color:var(--green);vertical-align:middle}.result-note{font-size:10px;color:var(--muted);margin:7px 1px 0}.panel-footer{padding:0 10px 10px}.footer-note{font-size:10px;color:var(--muted);padding:18px 2px 6px;text-align:center}.guide-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.guide-item{display:flex;gap:10px;padding:12px;background:#fff;border:1px solid var(--line);border-radius:9px}.guide-num{display:grid;place-items:center;width:24px;height:24px;flex:none;border-radius:7px;background:#e5f3f0;color:var(--teal-dark);font-weight:850;font-size:12px}.guide-item h4{margin:0 0 4px;color:var(--navy);font-size:12px}.guide-item p{margin:0;color:var(--muted);font-size:11px}.status{font-size:10px;color:#d8e7f2;margin-left:5px;white-space:nowrap}.status::before{content:"";display:inline-block;width:6px;height:6px;background:#6fd2ad;border-radius:50%;margin:0 5px 1px 0}.status.unsaved::before{background:#f5c46e}.toast{position:fixed;left:50%;bottom:16px;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:200;max-width:min(92vw,520px);padding:10px 14px;background:#172e43;color:#fff;border-radius:9px;box-shadow:0 8px 26px rgba(0,0,0,.22);font-size:12px;text-align:center;transition:opacity .18s,transform .18s}.toast.show{opacity:1;transform:translate(-50%,0)}.hide{display:none!important}
+@media(max-width:760px){.shell{padding:10px}.topbar{padding:13px 11px}.brandline{gap:8px;flex-wrap:wrap}.brandmark{width:34px;height:34px}.brandmark svg{width:22px;height:22px}.brand h1{font-size:clamp(16px,4vw,21px)}.brand p{font-size:10px}.top-actions{width:100%;margin:3px 0 0;justify-content:flex-start}.grid.two,.result-grid{grid-template-columns:1fr}.section-head{flex-direction:column}.panel-head,.panel-body{padding-left:10px;padding-right:10px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.kpi{padding:9px}.kpi .value{font-size:18px}.nav{margin-bottom:11px}.nav button{padding:9px 10px;font-size:11px}.guide-list{grid-template-columns:1fr}.parameter-grid{grid-template-columns:minmax(170px,1fr)}.result-panel .panel-body{padding:8px}.section-head h2{font-size:19px}.table-actions .note{flex:1 1 100%}}
+@media(max-width:360px){.shell{padding:7px}.topbar{padding:12px 8px}.brandline{gap:6px}.brand h1{font-size:15px}.brandmark{width:31px;height:31px}.top-actions .btn{padding:6px 8px;font-size:11px}.panel-head,.panel-body{padding-left:7px;padding-right:7px}.master-table th{font-size:9px;padding:6px 2px}.master-table td{padding:3px 1px}.cell-input{font-size:11px;padding:4px 1px}.weight-cell{font-size:10px}.icon-btn{width:22px;height:23px}.weight-cell-inner{gap:2px}.weight-cell-inner .icon-btn{width:19px;height:21px}.quick-table th{font-size:9px;padding:6px 2px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brandline">
+    <div class="brandmark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M4 8h24M4 16h24M4 24h24" stroke="#8ED9CE" stroke-width="3" stroke-linecap="round"/><path d="M10 4v24M22 4v24" stroke="#fff" stroke-opacity=".75" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+    <div class="brand"><h1>OTTIMIZZAZIONE BARRE C.A.</h1><p>Gestione giacenza e piano di taglio <span class="version">v. 1.02</span><span class="status" id="saveStatus">Salvataggio locale attivo</span></p></div>
+    <div class="top-actions">
+      <button class="btn" id="importJsonBtn" type="button">⇧ Importa backup</button>
+      <button class="btn" id="exportJsonBtn" type="button">⇩ Esporta backup</button>
+      <input class="file-input" type="file" id="importJsonFile" accept="application/json,.json">
+    </div>
+  </div>
+</header>
+<div class="shell">
+  <nav class="nav" aria-label="Sezioni applicazione">
+    <button type="button" class="active" data-tab="optimize"><span class="nicon">◈</span>Ottimizzazione</button>
+    <button type="button" data-tab="stock"><span class="nicon">▤</span>Giacenza</button>
+    <button type="button" data-tab="demand"><span class="nicon">≡</span>Richiesta</button>
+    <button type="button" data-tab="results"><span class="nicon">▥</span>Risultati</button>
+    <button type="button" data-tab="help"><span class="nicon">ⓘ</span>Guida</button>
+  </nav>
+  <main>
+    <section class="page active" id="page-optimize">
+      <div class="section-head"><div><h2>Ottimizzazione</h2><p>Carica la giacenza e la richiesta relative al diametro scelto, quindi avvia il piano di taglio.</p></div></div>
+      <div class="panel" style="margin-bottom:12px">
+        <div class="panel-head"><div><h3>Parametri di lavorazione</h3></div></div>
+        <div class="panel-body"><div class="parameter-grid"><div class="field"><label for="diameter">Diametro ferro [mm]</label><input id="diameter" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="Inserisci il diametro" aria-describedby="unitWeightHint"><span class="help" id="unitWeightHint">Inserire il diametro per calcolare il peso.</span></div></div></div>
+      </div>
+      <div class="grid two">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Giacenza</h3><p>Numero barre e lunghezza espressa in centimetri.</p></div><span class="pill" id="stockCountPill">0 righe</span></div>
+          <div class="panel-body">
+            <div class="table-actions"><span class="note">Lunghezza intera, massimo 9.999 cm.</span><div class="toolbar"><button class="btn small" type="button" data-add="quickStock">＋ Riga</button><button class="btn small primary" id="loadStockBtn" type="button">Carica da Giacenza</button></div></div>
+            <div class="table-wrap"><table class="quick-table"><colgroup><col class="rownum"><col class="qty"><col class="length"><col class="action"></colgroup><thead><tr><th>#</th><th>Numero barre</th><th>Lunghezza [cm]</th><th></th></tr></thead><tbody id="quickStockBody"></tbody></table></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Richiesta</h3><p>Numero pezzi e lunghezza espressa in centimetri.</p></div><span class="pill" id="demandCountPill">0 righe</span></div>
+          <div class="panel-body">
+            <div class="table-actions"><span class="note">Lunghezza intera, massimo 9.999 cm.</span><div class="toolbar"><button class="btn small" type="button" data-add="quickDemand">＋ Riga</button><button class="btn small primary" id="loadDemandBtn" type="button">Carica da Richiesta</button></div></div>
+            <div class="table-wrap"><table class="quick-table"><colgroup><col class="rownum"><col class="qty"><col class="length"><col class="action"></colgroup><thead><tr><th>#</th><th>Numero pezzi</th><th>Lunghezza [cm]</th><th></th></tr></thead><tbody id="quickDemandBody"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+      <div class="optimize-action"><button class="btn primary" type="button" id="optimizeBtn">▶ Esegui ottimizzazione</button></div>
+      <p class="help-note">Il calcolo considera gli sfridi riutilizzabili come nuove lunghezze disponibili nelle iterazioni successive. Non viene applicato alcun consumo lama.</p>
+    </section>
+
+    <section class="page" id="page-stock">
+      <div class="section-head"><div><h2>Giacenza</h2><p>Inserisci o modifica le barre disponibili. Il peso viene calcolato automaticamente in base al diametro e alla lunghezza.</p></div><div class="head-actions"><button class="btn primary" type="button" data-add="stockDetail">＋ Aggiungi riga</button></div></div>
+      <div class="panel"><div class="panel-head"><div><h3>Elenco Giacenza</h3></div><span class="pill">Lunghezze in cm</span></div><div class="panel-body">
+        <div class="table-wrap"><table class="master-table"><colgroup><col class="dia"><col class="qty"><col class="length"><col class="weight"></colgroup><thead><tr><th>Ø [mm]</th><th>Nr.</th><th>L [cm]</th><th>P [kg]</th></tr></thead><tbody id="stockDetailBody"></tbody></table></div>
+        <div class="calc-total" id="stockTotals"></div>
+      </div></div>
+    </section>
+
+    <section class="page" id="page-demand">
+      <div class="section-head"><div><h2>Richiesta</h2><p>Inserisci i pezzi da produrre, indicando diametro, quantità e lunghezza in centimetri.</p></div><div class="head-actions"><button class="btn primary" type="button" data-add="demandDetail">＋ Aggiungi riga</button></div></div>
+      <div class="panel"><div class="panel-head"><div><h3>Elenco Richiesta</h3></div><span class="pill">Lunghezze in cm</span></div><div class="panel-body">
+        <div class="table-wrap"><table class="master-table"><colgroup><col class="dia"><col class="qty"><col class="length"><col class="weight"></colgroup><thead><tr><th>Ø [mm]</th><th>Nr.</th><th>L [cm]</th><th>P [kg]</th></tr></thead><tbody id="demandDetailBody"></tbody></table></div>
+        <div class="calc-total" id="demandTotals"></div>
+      </div></div>
+    </section>
+
+    <section class="page" id="page-results">
+      <div class="section-head"><div><h2>Risultati</h2><p>Piano finale attribuito alle barre originarie, con riutilizzo degli sfridi durante il calcolo.</p></div></div>
+      <div id="resultsEmpty" class="panel"><div class="empty"><strong>Nessun risultato disponibile</strong>Vai su Ottimizzazione e premi “Esegui ottimizzazione”.</div></div>
+      <div id="resultsContent" class="hide">
+        <div id="resultMessage" class="message"></div>
+        <div class="kpis" id="resultKpis"></div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Piano di taglio</h3><p>Una riga per ogni barra originaria, nell’ordine in cui è stata impiegata.</p></div><span class="pill" id="patternsPill">0 barre</span></div>
+          <div class="panel-body"><div class="table-wrap"><table class="result-table" id="outputTable"><thead id="outputHead"></thead><tbody id="outputBody"></tbody></table></div><p class="result-note">Le lunghezze del piano sono visualizzate in metri; gli inserimenti nelle schermate Giacenza, Richiesta e Ottimizzazione sono in centimetri.</p></div>
+        </div>
+        <div class="result-grid">
+          <div class="panel result-panel"><div class="panel-head"><div><h3>Riepilogo barre utilizzate</h3><p>Barre originarie consumate dal piano.</p></div></div><div class="panel-body"><div class="table-wrap"><table class="result-table"><thead><tr><th>Barra [cm]</th><th>Numero</th><th>Peso [kg]</th></tr></thead><tbody id="usedBarsBody"></tbody></table></div></div></div>
+          <div class="panel result-panel"><div class="panel-head"><div><h3>Richiesta non evasa</h3><p>Pezzi residui, se la giacenza non basta.</p></div></div><div class="panel-body"><div class="table-wrap"><table class="result-table"><thead><tr><th>L [cm]</th><th>Residuo [pz]</th></tr></thead><tbody id="unmetBody"></tbody></table></div></div></div>
+          <div class="panel result-panel"><div class="panel-head"><div><h3>Giacenza residua</h3><p>Barre intere non utilizzate; gli sfridi sono esclusi.</p></div></div><div class="panel-body"><div class="table-wrap"><table class="result-table"><thead><tr><th>Ø [mm]</th><th>Nr.</th><th>L [cm]</th><th>P [kg]</th></tr></thead><tbody id="remainingStockBody"></tbody></table></div></div><div class="panel-footer"><button class="btn primary" type="button" id="applyRemainingBtn">Aggiorna Giacenza</button><p class="result-note">Sostituisce nella Giacenza le sole righe del diametro lavorato con le barre intere qui elencate.</p></div></div>
+          <div class="panel result-panel"><div class="panel-head"><div><h3>Sfridi recuperabili</h3><p>Seleziona solo gli spezzoni da aggiungere alla Giacenza.</p></div></div><div class="panel-body"><div class="table-wrap"><table class="result-table"><thead><tr><th>✓</th><th>Nr.</th><th>L [cm]</th><th>P [kg]</th></tr></thead><tbody id="scrapBody"></tbody></table></div></div><div class="panel-footer"><button class="btn primary" type="button" id="addScrapsBtn">Aggiungi sfridi alla Giacenza</button><p class="result-note">Per evitare doppie giacenze, prima premi “Aggiorna Giacenza”; poi il pulsante si attiverà quando avrai selezionato gli sfridi da aggiungere.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-help">
+      <div class="section-head"><div><h2>Guida rapida</h2><p>Indicazioni per usare la versione base dell'applicazione.</p></div></div>
+      <div class="guide-list">
+        <div class="guide-item"><div class="guide-num">1</div><div><h4>Compila Giacenza e Richiesta</h4><p>Inserisci diametro, quantità e lunghezza. Le lunghezze vanno espresse in centimetri interi; il peso è calcolato automaticamente.</p></div></div>
+        <div class="guide-item"><div class="guide-num">2</div><div><h4>Carica i dati per il calcolo</h4><p>In Ottimizzazione seleziona il diametro e usa “Carica da Giacenza” e “Carica da Richiesta”. Vengono caricate solo le righe del diametro selezionato.</p></div></div>
+        <div class="guide-item"><div class="guide-num">3</div><div><h4>Esegui l'ottimizzazione</h4><p>A ogni iterazione viene scelta la combinazione che produce lo sfrido minore tra le lunghezze disponibili. Gli sfridi generati rientrano nella disponibilità per i tagli successivi.</p></div></div>
+        <div class="guide-item"><div class="guide-num">4</div><div><h4>Aggiorna la Giacenza</h4><p>“Aggiorna Giacenza” riporta solo le barre intere residue. Per inserire gli sfridi recuperabili, seleziona le righe desiderate e premi il pulsante dedicato.</p></div></div>
+        <div class="guide-item"><div class="guide-num">5</div><div><h4>Backup</h4><p>I dati sono salvati nel browser del dispositivo. Usa Importa/Esporta backup per trasferire manualmente i dati fra dispositivi: non c'è sincronizzazione automatica.</p></div></div>
+        <div class="guide-item"><div class="guide-num">6</div><div><h4>Limiti del motore</h4><p>Il motore usa una strategia deterministica che minimizza lo sfrido a ogni iterazione; non garantisce il minimo matematico globale in ogni possibile combinazione. Prima dell'uso operativo, confronta i risultati con casi noti di Excel.</p></div></div>
+      </div>
+    </section>
+  </main>
+  <div class="footer-note">OTTIMIZZAZIONE BARRE C.A. · v. 1.02 · dati conservati localmente nel browser</div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  'use strict';
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const STORE_KEY = 'barreCA.app.v1';
+  const SCHEMA_VERSION = 2;
+  let toastTimer = null;
+  let state = loadState();
+
+  function newId(){ return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function blankQuick(){ return {id:newId(),qty:'',length:''}; }
+  function blankMaster(){ return {id:newId(),diameter:'',qty:'',length:''}; }
+  function defaults(){return {schemaVersion:SCHEMA_VERSION,diameter:'',quickStock:[blankQuick()],quickDemand:[blankQuick()],stockDetail:[blankMaster()],demandDetail:[blankMaster()],result:null};}
+  function valNumber(value){
+    if(value===null||value===undefined||String(value).trim()==='') return null;
+    const v=Number(String(value).trim().replace(',','.'));
+    return Number.isFinite(v)?v:null;
+  }
+  function oldLengthInMeters(row){
+    const segs=['l1','l2','l3','l4','l5','l6'].map(k=>valNumber(row[k])).filter(v=>v!==null&&v>0);
+    return segs.length?segs.reduce((a,b)=>a+b,0):Math.max(0,valNumber(row.synth)||0);
+  }
+  function migrateOldState(d){
+    const base=defaults();
+    const convertQuick=(rows)=>Array.isArray(rows)&&rows.length?rows.map(r=>({id:r.id||newId(),qty:String(r.qty??''),length:r.length===''||r.length===null||r.length===undefined?'':String(Math.round((valNumber(r.length)||0)*100))})):[blankQuick()];
+    const convertMaster=(rows)=>Array.isArray(rows)&&rows.length?rows.map(r=>({id:r.id||newId(),diameter:String(r.diameter??''),qty:String(r.qty??''),length:String(Math.round(oldLengthInMeters(r)*100))})).map(r=>({...r,length:r.length==='0'?'':r.length})):[blankMaster()];
+    return {...base,diameter:d.diameter===null||d.diameter===undefined?'':String(d.diameter),quickStock:convertQuick(d.quickStock),quickDemand:convertQuick(d.quickDemand),stockDetail:convertMaster(d.stockDetail),demandDetail:convertMaster(d.demandDetail),result:null,schemaVersion:SCHEMA_VERSION};
+  }
+  function normalizeNewState(d){
+    const base=defaults();
+    const rows=(value,fn)=>Array.isArray(value)&&value.length?value.map(fn):[fn({})];
+    const master=r=>({id:r.id||newId(),diameter:String(r.diameter??''),qty:String(r.qty??''),length:String(r.length??'')});
+    const quick=r=>({id:r.id||newId(),qty:String(r.qty??''),length:String(r.length??'')});
+    let out={...base,...d,schemaVersion:SCHEMA_VERSION,diameter:String(d.diameter??''),quickStock:rows(d.quickStock,quick),quickDemand:rows(d.quickDemand,quick),stockDetail:rows(d.stockDetail,master),demandDetail:rows(d.demandDetail,master),result:d.result&&Array.isArray(d.result.patterns)?d.result:null};
+    if(out.result){out.result.scraps=(out.result.scraps||[]).map(s=>({...s,selected:!!s.selected,added:!!s.added}));}
+    return out;
+  }
+  function loadState(){
+    try{
+      const raw=localStorage.getItem(STORE_KEY);if(!raw)return defaults();
+      const d=JSON.parse(raw);
+      if(!d||typeof d!=='object')return defaults();
+      return d.schemaVersion===SCHEMA_VERSION?normalizeNewState(d):migrateOldState(d);
+    }catch(e){return defaults();}
+  }
+  function saveState(){
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(state));$('#saveStatus').textContent='Salvataggio locale attivo';$('#saveStatus').classList.remove('unsaved');}
+    catch(e){$('#saveStatus').textContent='Salvataggio locale non disponibile';$('#saveStatus').classList.add('unsaved');}
+  }
+  function n(value){const v=valNumber(value);return v===null?NaN:v;}
+  function fmt(value,digits=2){if(!Number.isFinite(Number(value)))return '—';return new Intl.NumberFormat('it-IT',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Number(value));}
+  function intFmt(value){return new Intl.NumberFormat('it-IT',{maximumFractionDigits:0}).format(value||0);}
+  function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function unitWeight(dia){const d=n(dia);return Number.isFinite(d)&&d>0?Math.round(Math.PI*Math.pow(d/1000/2,2)*7850*1000)/1000:0;}
+  function setToast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3500);}
+  function switchTab(tab){$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));$$('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+tab));if(tab==='results')renderResults();window.scrollTo({top:0,behavior:'smooth'});}
+  function validMasterRows(rows){return rows.filter(r=>{const q=n(r.qty),l=n(r.length),d=n(r.diameter);return Number.isInteger(q)&&q>0&&Number.isInteger(l)&&l>0&&Number.isFinite(d)&&d>0;});}
+  function masterStats(rows){let totalQty=0,totalMeters=0,totalWeight=0;for(const r of validMasterRows(rows)){const q=n(r.qty),len=n(r.length),dia=n(r.diameter);totalQty+=q;totalMeters+=q*len/100;totalWeight+=q*len/100*unitWeight(dia);}return {totalQty,totalMeters,totalWeight};}
+  function renderMaster(kind){
+    const rows=state[kind],body=$(kind==='stockDetail'?'#stockDetailBody':'#demandDetailBody');
+    body.innerHTML=rows.map((r,i)=>{
+      const q=n(r.qty),l=n(r.length),d=n(r.diameter),weight=Number.isInteger(q)&&q>0&&Number.isInteger(l)&&l>0&&d>0?q*l/100*unitWeight(d):0;
+      return `<tr data-master-row="${r.id}"><td><input class="cell-input" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="Diametro riga ${i+1}" data-collection="${kind}" data-id="${r.id}" data-field="diameter" value="${escapeHtml(r.diameter)}" placeholder="Ø"></td><td><input class="cell-input" type="number" min="1" max="9999" step="1" inputmode="numeric" aria-label="Numero riga ${i+1}" data-collection="${kind}" data-id="${r.id}" data-field="qty" value="${escapeHtml(r.qty)}" placeholder="Nr."></td><td><input class="cell-input" type="number" min="1" max="9999" step="1" inputmode="numeric" aria-label="Lunghezza in centimetri riga ${i+1}" data-collection="${kind}" data-id="${r.id}" data-field="length" value="${escapeHtml(r.length)}" placeholder="cm"></td><td class="weight-cell"><div class="weight-cell-inner"><span data-weight>${weight>0?fmt(weight):'—'}</span><button class="icon-btn" type="button" data-delete="${kind}" data-id="${r.id}" aria-label="Elimina riga ${i+1}">×</button></div></td></tr>`;
+    }).join('');
+    renderMasterStats(kind);
+  }
+  function renderMasterStats(kind){
+    const s=masterStats(state[kind]);const host=$(kind==='stockDetail'?'#stockTotals':'#demandTotals');
+    host.innerHTML=`<div class="summary-box"><div class="s-label">Sviluppo</div><div class="s-value">${fmt(s.totalMeters)}<span class="s-unit">m</span></div></div><div class="summary-box"><div class="s-label">Peso</div><div class="s-value">${fmt(s.totalWeight)}<span class="s-unit">kg</span></div></div>`;
+  }
+  function renderQuick(kind){
+    const rows=state[kind],body=$(kind==='quickStock'?'#quickStockBody':'#quickDemandBody');
+    body.innerHTML=rows.map((r,i)=>`<tr><td class="row-number">${i+1}</td><td><input class="cell-input" type="number" min="1" max="9999" step="1" inputmode="numeric" aria-label="${kind==='quickStock'?'Numero barre':'Numero pezzi'} ${i+1}" data-collection="${kind}" data-id="${r.id}" data-field="qty" value="${escapeHtml(r.qty)}" placeholder="Nr."></td><td><input class="cell-input" type="number" min="1" max="9999" step="1" inputmode="numeric" aria-label="Lunghezza in centimetri ${i+1}" data-collection="${kind}" data-id="${r.id}" data-field="length" value="${escapeHtml(r.length)}" placeholder="es. 1200"></td><td><button class="icon-btn" type="button" data-delete="${kind}" data-id="${r.id}" aria-label="Elimina riga ${i+1}">×</button></td></tr>`).join('');
+    const pill=$(kind==='quickStock'?'#stockCountPill':'#demandCountPill');const cnt=rows.filter(r=>Number.isInteger(n(r.qty))&&n(r.qty)>0&&Number.isInteger(n(r.length))&&n(r.length)>0).length;pill.textContent=`${cnt} ${cnt===1?'riga':'righe'}`;
+  }
+  function renderAll(){
+    $('#diameter').value=state.diameter??'';
+    const d=n(state.diameter);$('#unitWeightHint').textContent=Number.isFinite(d)&&d>0?`Peso teorico: ${fmt(unitWeight(d),3)} kg/m`:'Inserire il diametro per calcolare il peso.';
+    renderQuick('quickStock');renderQuick('quickDemand');renderMaster('stockDetail');renderMaster('demandDetail');renderResults();saveState();
+  }
+  function addRow(kind){state[kind].push(kind==='quickStock'||kind==='quickDemand'?blankQuick():blankMaster());state.result=null;renderCollection(kind);renderResults();saveState();}
+  function renderCollection(kind){if(kind==='quickStock'||kind==='quickDemand')renderQuick(kind);else renderMaster(kind);}
+  function deleteRow(kind,id){if(state[kind].length<=1)state[kind]=[kind==='quickStock'||kind==='quickDemand'?blankQuick():blankMaster()];else state[kind]=state[kind].filter(r=>r.id!==id);state.result=null;renderCollection(kind);renderResults();saveState();}
+  function updateMasterRow(kind,id){
+    const row=state[kind].find(r=>r.id===id);if(!row)return;const tr=$(`[data-master-row="${id}"]`);if(!tr)return;
+    const q=n(row.qty),l=n(row.length),d=n(row.diameter),weight=Number.isInteger(q)&&q>0&&Number.isInteger(l)&&l>0&&d>0?q*l/100*unitWeight(d):0;
+    $('[data-weight]',tr).textContent=weight>0?fmt(weight):'—';renderMasterStats(kind);
+  }
+  function validateInputRows(rows,label){
+    const map=new Map();
+    rows.forEach((r,index)=>{
+      const qText=String(r.qty??'').trim(),lText=String(r.length??'').trim();if(!qText&&!lText)return;
+      const q=n(qText),l=n(lText);
+      if(!Number.isInteger(q)||q<1||q>9999||!Number.isInteger(l)||l<1||l>9999)throw new Error(`${label}: completa la riga ${index+1} con un numero intero di pezzi/barre e una lunghezza intera in cm (da 1 a 9.999).`);
+      map.set(l,(map.get(l)||0)+q);
+    });
+    return Array.from(map,([units,qty])=>({units,qty,remaining:qty,length:units})).sort((a,b)=>b.units-a.units);
+  }
+  function loadFromRegistry(kind){
+    const dia=n(state.diameter);if(!Number.isFinite(dia)||dia<=0){alert('Inserire il Diametro ferro nei Parametri di lavorazione prima di caricare i dati.');$('#diameter').focus();return;}
+    const registry=kind==='quickStock'?state.stockDetail:state.demandDetail;
+    const valid=validMasterRows(registry);
+    if(!valid.length){alert(kind==='quickStock'?'La Tabella Giacenza è vuota.':'La Tabella Richiesta è vuota.');return;}
+    const matches=valid.filter(r=>Math.abs(n(r.diameter)-dia)<1e-9);
+    if(!matches.length){alert(kind==='quickStock'?`Non ci sono giacenze corrispondenti al diametro ${dia} mm selezionato.`:`Non ci sono richieste corrispondenti al diametro ${dia} mm selezionato.`);return;}
+    const loaded=matches.map(r=>({id:newId(),qty:String(Math.floor(n(r.qty))),length:String(Math.floor(n(r.length)))}));
+    state[kind]=loaded;state.result=null;renderQuick(kind);renderResults();saveState();setToast(`${loaded.length} righe caricate per Ø ${dia} mm.`);
+  }
+  function buildReachability(maxUnits,demand){
+    const reachable=new Uint8Array(maxUnits+1);reachable[0]=1;
+    const prevSum=new Int32Array(maxUnits+1);prevSum.fill(-1);
+    const prevItem=new Int32Array(maxUnits+1);prevItem.fill(-1);
+    const prevTake=new Int32Array(maxUnits+1); 
+    for(let i=0;i<demand.length;i++){
+      const item=demand[i];let qty=Math.min(item.remaining,Math.floor(maxUnits/item.units));let pack=1;
+      while(qty>0){const take=Math.min(pack,qty),weight=take*item.units;qty-=take;pack*=2;if(weight>maxUnits)continue;
+        for(let s=maxUnits;s>=weight;s--){if(!reachable[s]&&reachable[s-weight]){reachable[s]=1;prevSum[s]=s-weight;prevItem[s]=i;prevTake[s]=take;}}
+      }
+    }
+    return {reachable,prevSum,prevItem,prevTake};
+  }
+  function patternAtCapacity(capacity,dp){
+    let used=Math.min(capacity,dp.reachable.length-1);while(used>0&&!dp.reachable[used])used--;
+    if(used<=0)return null;
+    const counts=new Int32Array(state._workingDemand.length);let s=used,guard=0;
+    while(s>0&&guard++<state._workingDemand.length*32+2000){const item=dp.prevItem[s],take=dp.prevTake[s],prior=dp.prevSum[s];if(item<0||take<=0||prior<0)throw new Error('Errore interno nella ricostruzione del piano di taglio.');counts[item]+=take;s=prior;}
+    if(s!==0)throw new Error('Il piano di taglio non è stato ricostruito correttamente.');
+    return {usedUnits:used,scrapUnits:capacity-used,counts:Array.from(counts),pieceCount:counts.reduce((a,b)=>a+b,0)};
+  }
+  function chooseBetter(a,b){
+    if(!a)return b;if(!b)return a;
+    if(b.pattern.scrapUnits!==a.pattern.scrapUnits)return b.pattern.scrapUnits<a.pattern.scrapUnits?b:a;
+    if(b.pattern.pieceCount!==a.pattern.pieceCount)return b.pattern.pieceCount>a.pattern.pieceCount?b:a;
+    if(b.units!==a.units)return b.units<a.units?b:a;
+    if(b.source!==a.source)return b.source==='scrap'?b:a;
+    return a;
+  }
+  function runOptimization(stockRows,demandRows,diameter){
+    const initialStock=validateInputRows(stockRows,'Giacenza');
+    const demand=validateInputRows(demandRows,'Richiesta');
+    if(!initialStock.length)throw new Error('Inserire almeno una riga valida nella Giacenza caricata.');
+    if(!demand.length)throw new Error('Inserire almeno una riga valida nella Richiesta caricata.');
+    const requestedPieces=demand.reduce((sum,d)=>sum+d.qty,0);
+    const initialDemand=demand.map(d=>({units:d.units,length:d.length,qty:d.qty,remaining:d.qty}));
+    const inventory=initialStock.map(s=>({units:s.units,qty:s.qty,remaining:s.qty}));
+    const barRecords=[];
+    let loops=0;const maxIterations=Math.min(100000,Math.max(2000,requestedPieces*2+demand.length*20));
+    state._workingDemand=demand;
+    try{
+      while(demand.some(d=>d.remaining>0)){
+        if(++loops>maxIterations)throw new Error('Il calcolo ha raggiunto il limite di sicurezza. Verifica le quantità e le lunghezze inserite.');
+        const stockCandidates=inventory.filter(s=>s.remaining>0).map(s=>({source:'stock',units:s.units,qty:s.remaining,entry:s}));
+        const scrapQty=new Map();for(const b of barRecords)if(b.currentScrapUnits>0)scrapQty.set(b.currentScrapUnits,(scrapQty.get(b.currentScrapUnits)||0)+1);
+        const scrapCandidates=Array.from(scrapQty,([units,qty])=>({source:'scrap',units,qty}));
+        const candidates=[...stockCandidates,...scrapCandidates];if(!candidates.length)break;
+        const maxUnits=Math.max(...candidates.map(c=>c.units));
+        const dp=buildReachability(maxUnits,demand);const cache=new Map();let best=null;
+        for(const c of candidates){
+          let p=cache.get(c.units);if(p===undefined){p=patternAtCapacity(c.units,dp);cache.set(c.units,p||null);}if(!p)continue;
+          best=chooseBetter(best,{...c,pattern:p});
+        }
+        if(!best)break;
+        let batch=best.qty;
+        for(let i=0;i<best.pattern.counts.length;i++){const count=best.pattern.counts[i];if(count>0)batch=Math.min(batch,Math.floor(demand[i].remaining/count));}
+        batch=Math.floor(batch);if(batch<1)throw new Error('Il motore non è riuscito a determinare una quantità valida di barre da tagliare.');
+        const p=best.pattern;
+        if(best.source==='stock'){
+          best.entry.remaining-=batch;
+          for(let j=0;j<batch;j++){const counts=new Int32Array(demand.length);for(let i=0;i<counts.length;i++)counts[i]=p.counts[i];barRecords.push({barUnits:best.units,counts,currentScrapUnits:p.scrapUnits});}
+        }else{
+          let remainingToCut=batch;
+          for(const record of barRecords){if(remainingToCut<=0)break;if(record.currentScrapUnits!==best.units)continue;
+            for(let i=0;i<record.counts.length;i++)record.counts[i]+=p.counts[i];record.currentScrapUnits=p.scrapUnits;remainingToCut--;
+          }
+          if(remainingToCut!==0)throw new Error('Errore interno durante il riutilizzo degli sfridi.');
+        }
+        for(let i=0;i<demand.length;i++)if(p.counts[i]>0)demand[i].remaining-=p.counts[i]*batch;
+      }
+    }finally{delete state._workingDemand;}
+    const fulfilledPieces=demand.reduce((sum,d)=>sum+(d.qty-d.remaining),0);
+    const pieceTotals=demand.map(d=>({length:d.length,units:d.units,requested:d.qty,fulfilled:d.qty-d.remaining,remaining:d.remaining}));
+    const usedByLength=new Map();for(const b of barRecords)usedByLength.set(b.barUnits,(usedByLength.get(b.barUnits)||0)+1);
+    const remainingStock=inventory.filter(s=>s.remaining>0).map(s=>({units:s.units,length:s.units,qty:s.remaining})).sort((a,b)=>b.units-a.units);
+    const scrapsMap=new Map();for(const b of barRecords)if(b.currentScrapUnits>0)scrapsMap.set(b.currentScrapUnits,(scrapsMap.get(b.currentScrapUnits)||0)+1);
+    const scraps=Array.from(scrapsMap,([units,qty])=>({units,length:units,qty,selected:false,added:false})).sort((a,b)=>b.units-a.units);
+    // Una riga per ogni barra originaria, nell'ordine in cui è stata impiegata.
+    // Le successive lavorazioni degli sfridi aggiornano la stessa barra originaria.
+    const patterns=barRecords.map((b,index)=>({id:index+1,barUnits:b.barUnits,barLength:b.barUnits/100,barCount:1,scrapUnits:b.currentScrapUnits,scrapLength:b.currentScrapUnits/100,counts:Array.from(b.counts)}));
+    const usedBars=barRecords.length,usedUnits=barRecords.reduce((sum,b)=>sum+b.barUnits,0),scrapUnits=barRecords.reduce((sum,b)=>sum+b.currentScrapUnits,0),pieceLengthUnits=pieceTotals.reduce((sum,d)=>sum+d.units*d.fulfilled,0);
+    const usedMeters=usedUnits/100,scrapMeters=scrapUnits/100,netMeters=pieceLengthUnits/100;
+    const usedByLengthRows=Array.from(usedByLength,([units,qty])=>({units,length:units,qty,weight:qty*(units/100)*unitWeight(diameter)})).sort((a,b)=>b.units-a.units);
+    return {diameter:Number(diameter),unitWeight:unitWeight(diameter),patterns,requestedPieces,fulfilledPieces,unmet:pieceTotals.filter(d=>d.remaining>0),usedBars,usedMeters,scrapMeters,netMeters,scrapPct:usedMeters>0?scrapMeters/usedMeters*100:0,usedByLength:usedByLengthRows,scraps,remainingStock,pieceTotals,initialDemand,allFulfilled:fulfilledPieces===requestedPieces,stockUpdated:false};
+  }
+  function optimize(){
+    const dia=n(state.diameter);if(!Number.isFinite(dia)||dia<=0){alert('Inserire il Diametro ferro nei Parametri di lavorazione.');$('#diameter').focus();return;}
+    try{
+      const result=runOptimization(state.quickStock,state.quickDemand,dia);state.result=result;saveState();renderResults();switchTab('results');setToast(result.allFulfilled?'Ottimizzazione completata: richiesta evasa.':'Ottimizzazione incompleta: giacenza insufficiente.');
+    }catch(e){alert(e.message||'Errore durante l’ottimizzazione.');}
+  }
+  function rowsToHtml(rows,cols,emptyText){return rows.length?rows.join(''):`<tr><td colspan="${cols}" class="empty">${emptyText}</td></tr>`;}
+  function renderResults(){
+    const r=state.result,has=!!(r&&Array.isArray(r.patterns));$('#resultsEmpty').classList.toggle('hide',has);$('#resultsContent').classList.toggle('hide',!has);if(!has)return;
+    $('#resultMessage').className='message '+(r.allFulfilled?'':'warn');$('#resultMessage').textContent=r.allFulfilled?`Ottimizzazione completata: evasi ${intFmt(r.fulfilledPieces)} pezzi su ${intFmt(r.requestedPieces)} richiesti.`:`Ottimizzazione incompleta: evasi ${intFmt(r.fulfilledPieces)} pezzi su ${intFmt(r.requestedPieces)}. Restano ${intFmt(r.requestedPieces-r.fulfilledPieces)} pezzi da produrre.`;
+    $('#resultKpis').innerHTML=[['Pezzi richiesti',intFmt(r.requestedPieces),'totale distinta'],['Pezzi evasi',intFmt(r.fulfilledPieces),r.allFulfilled?'100% evaso':fmt(r.fulfilledPieces/Math.max(1,r.requestedPieces)*100,1)+'%'],['Barre utilizzate',intFmt(r.usedBars),'barre originarie'],['Sfrido totale',fmt(r.scrapMeters)+' m',fmt(r.scrapPct,1)+'% delle barre'],['Peso utilizzato',fmt(r.usedMeters*r.unitWeight)+' kg',`Ø ${r.diameter} mm`]].map(k=>`<div class="kpi"><div class="label">${k[0]}</div><div class="value">${k[1]}</div><div class="sub">${k[2]}</div></div>`).join('');
+    const lens=r.pieceTotals.map(x=>x.length).sort((a,b)=>b-a);
+    $('#outputHead').innerHTML='<tr><th>N. barra</th><th>Barra [m]</th><th>Scarto finale [m]</th>'+lens.map(l=>`<th>Tagli ${fmt(l/100)} m</th>`).join('')+'<th>Peso [kg]</th></tr>'; 
+    const rows=r.patterns.map((p,index)=>`<tr><td>${intFmt(index+1)}</td><td>${fmt(p.barLength)}</td><td>${fmt(p.scrapLength)}</td>${lens.map(l=>{const i=r.pieceTotals.findIndex(d=>d.length===l);return `<td>${intFmt(p.counts[i]||0)}</td>`;}).join('')}<td>${fmt(p.barLength*r.unitWeight)}</td></tr>`);
+    const totalsByLength=lens.map(l=>r.pieceTotals.find(d=>d.length===l)?.fulfilled||0);
+    const totalRow=`<tr class="total-row"><td>Totale</td><td>${fmt(r.usedMeters)}</td><td>${fmt(r.scrapMeters)}</td>${totalsByLength.map(x=>`<td>${intFmt(x)}</td>`).join('')}<td>${fmt(r.usedMeters*r.unitWeight)}</td></tr>`;
+    $('#outputBody').innerHTML=rowsToHtml(rows,lens.length+4,'Nessuna barra utilizzata.')+(rows.length?totalRow:'');
+    $('#patternsPill').textContent=`${r.patterns.length} ${r.patterns.length===1?'barra':'barre'} nel piano`;
+    $('#usedBarsBody').innerHTML=rowsToHtml(r.usedByLength.map(x=>`<tr><td>${intFmt(x.length)}</td><td>${intFmt(x.qty)}</td><td>${fmt(x.weight)}</td></tr>`),3,'Nessuna barra utilizzata.')+`<tr class="total-row"><td>Totale</td><td>${intFmt(r.usedBars)}</td><td>${fmt(r.usedMeters*r.unitWeight)}</td></tr>`;
+    $('#unmetBody').innerHTML=rowsToHtml(r.unmet.map(x=>`<tr><td>${intFmt(x.length)}</td><td>${intFmt(x.remaining)}</td></tr>`),2,'Richiesta completamente evasa.');
+    $('#remainingStockBody').innerHTML=rowsToHtml(r.remainingStock.map(x=>`<tr><td>${r.diameter}</td><td>${intFmt(x.qty)}</td><td>${intFmt(x.length)}</td><td>${fmt(x.qty*(x.length/100)*r.unitWeight)}</td></tr>`),4,'Nessuna barra intera residua.');
+    $('#scrapBody').innerHTML=rowsToHtml(r.scraps.map((x,i)=>`<tr><td><input class="scrap-check" type="checkbox" data-scrap-index="${i}" aria-label="Seleziona sfrido ${intFmt(x.length)} cm" ${x.selected?'checked':''} ${x.added?'disabled':''}></td><td>${intFmt(x.qty)}${x.added?' ✓':''}</td><td>${intFmt(x.length)}</td><td>${fmt(x.qty*(x.length/100)*r.unitWeight)}</td></tr>`),4,'Nessuno sfrido recuperabile.');
+    $('#applyRemainingBtn').disabled=!!r.stockUpdated;$('#applyRemainingBtn').textContent=r.stockUpdated?'Giacenza aggiornata':'Aggiorna Giacenza';
+    $('#addScrapsBtn').disabled=!r.stockUpdated||!r.scraps.some(s=>s.selected&&!s.added);
+  }
+  function updateRemainingStock(){
+    const r=state.result;if(!r)return;
+    if(!confirm(`Aggiornare la Giacenza per il diametro ${r.diameter} mm usando esclusivamente le barre intere della tabella Giacenza residua? Gli sfridi recuperabili NON verranno aggiunti.`))return;
+    state.stockDetail=state.stockDetail.filter(x=>!(Number(x.diameter)===r.diameter));
+    for(const x of r.remainingStock){state.stockDetail.push({id:newId(),diameter:String(r.diameter),qty:String(x.qty),length:String(x.length)});}
+    if(!state.stockDetail.length)state.stockDetail=[blankMaster()];
+    r.stockUpdated=true;renderMaster('stockDetail');renderResults();saveState();setToast('Giacenza aggiornata con le sole barre intere residue.');
+  }
+  function addSelectedScraps(){
+    const r=state.result;if(!r)return;if(!r.stockUpdated){alert('Prima premi “Aggiorna Giacenza” per sostituire le barre del diametro lavorato con le sole barre intere residue. Poi potrai aggiungere gli sfridi selezionati.');return;}const chosen=r.scraps.filter(s=>s.selected&&!s.added);if(!chosen.length){alert('Selezionare almeno uno sfrido recuperabile da aggiungere alla Giacenza.');return;}
+    let quantityAdded=0;
+    for(const s of chosen){const dia=String(r.diameter),len=String(s.length);const existing=state.stockDetail.find(x=>Number(x.diameter)===r.diameter&&Number(x.length)===s.length&&Number(x.qty)>0);if(existing)existing.qty=String((Math.floor(n(existing.qty))||0)+s.qty);else state.stockDetail.push({id:newId(),diameter:dia,qty:String(s.qty),length:len});s.added=true;s.selected=false;quantityAdded+=s.qty;}
+    renderMaster('stockDetail');renderResults();saveState();setToast(`${intFmt(quantityAdded)} sfridi aggiunti alla Giacenza.`);
+  }
+  async function exportBackup(){const data={...state,exportedAt:new Date().toISOString(),formatVersion:SCHEMA_VERSION};download('ottimizzazione-barre-ca-backup.json',JSON.stringify(data,null,2),'application/json;charset=utf-8');setToast('Backup JSON esportato.');}
+  function download(name,content,type='text/plain;charset=utf-8'){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  async function importBackupFile(file){
+    try{const d=JSON.parse(await file.text());if(!d||typeof d!=='object'||(!Array.isArray(d.stockDetail)&&!Array.isArray(d.quickStock)))throw new Error('Formato JSON non riconosciuto.');
+      state=d.schemaVersion===SCHEMA_VERSION?normalizeNewState(d):migrateOldState(d);renderAll();setToast('Backup importato correttamente.');
+    }catch(e){alert('Impossibile importare il backup: '+e.message);}
+  }
+
+  document.addEventListener('input',e=>{
+    const el=e.target;if(!el.dataset.collection||!el.dataset.id||!el.dataset.field)return;
+    const rows=state[el.dataset.collection],row=rows&&rows.find(r=>r.id===el.dataset.id);if(!row)return;
+    row[el.dataset.field]=el.value;
+    if(el.dataset.collection==='quickStock'||el.dataset.collection==='quickDemand'){state.result=null;const other=el.dataset.collection==='quickStock'?'quickStock':'quickDemand';const count=state[other].filter(r=>Number.isInteger(n(r.qty))&&n(r.qty)>0&&Number.isInteger(n(r.length))&&n(r.length)>0).length;$(other==='quickStock'?'#stockCountPill':'#demandCountPill').textContent=`${count} ${count===1?'riga':'righe'}`;renderResults();}
+    else {state.result=null;updateMasterRow(el.dataset.collection,el.dataset.id);renderResults();}
+    saveState();
+  });
+  document.addEventListener('change',e=>{
+    const el=e.target;
+    if(el.id==='diameter'){
+      const previous=String(state.diameter??''),next=String(el.value??'');
+      if(previous!==''&&previous!==next){state.quickStock=[blankQuick()];state.quickDemand=[blankQuick()];renderQuick('quickStock');renderQuick('quickDemand');}
+      state.diameter=next;const d=n(next);$('#unitWeightHint').textContent=Number.isFinite(d)&&d>0?`Peso teorico: ${fmt(unitWeight(d),3)} kg/m`:'Inserire il diametro per calcolare il peso.';state.result=null;renderResults();saveState();
+    }
+    if(el.matches('input[data-scrap-index]')){const r=state.result;if(r){const s=r.scraps[Number(el.dataset.scrapIndex)];if(s&&!s.added){s.selected=el.checked;$('#addScrapsBtn').disabled=!r.stockUpdated||!r.scraps.some(x=>x.selected&&!x.added);saveState();}}}
+  });
+  document.addEventListener('click',e=>{
+    const t=e.target.closest('button');if(!t)return;
+    if(t.dataset.tab){switchTab(t.dataset.tab);return;}
+    if(t.dataset.add){addRow(t.dataset.add);return;}
+    if(t.dataset.delete){deleteRow(t.dataset.delete,t.dataset.id);return;}
+  });
+  $('#loadStockBtn').addEventListener('click',()=>loadFromRegistry('quickStock'));
+  $('#loadDemandBtn').addEventListener('click',()=>loadFromRegistry('quickDemand'));
+  $('#optimizeBtn').addEventListener('click',optimize);
+  $('#applyRemainingBtn').addEventListener('click',updateRemainingStock);
+  $('#addScrapsBtn').addEventListener('click',addSelectedScraps);
+  $('#exportJsonBtn').addEventListener('click',exportBackup);
+  $('#importJsonBtn').addEventListener('click',()=>$('#importJsonFile').click());
+  $('#importJsonFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(f)importBackupFile(f);e.target.value='';});
+  renderAll();
+})();
+</script>
+</body>
+</html>
