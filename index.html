@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="Ottimizzazione del taglio di barre per cemento armato, gestione giacenza e distinta, riepilogo sfridi e pesi.">
+<title>Barre C.A. — Ottimizzazione taglio</title>
+<style>
+:root{--navy:#102b46;--navy2:#163b5e;--blue:#2c6593;--teal:#168b83;--teal-dark:#0d6e68;--ink:#1f2e3d;--muted:#66788a;--bg:#f2f5f8;--panel:#fff;--line:#dbe3ea;--soft:#eaf2f6;--warn:#a65317;--warnbg:#fff3e5;--danger:#a62e3e;--dangerbg:#fff0f2;--good:#16765f;--goodbg:#e8f6f0;--shadow:0 8px 24px rgba(16,43,70,.06);--radius:16px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-size:14px;line-height:1.45}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(22,139,131,.25);outline-offset:1px}
+.topbar{background:linear-gradient(120deg,var(--navy),var(--navy2));color:white;padding:22px max(20px,calc((100vw - 1440px)/2));box-shadow:0 5px 18px rgba(16,43,70,.15)}.brandline{display:flex;align-items:center;gap:13px}.brandmark{width:44px;height:44px;border:1px solid rgba(255,255,255,.23);border-radius:13px;display:grid;place-items:center;background:rgba(255,255,255,.08);flex:none}.brandmark svg{width:28px;height:28px}.brand h1{font-size:clamp(20px,2vw,27px);letter-spacing:-.03em;line-height:1.15;margin:0;font-weight:750}.brand p{color:#c7d6e3;margin:5px 0 0;font-size:13px}.top-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.top-actions button{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff}.top-actions button:hover{background:rgba(255,255,255,.15)}
+.shell{max-width:1440px;margin:0 auto;padding:20px}.nav{display:flex;gap:5px;overflow-x:auto;padding:5px;background:#e4ebf1;border-radius:14px;margin-bottom:18px;scrollbar-width:thin}.nav button{border:0;color:#516478;background:transparent;font-weight:650;white-space:nowrap;padding:11px 16px;border-radius:10px;transition:.15s}.nav button.active{background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(16,43,70,.08)}.nav button .nicon{margin-right:7px;opacity:.8}.page{display:none}.page.active{display:block}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin:4px 0 16px}.section-head h2{font-size:21px;letter-spacing:-.025em;margin:0 0 5px;color:var(--navy)}.section-head p{color:var(--muted);margin:0;max-width:800px}.head-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.grid{display:grid;gap:16px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);min-width:0}.panel-head{padding:17px 18px 13px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border-bottom:1px solid #edf1f4}.panel-head h3{font-size:15px;margin:0 0 4px;color:var(--navy)}.panel-head p{font-size:12px;color:var(--muted);margin:0}.panel-body{padding:17px 18px}.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.toolbar.end{justify-content:flex-end}.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.field label,.field-label{font-size:12px;font-weight:700;color:#526579}.field input,.field select,.cell-input,.cell-select{width:100%;min-width:0;background:#fff;border:1px solid #cfd9e2;border-radius:8px;padding:9px 10px;color:var(--ink)}.field input,.field select{min-height:39px}.field input:focus,.field select:focus,.cell-input:focus,.cell-select:focus{border-color:var(--teal);outline:3px solid rgba(22,139,131,.13)}.field .help{font-size:11px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 13px;border:1px solid #cad6df;background:#fff;color:var(--navy);font-weight:700;border-radius:9px;min-height:38px;transition:background .15s,border-color .15s,transform .05s}.btn:hover{background:#f6f9fb;border-color:#9fb4c4}.btn:active{transform:translateY(1px)}.btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}.btn.primary:hover{background:var(--teal-dark);border-color:var(--teal-dark)}.btn.dark{background:var(--navy);color:white;border-color:var(--navy)}.btn.danger{color:var(--danger);background:#fff;border-color:#edc6cc}.btn.danger:hover{background:var(--dangerbg)}.btn.small{min-height:29px;padding:5px 8px;font-size:12px;border-radius:7px}.btn:disabled{opacity:.48;cursor:not-allowed}.icon-btn{width:29px;height:29px;padding:0;border:1px solid #e5c9ce;background:white;color:var(--danger);border-radius:7px;font-size:17px;line-height:1}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}.kpi{padding:15px 16px;background:white;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);min-width:0}.kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:750}.kpi .value{margin-top:6px;color:var(--navy);font-size:clamp(19px,2vw,27px);font-weight:800;letter-spacing:-.04em;white-space:nowrap}.kpi .sub{font-size:11px;color:var(--muted);margin-top:3px}.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 8px;border-radius:99px;background:var(--soft);color:#31536c;white-space:nowrap}.pill.good{background:var(--goodbg);color:var(--good)}.pill.warn{background:var(--warnbg);color:var(--warn)}.pill.neutral{background:#eef1f5;color:#526579}.message{padding:12px 14px;border-radius:10px;font-size:12px;border:1px solid #cce4e2;background:#f0faf9;color:#315b5b;margin:0 0 15px}.message.warn{border-color:#f0d4af;background:var(--warnbg);color:#8b4d1b}.message.danger{border-color:#ebc8ce;background:var(--dangerbg);color:#842c3a}
+.table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:11px}table{border-collapse:separate;border-spacing:0;width:100%;min-width:520px;font-variant-numeric:tabular-nums}th{background:#f4f7f9;color:#53677a;font-size:11px;text-align:left;font-weight:800;padding:10px 9px;white-space:nowrap;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1}td{padding:6px 7px;border-bottom:1px solid #edf1f4;background:#fff;vertical-align:middle}tbody tr:last-child td{border-bottom:0}tbody tr:hover td{background:#fbfdfe}td.num{text-align:right;white-space:nowrap}.cell-input{padding:7px 8px;min-height:33px;border-color:#e0e6eb;border-radius:7px;font-size:13px}.cell-input.num{text-align:right;min-width:76px}.cell-input.text{min-width:125px}.cell-input.short{min-width:62px;width:72px}.cell-select{padding:6px 7px;min-height:33px;border-color:#e0e6eb;font-size:12px;min-width:105px}.calc-cell{font-variant-numeric:tabular-nums;color:#42566a;text-align:right;white-space:nowrap;padding-right:12px}.muted{color:var(--muted)}.empty{padding:24px;text-align:center;color:var(--muted);font-size:13px}.empty strong{display:block;color:var(--navy);margin-bottom:4px}.row-actions{display:flex;gap:6px;align-items:center}.totals-line{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px}.totals-line .stat{padding:9px 11px;background:#f5f8fa;border:1px solid #e6edf2;border-radius:9px}.stat .s-label{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:.05em}.stat .s-value{font-size:15px;color:var(--navy);font-weight:800;margin-top:3px}.table-caption{font-size:11px;color:var(--muted);margin:8px 0 0}.table-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}.table-actions .note{font-size:12px;color:var(--muted)}
+.progress{height:8px;background:#e7edf1;border-radius:999px;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),#50b2a5);transition:width .18s}.progress-caption{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:5px}.subhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 9px}.subhead h4{margin:0;color:var(--navy);font-size:13px}.callout{display:flex;gap:12px;padding:14px 15px;border:1px solid #e3e9ee;background:#f8fafc;border-radius:12px;margin-top:14px}.callout .symbol{font-size:18px;color:var(--teal)}.callout p{margin:0;color:#526579;font-size:12px}.callout strong{color:var(--navy)}.status{font-size:12px;color:#d8e7f2;margin-left:6px}.status::before{content:"";display:inline-block;width:6px;height:6px;background:#6fd2ad;border-radius:50%;margin:0 6px 1px 0}.status.unsaved::before{background:#f5c46e}
+.result-tools{display:flex;flex-wrap:wrap;gap:8px}.footer-note{font-size:11px;color:var(--muted);padding:20px 2px 8px;text-align:center}.detail-total{white-space:nowrap;font-weight:750;color:var(--navy);text-align:right}.modal-backdrop{position:fixed;inset:0;background:rgba(12,30,46,.53);display:none;align-items:center;justify-content:center;padding:18px;z-index:100}.modal-backdrop.open{display:flex}.modal{width:min(740px,100%);background:#fff;border-radius:16px;box-shadow:0 20px 80px rgba(0,0,0,.24);overflow:hidden}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 19px;border-bottom:1px solid var(--line)}.modal-head h3{font-size:16px;margin:0;color:var(--navy)}.modal-body{padding:18px}.modal-body textarea{width:100%;min-height:190px;resize:vertical;border:1px solid #ccd8e1;border-radius:9px;padding:11px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}.modal-body p{font-size:12px;color:var(--muted);margin:0 0 10px}.modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;border-top:1px solid var(--line)}.toast{position:fixed;bottom:20px;right:20px;max-width:min(420px,calc(100vw - 40px));padding:12px 16px;background:var(--navy);color:white;border-radius:10px;box-shadow:0 8px 25px rgba(16,43,70,.2);z-index:120;opacity:0;transform:translateY(9px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}.hide{display:none!important}.nowrap{white-space:nowrap}.right{text-align:right}.small-text{font-size:11px;color:var(--muted)}.unmet{color:var(--danger);font-weight:750}.guide-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.guide-item{border:1px solid var(--line);border-radius:12px;padding:15px;display:flex;gap:11px}.guide-num{width:29px;height:29px;border-radius:9px;display:grid;place-items:center;background:#e7f3f2;color:var(--teal-dark);font-weight:800;flex:none}.guide-item h4{margin:1px 0 5px;color:var(--navy);font-size:13px}.guide-item p{margin:0;color:var(--muted);font-size:12px}.config-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.file-input{display:none}.kbd{font-family:ui-monospace,monospace;font-size:11px;padding:2px 5px;border:1px solid #d8e0e6;border-bottom-width:2px;border-radius:4px;background:#fff;color:#526579}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar{padding-left:20px;padding-right:20px}}
+@media(max-width:760px){.shell{padding:12px}.topbar{padding:16px}.brandline{align-items:flex-start}.brandmark{width:40px;height:40px}.top-actions{width:100%;margin:12px 0 0;justify-content:flex-start}.brandline{flex-wrap:wrap}.grid.two,.grid.three{grid-template-columns:1fr}.controls{grid-template-columns:1fr}.section-head{flex-direction:column}.head-actions{justify-content:flex-start}.panel-head,.panel-body{padding-left:13px;padding-right:13px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.kpi{padding:12px}.kpi .value{font-size:21px}.guide-list{grid-template-columns:1fr}.nav button{padding:10px 12px;font-size:12px}.panel-head{align-items:flex-start}.toolbar.end{justify-content:flex-start}.top-actions button{min-height:34px}.btn{font-size:12px;padding:8px 10px}}
+@media(max-width:420px){.kpis{grid-template-columns:1fr 1fr}.brand h1{font-size:21px}.brand p{font-size:12px}.nav{margin-bottom:12px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brandline">
+    <div class="brandmark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M4 8h24M4 16h24M4 24h24" stroke="#8ED9CE" stroke-width="3" stroke-linecap="round"/><path d="M10 4v24M22 4v24" stroke="#fff" stroke-opacity=".75" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+    <div class="brand"><h1>Barre C.A.</h1><p>Gestione giacenza e ottimizzazione del taglio <span class="status" id="saveStatus">Salvataggio locale attivo</span></p></div>
+    <div class="top-actions">
+      <button class="btn" id="importJsonBtn" type="button">⇧ Importa backup</button>
+      <button class="btn" id="exportJsonBtn" type="button">⇩ Esporta backup</button>
+      <input class="file-input" type="file" id="importJsonFile" accept="application/json,.json">
+    </div>
+  </div>
+</header>
+<div class="shell">
+  <nav class="nav" aria-label="Sezioni applicazione">
+    <button type="button" class="active" data-tab="optimize"><span class="nicon">◈</span>Ottimizzazione</button>
+    <button type="button" data-tab="stock"><span class="nicon">▤</span>Giacenza</button>
+    <button type="button" data-tab="demand"><span class="nicon">≡</span>Distinta</button>
+    <button type="button" data-tab="results"><span class="nicon">▥</span>Risultati</button>
+    <button type="button" data-tab="help"><span class="nicon">ⓘ</span>Guida</button>
+  </nav>
+
+  <main>
+    <section class="page active" id="page-optimize">
+      <div class="section-head"><div><h2>Ottimizzazione del taglio</h2><p>Inserisci le barre disponibili e i pezzi richiesti. Il calcolo individua combinazioni di taglio con sfrido minimo, rispettando la giacenza.</p></div><div class="head-actions"><button class="btn" id="syncDetailBtn" type="button">↻ Carica da Giacenza e Distinta</button><button class="btn" id="resetBtn" type="button">Inizializza</button></div></div>
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-head"><div><h3>Parametri di lavorazione</h3><p>Il diametro è usato per il riepilogo dei pesi. Non modifica la lunghezza dei tagli.</p></div><span class="pill neutral">Dati salvati su questo dispositivo</span></div>
+        <div class="panel-body"><div class="controls">
+          <div class="field"><label for="diameter">Diametro ferro</label><select id="diameter"><option value="6">Ø 6 mm</option><option value="8">Ø 8 mm</option><option value="10">Ø 10 mm</option><option value="12">Ø 12 mm</option><option value="14">Ø 14 mm</option><option value="16" selected>Ø 16 mm</option><option value="18">Ø 18 mm</option><option value="20">Ø 20 mm</option><option value="22">Ø 22 mm</option><option value="24">Ø 24 mm</option><option value="26">Ø 26 mm</option><option value="28">Ø 28 mm</option><option value="30">Ø 30 mm</option></select><span class="help" id="unitWeightHint">Peso unitario: 1,578 kg/m</span></div>
+          <div class="field"><label for="orderMode">Ordine barre in caso di parità</label><select id="orderMode"><option value="asc">Dal più piccolo al più grande</option><option value="desc">Dal più grande al più piccolo</option></select><span class="help">Determina quale barra preferire quando lo sfrido è uguale.</span></div>
+          <div class="field"><label>Modello di calcolo</label><div style="padding:10px 11px;border:1px solid #dbe5eb;background:#f7fafb;border-radius:8px;min-height:39px;color:#41596c;font-weight:700">Sfrido minimo per barra · tagli interi</div><span class="help">Come nel VBA, non viene applicato un consumo lama/kerf.</span></div>
+        </div></div>
+      </div>
+      <div class="grid two">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Giacenza per l'ottimizzazione</h3><p>Quantità e lunghezza delle barre intere disponibili.</p></div><span class="pill" id="stockCountPill">0 righe</span></div>
+          <div class="panel-body"><div class="table-actions"><span class="note">Duplicati di lunghezza uguale vengono sommati durante il calcolo.</span><div class="toolbar"><button class="btn small" type="button" data-add="quickStock">＋ Riga</button><button class="btn small" type="button" data-paste="quickStock">Incolla da Excel</button></div></div>
+            <div class="table-wrap"><table><thead><tr><th style="width:42px">#</th><th>Numero barre</th><th>Lunghezza [m]</th><th></th></tr></thead><tbody id="quickStockBody"></tbody></table></div>
+            <p class="table-caption">Esempio: <span class="kbd">12</span> barre da <span class="kbd">12,00</span> m. Le righe vuote vengono ignorate.</p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Richiesta di taglio</h3><p>Quantità e lunghezza dei pezzi da produrre.</p></div><span class="pill" id="demandCountPill">0 righe</span></div>
+          <div class="panel-body"><div class="table-actions"><span class="note">Lunghezze uguali vengono aggregate; l'ordine di calcolo parte dalla più lunga.</span><div class="toolbar"><button class="btn small" type="button" data-add="quickDemand">＋ Riga</button><button class="btn small" type="button" data-paste="quickDemand">Incolla da Excel</button></div></div>
+            <div class="table-wrap"><table><thead><tr><th style="width:42px">#</th><th>Numero pezzi</th><th>Lunghezza [m]</th><th></th></tr></thead><tbody id="quickDemandBody"></tbody></table></div>
+            <p class="table-caption">Puoi incollare direttamente due colonne copiate da Excel: Numero e Lunghezza.</p>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <div class="panel-body"><div class="config-strip"><div><h3 style="margin:0 0 4px;color:var(--navy);font-size:16px">Pronto per il calcolo?</h3><div class="small-text" id="preflightText">Inserisci almeno una barra disponibile e un pezzo richiesto.</div></div><div class="toolbar"><button class="btn primary" type="button" id="optimizeBtn">▶ Esegui ottimizzazione</button></div></div><div class="progress" aria-label="Avanzamento calcolo"><span id="progressFill"></span></div><div class="progress-caption"><span id="progressText">In attesa</span><span id="progressPct">0%</span></div></div>
+      </div>
+      <div class="callout"><div class="symbol">ⓘ</div><p><strong>Come funziona:</strong> per ogni lunghezza di barra il motore cerca la combinazione di pezzi che minimizza lo sfrido; seleziona lo sfrido migliore disponibile e ripete il calcolo sulle quantità residue. I risultati possono differire da Excel nei casi in cui il Solver trovi più combinazioni equivalenti.</p></div>
+    </section>
+
+    <section class="page" id="page-stock">
+      <div class="section-head"><div><h2>Giacenza dettagliata</h2><p>Registro delle barre e dei ferri già lavorati. Le lunghezze L1–L6 hanno precedenza sulla lunghezza sintetica, come nel foglio Excel.</p></div><div class="head-actions"><button class="btn" type="button" data-paste="stockDetail">Incolla righe da Excel</button><button class="btn primary" type="button" data-add="stockDetail">＋ Aggiungi riga</button></div></div>
+      <div class="kpis" id="stockKpis"></div>
+      <div class="panel"><div class="panel-head"><div><h3>Elenco giacenza</h3><p>Compila il diametro, il numero di elementi e le dimensioni in metri.</p></div><span class="pill neutral">Calcoli automatici</span></div><div class="panel-body"><div class="table-wrap"><table><thead><tr><th>Tipologia</th><th>Descrizione</th><th>Ø [mm]</th><th>Nr.</th><th>L1</th><th>L2</th><th>L3</th><th>L4</th><th>L5</th><th>L6</th><th>Lungh. sint.</th><th>Lungh. eff.</th><th>Totale [m]</th><th>Peso tot. [kg]</th><th></th></tr></thead><tbody id="stockDetailBody"></tbody></table></div><div class="toolbar" style="margin-top:12px"><button class="btn" type="button" data-add="stockDetail">＋ Aggiungi riga</button><button class="btn" type="button" data-paste="stockDetail">Incolla righe da Excel</button><button class="btn" type="button" data-csv="stockDetail">Scarica modello CSV</button></div><p class="table-caption">Per incollare dal foglio Excel, seleziona le colonne da Tipologia/Descrizione fino a Lunghezza sintetica e usa “Incolla righe da Excel”. Puoi anche lasciare vuoti i campi non pertinenti.</p></div></div>
+    </section>
+
+    <section class="page" id="page-demand">
+      <div class="section-head"><div><h2>Distinta richiesta</h2><p>Elenco dei ferri da produrre, con lunghezza netta e riepilogo del peso. Lo sfrido percentuale incide sul peso lordo stimato, non sul motore di taglio.</p></div><div class="head-actions"><button class="btn" type="button" data-paste="demandDetail">Incolla righe da Excel</button><button class="btn primary" type="button" data-add="demandDetail">＋ Aggiungi riga</button></div></div>
+      <div class="panel" style="margin-bottom:16px"><div class="panel-body"><div class="controls"><div class="field"><label for="wastePercent">Sfrido previsto sulla distinta [%]</label><input id="wastePercent" type="number" min="0" max="200" step="1" value="10"><span class="help">Valore iniziale del file Excel: 10%.</span></div><div class="field"><label>Peso netto</label><div style="padding:10px;border:1px solid #dbe5eb;border-radius:8px;background:#f7fafb;font-size:17px;font-weight:800;color:var(--navy)" id="demandNetWeight">0,00 kg</div></div><div class="field"><label>Peso lordo stimato</label><div style="padding:10px;border:1px solid #dbe5eb;border-radius:8px;background:#f7fafb;font-size:17px;font-weight:800;color:var(--navy)" id="demandGrossWeight">0,00 kg</div></div></div></div></div>
+      <div class="panel"><div class="panel-head"><div><h3>Elenco distinta</h3><p>Dimensioni analitiche (L1–L6) oppure una sola lunghezza sintetica.</p></div><span class="pill neutral">Calcoli automatici</span></div><div class="panel-body"><div class="table-wrap"><table><thead><tr><th>POS</th><th>Descrizione</th><th>Ø [mm]</th><th>Nr.</th><th>L1</th><th>L2</th><th>L3</th><th>L4</th><th>L5</th><th>L6</th><th>Lungh. sint.</th><th>Lungh. eff.</th><th>Totale [m]</th><th>Peso netto [kg]</th><th>Peso lordo [kg]</th><th></th></tr></thead><tbody id="demandDetailBody"></tbody></table></div><div class="toolbar" style="margin-top:12px"><button class="btn" type="button" data-add="demandDetail">＋ Aggiungi riga</button><button class="btn" type="button" data-paste="demandDetail">Incolla righe da Excel</button><button class="btn" type="button" data-csv="demandDetail">Scarica modello CSV</button></div><p class="table-caption">La lunghezza effettiva è la somma dei segmenti valorizzati; se non ci sono segmenti usa la lunghezza sintetica.</p></div></div>
+    </section>
+
+    <section class="page" id="page-results">
+      <div class="section-head"><div><h2>Risultati dell'ottimizzazione</h2><p>Schema barre utilizzate, quantità evase, sfridi, peso e materiale ancora da tagliare.</p></div><div class="head-actions result-tools"><button class="btn" type="button" id="exportOutputCsv" disabled>⇩ Esporta piano CSV</button><button class="btn primary" type="button" id="applyStockBtn" disabled>↻ Aggiorna giacenza con gli sfridi</button></div></div>
+      <div id="resultsEmpty" class="panel"><div class="empty"><strong>Nessun risultato disponibile</strong>Vai su Ottimizzazione e premi “Esegui ottimizzazione”.</div></div>
+      <div id="resultsContent" class="hide">
+        <div id="resultMessage" class="message"></div>
+        <div class="kpis" id="resultKpis"></div>
+        <div class="panel" style="margin-bottom:16px"><div class="panel-head"><div><h3>Piano di taglio</h3><p>Numero di barre con lo stesso schema e numero di pezzi per barra.</p></div><span class="pill" id="patternsPill">0 schemi</span></div><div class="panel-body"><div class="table-wrap"><table id="outputTable"><thead id="outputHead"></thead><tbody id="outputBody"></tbody></table></div><p class="table-caption">Le colonne delle lunghezze indicano quanti pezzi di quella misura vengono ricavati da ciascuna barra.</p></div></div>
+        <div class="grid two">
+          <div class="panel"><div class="panel-head"><div><h3>Riepilogo barre utilizzate</h3><p>Quantità complessive per lunghezza di barra.</p></div></div><div class="panel-body"><div class="table-wrap"><table style="min-width:340px"><thead><tr><th>Barra [m]</th><th>Numero</th><th>Peso totale [kg]</th></tr></thead><tbody id="usedBarsBody"></tbody></table></div></div></div>
+          <div class="panel"><div class="panel-head"><div><h3>Richiesta non evasa</h3><p>Pezzi residui per lunghezza, se la giacenza non basta.</p></div></div><div class="panel-body"><div class="table-wrap"><table style="min-width:300px"><thead><tr><th>Lunghezza [m]</th><th>Residuo [pz]</th></tr></thead><tbody id="unmetBody"></tbody></table></div></div></div>
+        </div>
+        <div class="grid two" style="margin-top:16px">
+          <div class="panel"><div class="panel-head"><div><h3>Giacenza residua</h3><p>Barre intere non utilizzate dopo il taglio.</p></div></div><div class="panel-body"><div class="table-wrap"><table style="min-width:300px"><thead><tr><th>Lunghezza [m]</th><th>Numero residuo</th></tr></thead><tbody id="remainingStockBody"></tbody></table></div></div></div>
+          <div class="panel"><div class="panel-head"><div><h3>Sfridi recuperabili</h3><p>Spezzoni riutilizzabili generati dal piano.</p></div></div><div class="panel-body"><div class="table-wrap"><table style="min-width:300px"><thead><tr><th>Lunghezza sfrido [m]</th><th>Numero</th></tr></thead><tbody id="scrapBody"></tbody></table></div><p class="table-caption">“Aggiorna giacenza” unirà questi spezzoni alle barre intere rimaste.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-help">
+      <div class="section-head"><div><h2>Guida rapida</h2><p>Come usare la versione web e quali differenze tecniche rispetto alla cartella Excel originale.</p></div></div>
+      <div class="guide-list">
+        <div class="guide-item"><div class="guide-num">1</div><div><h4>Inserisci la giacenza e la richiesta</h4><p>Puoi inserire direttamente quantità e lunghezze in Ottimizzazione, oppure compilare le schede dettagliate Giacenza e Distinta e trasferire automaticamente le righe del diametro selezionato.</p></div></div>
+        <div class="guide-item"><div class="guide-num">2</div><div><h4>Seleziona il diametro e la priorità</h4><p>Il diametro serve al calcolo dei pesi. L'ordine crescente/decrescente viene usato come criterio di spareggio quando due schemi producono lo stesso sfrido.</p></div></div>
+        <div class="guide-item"><div class="guide-num">3</div><div><h4>Esegui il calcolo</h4><p>Il calcolo aggrega le lunghezze duplicate, ordina la richiesta dalla più lunga e cerca un pattern intero che massimizzi il materiale utilizzato su ogni lunghezza di barra disponibile.</p></div></div>
+        <div class="guide-item"><div class="guide-num">4</div><div><h4>Controlla evasi, residui e sfridi</h4><p>Nel risultato trovi il piano barra per barra, il riepilogo dei pesi, la richiesta non evasa, le barre rimaste e gli sfridi recuperabili.</p></div></div>
+        <div class="guide-item"><div class="guide-num">5</div><div><h4>Aggiorna la giacenza</h4><p>Il comando aggiunge gli sfridi recuperabili alle barre intere residue, aggregando le lunghezze uguali. È possibile ripetere il ciclo con una nuova richiesta.</p></div></div>
+        <div class="guide-item"><div class="guide-num">6</div><div><h4>Salvataggio e backup</h4><p>I dati sono salvati nel browser del dispositivo tramite localStorage. Usa Esporta backup per una copia JSON: i dati non vengono sincronizzati automaticamente fra PC e telefono.</p></div></div>
+      </div>
+      <div class="panel" style="margin-top:16px"><div class="panel-head"><div><h3>Differenze rispetto a Excel</h3><p>Note tecniche importanti per interpretare i risultati.</p></div></div><div class="panel-body"><div class="message warn">Il Solver di Excel è stato sostituito da un algoritmo deterministico di programmazione dinamica che cerca lo sfrido minimo per ciascuna lunghezza di barra. Quando esistono più schemi ottimi equivalenti, la combinazione scelta può differire da quella del Solver; l'obiettivo resta minimizzare lo sfrido rispettando le quantità disponibili.</div><p style="font-size:12px;color:#526579;margin:0 0 8px">La versione web replica l'aggregazione delle lunghezze duplicate, l'ordine della richiesta, l'aggiornamento delle rimanenze e la generazione degli sfridi descritti nel VBA e nelle query Power Query. Non è necessario Excel, Solver o Power Query per l'esecuzione dell'applicazione.</p><p style="font-size:12px;color:#526579;margin:0">Per ora non è modellato il consumo della lama (kerf), che non compare nemmeno nelle formule del VBA. Prima di usare i risultati per un ordine o per la produzione, confronta alcuni casi con il foglio Excel e verifica che le lunghezze inserite siano coerenti con la precisione richiesta.</p></div></div>
+    </section>
+  </main>
+  <div class="footer-note">Barre C.A. · App locale nel browser · Nessun invio dati a un server</div>
+</div>
+
+<div class="modal-backdrop" id="pasteModal" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
+  <div class="modal"><div class="modal-head"><h3 id="pasteTitle">Incolla dati da Excel</h3><button class="icon-btn" id="closePaste" type="button" aria-label="Chiudi">×</button></div><div class="modal-body"><p id="pasteHelp">Copia le righe da Excel e incollale qui. I campi devono essere separati da tabulazioni, come in una normale copia di celle.</p><textarea id="pasteText" spellcheck="false" placeholder="Esempio:&#10;12&#9;12,00&#10;8&#9;10,00"></textarea><p id="pasteFormatHelp">Per l'input rapido usa due colonne: Numero e Lunghezza [m].</p></div><div class="modal-foot"><button class="btn" id="cancelPaste" type="button">Annulla</button><button class="btn primary" id="confirmPaste" type="button">Importa righe</button></div></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  'use strict';
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const STORE_KEY = 'barreCA.app.v1';
+  const DIAMETERS = [6,8,10,12,14,16,18,20,22,24,26,28,30];
+  const SEGMENTS = ['l1','l2','l3','l4','l5','l6'];
+  let pasteTarget = null;
+  let toastTimer = null;
+  let running = false;
+  let state = loadState();
+
+  function newId(){ return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function blankQuick(){ return {id:newId(),qty:'',length:''}; }
+  function blankDetail(kind){
+    const r={id:newId(),type:kind==='stockDetail'?'Dritto':'',pos:'',description:'',diameter:'',qty:'',synth:''};
+    SEGMENTS.forEach(k=>r[k]=''); return r;
+  }
+  function defaults(){ return {diameter:16,orderMode:'asc',wastePercent:10,quickStock:[blankQuick(),blankQuick()],quickDemand:[blankQuick(),blankQuick()],stockDetail:[blankDetail('stockDetail')],demandDetail:[blankDetail('demandDetail')],result:null}; }
+  function loadState(){
+    try{
+      const raw=localStorage.getItem(STORE_KEY); if(!raw)return defaults();
+      const d=JSON.parse(raw); const base=defaults();
+      return {...base,...d,
+        quickStock:Array.isArray(d.quickStock)&&d.quickStock.length?d.quickStock:[blankQuick()],
+        quickDemand:Array.isArray(d.quickDemand)&&d.quickDemand.length?d.quickDemand:[blankQuick()],
+        stockDetail:Array.isArray(d.stockDetail)&&d.stockDetail.length?d.stockDetail:[blankDetail('stockDetail')],
+        demandDetail:Array.isArray(d.demandDetail)&&d.demandDetail.length?d.demandDetail:[blankDetail('demandDetail')]};
+    }catch(e){return defaults();}
+  }
+  function saveState(){
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(state)); $('#saveStatus').textContent='Salvataggio locale attivo';$('#saveStatus').classList.remove('unsaved');}
+    catch(e){$('#saveStatus').textContent='Salvataggio locale non disponibile';$('#saveStatus').classList.add('unsaved');}
+  }
+  function n(value){ if(value===null||value===undefined||String(value).trim()==='')return 0; const v=Number(String(value).trim().replace(',','.'));return Number.isFinite(v)?v:NaN; }
+  function fmt(value,digits=2){ if(!Number.isFinite(Number(value)))return '—';return new Intl.NumberFormat('it-IT',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Number(value)); }
+  function intFmt(value){return new Intl.NumberFormat('it-IT',{maximumFractionDigits:0}).format(value||0);}
+  function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function unitWeight(dia){ const d=n(dia);return Number.isFinite(d)&&d>0?Math.round(Math.PI*Math.pow(d/1000/2,2)*7850*1000)/1000:0; }
+  function effectiveLength(row){const segs=SEGMENTS.map(k=>n(row[k])).filter(v=>Number.isFinite(v)&&v>0);return segs.length?segs.reduce((a,b)=>a+b,0):Math.max(0,n(row.synth)||0);}
+  function detailStats(rows,kind){let qty=0,totalM=0,netKg=0,grossKg=0;for(const r of rows){const count=Math.max(0,n(r.qty)||0),len=effectiveLength(r),w=unitWeight(r.diameter);if(count&&len){qty+=count;totalM+=count*len;netKg+=count*len*w;grossKg+=count*len*w*(1+(kind==='demandDetail'?Math.max(0,n(state.wastePercent)||0):0)/100);}}return {qty,totalM,netKg,grossKg};}
+  function setToast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3200);}
+  function switchTab(tab){$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));$$('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+tab));if(tab==='results')renderResults();window.scrollTo({top:0,behavior:'smooth'});}
+  function renderQuick(which){
+    const rows=state[which],body=$(which==='quickStock'?'#quickStockBody':'#quickDemandBody');
+    body.innerHTML=rows.map((r,i)=>`<tr><td class="muted">${i+1}</td><td><input class="cell-input num" type="number" min="0" step="1" inputmode="numeric" aria-label="${which==='quickStock'?'Numero barre':'Numero pezzi'} ${i+1}" data-collection="${which}" data-id="${r.id}" data-field="qty" value="${escapeHtml(r.qty)}"></td><td><input class="cell-input num" type="text" inputmode="decimal" aria-label="Lunghezza in metri ${i+1}" data-collection="${which}" data-id="${r.id}" data-field="length" value="${escapeHtml(r.length)}" placeholder="0,00"></td><td><button class="icon-btn" type="button" data-delete="${which}" data-id="${r.id}" aria-label="Elimina riga">×</button></td></tr>`).join('');
+    const pill=$(which==='quickStock'?'#stockCountPill':'#demandCountPill');const cnt=rows.filter(r=>(n(r.qty)>0&&n(r.length)>0)).length;pill.textContent=`${cnt} ${cnt===1?'riga':'righe'} valide`;
+  }
+  function detailInput(row,field,val,kind,cls='num',type='text'){
+    const typeAttr=type==='number'?'type="number" min="0" step="1"':'type="text" inputmode="decimal"';
+    return `<input class="cell-input ${cls}" ${typeAttr} data-collection="${kind}" data-id="${row.id}" data-field="${field}" value="${escapeHtml(val??'')}" aria-label="${field}">`;
+  }
+  function renderDetail(kind){
+    const rows=state[kind], body=$(kind==='stockDetail'?'#stockDetailBody':'#demandDetailBody');
+    body.innerHTML=rows.map((r,i)=>{
+      const count=Math.max(0,n(r.qty)||0),len=effectiveLength(r),totM=count*len,kg=totM*unitWeight(r.diameter),gross=kg*(1+(kind==='demandDetail'?Math.max(0,n(state.wastePercent)||0):0)/100);
+      const typeOrPos=kind==='stockDetail'?`<select class="cell-select" data-collection="${kind}" data-id="${r.id}" data-field="type"><option ${r.type==='Dritto'?'selected':''}>Dritto</option><option ${r.type==='Sagomato'?'selected':''}>Sagomato</option></select>`:detailInput(r,'pos',r.pos,kind,'short','text');
+      let t=`<tr data-detail-row="${r.id}"><td>${typeOrPos}</td><td>${detailInput(r,'description',r.description,kind,'text','text')}</td><td>${`<select class="cell-select" data-collection="${kind}" data-id="${r.id}" data-field="diameter"><option value="">—</option>${DIAMETERS.map(d=>`<option value="${d}" ${String(r.diameter)===String(d)?'selected':''}>${d}</option>`).join('')}</select>`}</td><td>${detailInput(r,'qty',r.qty,kind,'short','number')}</td>`;
+      for(const k of SEGMENTS)t+=`<td>${detailInput(r,k,r[k],kind,'short','text')}</td>`;
+      t+=`<td>${detailInput(r,'synth',r.synth,kind,'short','text')}</td><td class="calc-cell" data-calc="length">${len?fmt(len):'—'}</td><td class="calc-cell" data-calc="totalM">${totM?fmt(totM):'—'}</td>`;
+      if(kind==='stockDetail')t+=`<td class="calc-cell" data-calc="weight">${kg?fmt(kg):'—'}</td>`;
+      else t+=`<td class="calc-cell" data-calc="weight">${kg?fmt(kg):'—'}</td><td class="calc-cell" data-calc="gross">${gross?fmt(gross):'—'}</td>`;
+      t+=`<td><button class="icon-btn" type="button" data-delete="${kind}" data-id="${r.id}" aria-label="Elimina riga ${i+1}">×</button></td></tr>`;return t;
+    }).join('');
+    renderDetailStats();
+  }
+  function renderDetailStats(){
+    const s=detailStats(state.stockDetail,'stockDetail'),d=detailStats(state.demandDetail,'demandDetail');
+    $('#stockKpis').innerHTML=[['Righe compilate',state.stockDetail.filter(r=>n(r.qty)>0&&effectiveLength(r)>0).length,'dettaglio giacenza'],['Barre/elementi',intFmt(s.qty),'quantità registrata'],['Sviluppo totale',fmt(s.totalM)+' m','metri complessivi'],['Peso teorico',fmt(s.netKg)+' kg','in base al diametro']].map(k=>`<div class="kpi"><div class="label">${k[0]}</div><div class="value">${k[1]}</div><div class="sub">${k[2]}</div></div>`).join('');
+    $('#demandNetWeight').textContent=fmt(d.netKg)+' kg';$('#demandGrossWeight').textContent=fmt(d.grossKg)+' kg';
+  }
+  function renderAll(){
+    $('#diameter').value=String(state.diameter||16);$('#orderMode').value=state.orderMode||'asc';$('#wastePercent').value=state.wastePercent??10;$('#unitWeightHint').textContent='Peso unitario: '+fmt(unitWeight(state.diameter),3)+' kg/m';
+    renderQuick('quickStock');renderQuick('quickDemand');renderDetail('stockDetail');renderDetail('demandDetail');updatePreflight();renderResults();saveState();
+  }
+  function updatePreflight(){
+    const validStock=state.quickStock.filter(r=>n(r.qty)>0&&n(r.length)>0),validDemand=state.quickDemand.filter(r=>n(r.qty)>0&&n(r.length)>0);
+    const totalDemand=validDemand.reduce((s,r)=>s+(n(r.qty)||0),0);const valid=validStock.length>0&&validDemand.length>0;
+    $('#preflightText').textContent=valid?`${validStock.length} righe di giacenza · ${intFmt(totalDemand)} pezzi richiesti · peso unitario ${fmt(unitWeight(state.diameter),3)} kg/m.`:'Inserisci almeno una barra disponibile e un pezzo richiesto.';
+    $('#optimizeBtn').disabled=running||!valid;
+  }
+  function aggRows(rows,order='desc'){
+    const m=new Map();for(const r of rows){const q=n(r.qty),l=n(r.length);if(!Number.isFinite(q)||!Number.isFinite(l)||q<=0||l<=0)continue;const units=Math.round(l*100);if(units<=0)continue;const key=units;m.set(key,(m.get(key)||0)+Math.floor(q));}
+    return Array.from(m,([units,qty])=>({units,qty,length:units/100})).filter(x=>x.qty>0).sort((a,b)=>order==='asc'?a.units-b.units:b.units-a.units);
+  }
+  function buildDemand(rows){return aggRows(rows,'desc').map(r=>({...r,remaining:r.qty}));}
+  function solvePattern(stockUnits,demand){
+    // Bounded subset-sum: trova la lunghezza utilizzata massima entro la singola barra.
+    const relevant=demand.map((d,index)=>({index,units:d.units,qty:Math.min(d.remaining,Math.floor(stockUnits/d.units))})).filter(d=>d.units>0&&d.qty>0);
+    if(!relevant.length)return null;
+    const dp=new Array(stockUnits+1);dp[0]=new Int32Array(demand.length);
+    for(const item of relevant){
+      let remaining=item.qty,pack=1;
+      while(remaining>0){const take=Math.min(pack,remaining),weight=take*item.units;remaining-=take;pack*=2;
+        for(let s=stockUnits;s>=weight;s--){const prev=dp[s-weight];if(prev!==undefined&&dp[s]===undefined){const vec=new Int32Array(prev);vec[item.index]+=take;dp[s]=vec;}}
+      }
+    }
+    let used=stockUnits;while(used>0&&dp[used]===undefined)used--;
+    if(used<=0||!dp[used])return null;
+    return {usedUnits:used,scrapUnits:stockUnits-used,counts:Array.from(dp[used])};
+  }
+  function runOptimization(stockRows,demandRows,mode){
+    let inventory=aggRows(stockRows,mode).map(x=>({...x,remaining:x.qty}));
+    const demand=buildDemand(demandRows);const requestedPieces=demand.reduce((s,d)=>s+d.remaining,0),requestedLengthUnits=demand.reduce((s,d)=>s+d.units*d.remaining,0);
+    if(!inventory.length)throw new Error('La giacenza non contiene barre con quantità e lunghezza valide.');
+    if(!demand.length)throw new Error('La richiesta non contiene pezzi con quantità e lunghezza valide.');
+    const initialInventory=inventory.map(x=>({...x}));const initialDemand=demand.map(x=>({...x}));const patterns=[];const maxIterations=Math.min(3000,Math.max(100, inventory.reduce((s,x)=>s+x.qty,0)*3+demand.length*10));let loops=0;
+    while(demand.some(d=>d.remaining>0)&&inventory.some(s=>s.remaining>0)){
+      if(++loops>maxIterations)throw new Error('Il calcolo è stato interrotto dal limite di sicurezza. Prova a verificare i dati.');
+      let best=null;
+      for(let si=0;si<inventory.length;si++){
+        const stock=inventory[si];if(stock.remaining<=0)continue;
+        const pat=solvePattern(stock.units,demand);if(!pat)continue;
+        if(!best||pat.scrapUnits<best.pattern.scrapUnits){best={stockIndex:si,pattern:pat};}
+      }
+      if(!best)break;
+      const p=best.pattern,stock=inventory[best.stockIndex];
+      let batch=stock.remaining;
+      for(let i=0;i<p.counts.length;i++){const c=p.counts[i];if(c>0)batch=Math.min(batch,Math.floor(demand[i].remaining/c));}
+      if(!Number.isFinite(batch)||batch<1)break;
+      patterns.push({id:patterns.length+1,barUnits:stock.units,barLength:stock.length,barCount:batch,scrapUnits:p.scrapUnits,scrapLength:p.scrapUnits/100,usedUnits:p.usedUnits,counts:p.counts.slice()});
+      stock.remaining-=batch;
+      for(let i=0;i<demand.length;i++)if(p.counts[i]>0)demand[i].remaining-=p.counts[i]*batch;
+    }
+    const fulfilledPieces=demand.reduce((s,d)=>s+(d.qty-d.remaining),0);const unmet=demand.filter(d=>d.remaining>0).map(d=>({length:d.length,units:d.units,qty:d.remaining}));
+    const usedBars=patterns.reduce((s,p)=>s+p.barCount,0),grossUnits=patterns.reduce((s,p)=>s+p.barCount*p.barUnits,0),scrapUnits=patterns.reduce((s,p)=>s+p.barCount*p.scrapUnits,0),netUnits=grossUnits-scrapUnits;
+    const usedMeters=grossUnits/100,scrapMeters=scrapUnits/100,netMeters=netUnits/100;
+    const usedByLength=new Map();for(const p of patterns)usedByLength.set(p.barUnits,(usedByLength.get(p.barUnits)||0)+p.barCount);
+    const scraps=new Map();for(const p of patterns)if(p.scrapUnits>0)scraps.set(p.scrapUnits,(scraps.get(p.scrapUnits)||0)+p.barCount);
+    const remainingStock=inventory.filter(s=>s.remaining>0).map(s=>({units:s.units,length:s.length,qty:s.remaining}));
+    const pieceTotals=demand.map(d=>({length:d.length,units:d.units,requested:d.qty,fulfilled:d.qty-d.remaining,remaining:d.remaining}));
+    return {diameter:Number(state.diameter)||16,unitWeight:unitWeight(state.diameter),mode,patterns,requestedPieces,fulfilledPieces,unmet,usedBars,usedMeters,scrapMeters,netMeters,scrapPctNet:netMeters>0?scrapMeters/netMeters*100:0,scrapPctGross:usedMeters>0?scrapMeters/usedMeters*100:0,usedByLength:Array.from(usedByLength,([units,qty])=>({units,length:units/100,qty,weight:qty*(units/100)*unitWeight(state.diameter)})).sort((a,b)=>b.units-a.units),scraps:Array.from(scraps,([units,qty])=>({units,length:units/100,qty})).sort((a,b)=>b.units-a.units),remainingStock,initialInventory,pieceTotals,initialDemand,allFulfilled:fulfilledPieces===requestedPieces};
+  }
+  async function optimize(){
+    if(running)return;running=true;updatePreflight();$('#progressFill').style.width='3%';$('#progressText').textContent='Preparazione dati…';$('#progressPct').textContent='3%';$('#optimizeBtn').disabled=true;
+    try{
+      await new Promise(r=>setTimeout(r,30));
+      const result=runOptimization(state.quickStock,state.quickDemand,state.orderMode);state.result=result;saveState();$('#progressFill').style.width='100%';$('#progressText').textContent='Calcolo completato';$('#progressPct').textContent='100%';renderResults();switchTab('results');setToast(result.allFulfilled?'Ottimizzazione completata: richiesta evasa.':'Ottimizzazione incompleta: giacenza esaurita o insufficiente.');
+    }catch(e){setToast(e.message||'Errore durante l’ottimizzazione.');$('#progressFill').style.width='0%';$('#progressText').textContent='Calcolo non eseguito';$('#progressPct').textContent='0%';}
+    finally{running=false;updatePreflight();}
+  }
+  function rowsToHtml(rows, cols, emptyText){if(!rows.length)return `<tr><td colspan="${cols}" class="empty">${emptyText}</td></tr>`;return rows;}
+  function renderResults(){
+    const r=state.result;const has=!!(r&&Array.isArray(r.patterns));$('#resultsEmpty').classList.toggle('hide',has);$('#resultsContent').classList.toggle('hide',!has);$('#applyStockBtn').disabled=!has;$('#exportOutputCsv').disabled=!has;
+    if(!has)return;
+    $('#resultMessage').className='message '+(r.allFulfilled?'':'warn');$('#resultMessage').textContent=r.allFulfilled?`Ottimizzazione completata: evasi ${intFmt(r.fulfilledPieces)} pezzi su ${intFmt(r.requestedPieces)} richiesti.`:`Ottimizzazione incompleta: evasi ${intFmt(r.fulfilledPieces)} pezzi su ${intFmt(r.requestedPieces)}. Restano ${intFmt(r.requestedPieces-r.fulfilledPieces)} pezzi da produrre.`;
+    $('#resultKpis').innerHTML=[['Pezzi richiesti',intFmt(r.requestedPieces),'sull’intera richiesta'],['Pezzi evasi',intFmt(r.fulfilledPieces),r.allFulfilled?'100% evaso':fmt(r.fulfilledPieces/Math.max(1,r.requestedPieces)*100,1)+'% evaso'],['Barre utilizzate',intFmt(r.usedBars),'schemi distinti: '+r.patterns.length],['Sfrido complessivo',fmt(r.scrapMeters)+' m',fmt(r.scrapPctNet,2)+'% sul netto'],['Peso barre usate',fmt(r.usedMeters*r.unitWeight)+' kg',`Ø ${r.diameter} mm · ${fmt(r.unitWeight,3)} kg/m`]].map(k=>`<div class="kpi"><div class="label">${k[0]}</div><div class="value">${k[1]}</div><div class="sub">${k[2]}</div></div>`).join('');
+    const lens=r.pieceTotals.map(x=>x.length).sort((a,b)=>b-a);$('#outputHead').innerHTML='<tr><th>N. barre</th><th>Barra [m]</th><th>Scarto/barra [m]</th>'+lens.map(l=>`<th>Tagli ${fmt(l)} m</th>`).join('')+'<th>Peso barre [kg]</th></tr>';
+    $('#outputBody').innerHTML=rowsToHtml(r.patterns.map(p=>`<tr><td class="calc-cell">${intFmt(p.barCount)}</td><td class="calc-cell">${fmt(p.barLength)}</td><td class="calc-cell">${fmt(p.scrapLength)}</td>${lens.map(l=>{const i=r.pieceTotals.findIndex(d=>Math.abs(d.length-l)<.00001);return `<td class="calc-cell">${intFmt((p.counts[i]||0))}</td>`;}).join('')}<td class="calc-cell">${fmt(p.barCount*p.barLength*r.unitWeight)}</td></tr>`),lens.length+4,'Non sono state individuate combinazioni valide.') + (r.patterns.length?`<tr><td colspan="${lens.length+2}" style="font-weight:800;background:#f5f8fa">Totale</td><td class="calc-cell" style="font-weight:800;background:#f5f8fa">${fmt(r.scrapMeters)}</td>${lens.map(l=>{const i=r.pieceTotals.findIndex(d=>Math.abs(d.length-l)<.00001);const q=r.patterns.reduce((s,p)=>s+(p.counts[i]||0)*p.barCount,0);return `<td class="calc-cell" style="font-weight:800;background:#f5f8fa">${intFmt(q)}</td>`;}).join('')}<td class="calc-cell" style="font-weight:800;background:#f5f8fa">${fmt(r.usedMeters*r.unitWeight)}</td></tr>`:'');
+    $('#patternsPill').textContent=`${r.patterns.length} ${r.patterns.length===1?'schema':'schemi'}`;
+    $('#usedBarsBody').innerHTML=rowsToHtml(r.usedByLength.map(x=>`<tr><td class="calc-cell">${fmt(x.length)}</td><td class="calc-cell">${intFmt(x.qty)}</td><td class="calc-cell">${fmt(x.weight)}</td></tr>`).join(''),3,'Nessuna barra utilizzata.');
+    $('#unmetBody').innerHTML=rowsToHtml(r.unmet.map(x=>`<tr><td class="calc-cell">${fmt(x.length)}</td><td class="calc-cell unmet">${intFmt(x.qty)}</td></tr>`).join(''),2,'Richiesta completamente evasa.');
+    $('#remainingStockBody').innerHTML=rowsToHtml(r.remainingStock.map(x=>`<tr><td class="calc-cell">${fmt(x.length)}</td><td class="calc-cell">${intFmt(x.qty)}</td></tr>`).join(''),2,'Nessuna barra intera residua.');
+    $('#scrapBody').innerHTML=rowsToHtml(r.scraps.map(x=>`<tr><td class="calc-cell">${fmt(x.length)}</td><td class="calc-cell">${intFmt(x.qty)}</td></tr>`).join(''),2,'Nessuno sfrido recuperabile.');
+  }
+  function addRow(kind){state[kind].push(kind==='quickStock'||kind==='quickDemand'?blankQuick():blankDetail(kind));renderCollection(kind);saveState();}
+  function renderCollection(kind){if(kind==='quickStock'||kind==='quickDemand')renderQuick(kind);else renderDetail(kind);updatePreflight();}
+  function deleteRow(kind,id){if(state[kind].length<=1){state[kind]=[kind==='quickStock'||kind==='quickDemand'?blankQuick():blankDetail(kind)];}else state[kind]=state[kind].filter(r=>r.id!==id);renderCollection(kind);saveState();}
+  function syncFromDetails(){
+    const d=Number(state.diameter)||16;
+    const stock=state.stockDetail.filter(r=>Number(r.diameter)===d).map(r=>({qty:r.qty,length:effectiveLength(r)})).filter(r=>n(r.qty)>0&&r.length>0);
+    const demand=state.demandDetail.filter(r=>Number(r.diameter)===d).map(r=>({qty:r.qty,length:effectiveLength(r)})).filter(r=>n(r.qty)>0&&r.length>0);
+    if(!stock.length&&!demand.length){setToast(`Nessuna riga valida per il diametro ${d} mm nelle schede dettagliate.`);return;}
+    state.quickStock=stock.length?stock.map(r=>({id:newId(),qty:String(r.qty),length:String(Number(r.length.toFixed(2)))})):[blankQuick()];
+    state.quickDemand=demand.length?demand.map(r=>({id:newId(),qty:String(r.qty),length:String(Number(r.length.toFixed(2)))})):[blankQuick()];
+    state.result=null;renderAll();switchTab('optimize');setToast(`Dati trasferiti per Ø ${d} mm: ${stock.length} righe di giacenza e ${demand.length} righe di richiesta.`);
+  }
+  function resetOptimization(){if(!confirm('Inizializzare la procedura? Verranno cancellati la richiesta rapida e i risultati; la giacenza e le schede dettagliate saranno conservate.'))return;state.quickDemand=[blankQuick(),blankQuick()];state.result=null;$('#progressFill').style.width='0%';$('#progressText').textContent='In attesa';$('#progressPct').textContent='0%';renderAll();switchTab('optimize');setToast('Richiesta e risultati azzerati. La giacenza è stata conservata.');}
+  function applyStock(){const r=state.result;if(!r)return;if(!confirm('Aggiornare la giacenza? Le barre utilizzate verranno sottratte e gli sfridi non nulli saranno aggiunti come nuove lunghezze.'))return;
+    const m=new Map();for(const x of r.remainingStock){const u=Math.round(x.length*100);m.set(u,(m.get(u)||0)+x.qty);}for(const x of r.scraps){if(x.units>0)m.set(x.units,(m.get(x.units)||0)+x.qty);}
+    state.quickStock=Array.from(m,([units,qty])=>({id:newId(),qty:String(qty),length:fmt(units/100)})).filter(x=>n(x.qty)>0).sort((a,b)=>state.orderMode==='asc'?n(a.length)-n(b.length):n(b.length)-n(a.length));if(!state.quickStock.length)state.quickStock=[blankQuick()];
+    // Keep a copy of the resulting simplified stock in the detail register as synthetic-length rows.
+    state.stockDetail=state.stockDetail.filter(x=>Number(x.diameter)!==Number(state.diameter));
+    for(const x of state.quickStock)state.stockDetail.push({...blankDetail('stockDetail'),type:'Dritto',diameter:String(state.diameter),qty:x.qty,synth:x.length});
+    state.result=null;renderAll();switchTab('optimize');setToast('Giacenza aggiornata con le barre intere residue e gli sfridi recuperabili.');
+  }
+  function openPaste(kind){pasteTarget=kind;$('#pasteText').value='';const detail=kind==='stockDetail'||kind==='demandDetail';$('#pasteTitle').textContent=detail?'Incolla righe dettagliate da Excel':kind==='quickStock'?'Incolla giacenza da Excel':'Incolla richiesta da Excel';$('#pasteHelp').textContent=detail?'Copia da Excel le colonne nell’ordine del modello indicato. Puoi lasciare vuoti i campi non necessari.':'Copia le due colonne Numero e Lunghezza [m] da Excel. Le colonne devono essere separate da tabulazioni o punto e virgola.';$('#pasteFormatHelp').textContent=detail?(kind==='stockDetail'?'Ordine campi: Tipologia; Descrizione; Diametro; Numero; L1; L2; L3; L4; L5; L6; Lunghezza sintetica.':'Ordine campi: POS; Descrizione; Diametro; Numero; L1; L2; L3; L4; L5; L6; Lunghezza sintetica.'):'Esempio: 12 [tab] 12,00';$('#pasteModal').classList.add('open');$('#pasteText').focus();}
+  function parsePaste(text){const lines=text.replace(/\r/g,'').split('\n').filter(l=>l.trim());return lines.map(line=>{if(line.includes('\t'))return line.split('\t');if(line.includes(';'))return line.split(';');return line.split(/\s{2,}/);}).filter(row=>row.some(v=>String(v).trim()!==''));}
+  function confirmPaste(){if(!pasteTarget)return;const rows=parsePaste($('#pasteText').value);if(!rows.length){setToast('Non ci sono righe da importare.');return;}const kind=pasteTarget;
+    if(kind==='quickStock'||kind==='quickDemand'){
+      const parsed=[];for(const row of rows){const q=String(row[0]??'').trim(),l=String(row[1]??'').trim();if(!Number.isFinite(n(q))||!Number.isFinite(n(l))||n(q)<=0||n(l)<=0)continue;parsed.push({id:newId(),qty:String(Math.floor(n(q))),length:l});}
+      if(!parsed.length){setToast('Nessuna riga valida: controlla quantità e lunghezze.');return;}state[kind]=parsed;state.result=null;
+    }else{
+      const parsed=[];const isStock=kind==='stockDetail';
+      for(const row of rows){const vals=row.map(v=>String(v??'').trim());if(vals.every(v=>!v))continue;const x=blankDetail(kind);if(isStock){x.type=vals[0]||'Dritto';x.description=vals[1]||'';x.diameter=vals[2]||'';x.qty=vals[3]||'';SEGMENTS.forEach((k,i)=>x[k]=vals[4+i]||'');x.synth=vals[10]||'';}else{x.pos=vals[0]||'';x.description=vals[1]||'';x.diameter=vals[2]||'';x.qty=vals[3]||'';SEGMENTS.forEach((k,i)=>x[k]=vals[4+i]||'');x.synth=vals[10]||'';}parsed.push(x);}
+      if(!parsed.length){setToast('Nessuna riga valida da importare.');return;}state[kind]=parsed;
+    }
+    $('#pasteModal').classList.remove('open');renderCollection(kind);saveState();setToast(`Importate ${state[kind].length} righe.`);
+  }
+  function download(name,content,type='text/plain;charset=utf-8'){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  function exportBackup(){download('barre-ca-backup.json',JSON.stringify({...state,exportedAt:new Date().toISOString(),formatVersion:1},null,2),'application/json;charset=utf-8');setToast('Backup JSON esportato.');}
+  async function importBackupFile(file){try{const d=JSON.parse(await file.text());if(!d||!Array.isArray(d.quickStock)||!Array.isArray(d.quickDemand))throw new Error('Formato JSON non riconosciuto.');state={...defaults(),...d};delete state.exportedAt;delete state.formatVersion;renderAll();setToast('Backup importato correttamente.');}catch(e){setToast('Impossibile importare il backup: '+e.message);}}
+  function csvCell(v){const s=String(v??'');return /[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+  function exportOutput(){const r=state.result;if(!r)return;const lengths=r.pieceTotals.map(x=>x.length).sort((a,b)=>b-a);const header=['Numero barre','Barra [m]','Scarto [m]',...lengths.map(l=>'Tagli '+fmt(l)+' m'),'Peso totale [kg]'];const lines=[header.map(csvCell).join(';')];for(const p of r.patterns){const values=[p.barCount,fmt(p.barLength),fmt(p.scrapLength),...lengths.map(l=>{const i=r.pieceTotals.findIndex(d=>Math.abs(d.length-l)<.00001);return p.counts[i]||0;}),fmt(p.barCount*p.barLength*r.unitWeight)];lines.push(values.map(csvCell).join(';'));}download('piano-taglio-barre.csv','\ufeff'+lines.join('\r\n'),'text/csv;charset=utf-8');}
+  function exportModelCsv(kind){const isStock=kind==='stockDetail';const headers=isStock?['Tipologia','Descrizione','Diametro','Numero','L1','L2','L3','L4','L5','L6','Lunghezza sintetica']:['POS','Descrizione','Diametro','Numero','L1','L2','L3','L4','L5','L6','Lunghezza sintetica'];download((isStock?'modello-giacenza':'modello-distinta')+'.csv','\ufeff'+headers.join(';')+'\r\n','text/csv;charset=utf-8');}
+  function updateDetailRow(kind,id){const row=state[kind].find(r=>r.id===id);if(!row)return;const tr=$(`[data-detail-row="${id}"]`);if(!tr)return;const count=Math.max(0,n(row.qty)||0),len=effectiveLength(row),totM=count*len,kg=totM*unitWeight(row.diameter),gross=kg*(1+(kind==='demandDetail'?Math.max(0,n(state.wastePercent)||0):0)/100);const vals={length:len?fmt(len):'—',totalM:totM?fmt(totM):'—',weight:kg?fmt(kg):'—',gross:gross?fmt(gross):'—'};for(const [key,value] of Object.entries(vals)){const el=$(`[data-calc="${key}"]`,tr);if(el)el.textContent=value;}renderDetailStats();}
+
+  // Delegated interaction handlers keep newly-created table rows functional.
+  document.addEventListener('input',e=>{const el=e.target;if(el.dataset.collection&&el.dataset.id&&el.dataset.field){const rows=state[el.dataset.collection];const row=rows&&rows.find(r=>r.id===el.dataset.id);if(row){row[el.dataset.field]=el.value;if(el.dataset.collection==='quickStock'||el.dataset.collection==='quickDemand'){state.result=null;updatePreflight();}else updateDetailRow(el.dataset.collection,el.dataset.id);saveState();}}});
+  document.addEventListener('change',e=>{const el=e.target;if(el.id==='diameter'){state.diameter=Number(el.value);$('#unitWeightHint').textContent='Peso unitario: '+fmt(unitWeight(state.diameter),3)+' kg/m';state.result=null;renderDetail('stockDetail');renderDetail('demandDetail');updatePreflight();saveState();}else if(el.id==='orderMode'){state.orderMode=el.value;saveState();}else if(el.id==='wastePercent'){state.wastePercent=Math.max(0,Math.min(200,n(el.value)||0));renderDetail('demandDetail');saveState();}else if(el.matches('select[data-collection]')){const row=state[el.dataset.collection]?.find(r=>r.id===el.dataset.id);if(row){row[el.dataset.field]=el.value;updateDetailRow(el.dataset.collection,el.dataset.id);saveState();}}});
+  document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.tab){switchTab(t.dataset.tab);return;}if(t.dataset.add){addRow(t.dataset.add);return;}if(t.dataset.delete){deleteRow(t.dataset.delete,t.dataset.id);return;}if(t.dataset.paste){openPaste(t.dataset.paste);return;}if(t.dataset.csv){exportModelCsv(t.dataset.csv);return;}});
+  $('#optimizeBtn').addEventListener('click',optimize);$('#resetBtn').addEventListener('click',resetOptimization);$('#syncDetailBtn').addEventListener('click',syncFromDetails);$('#applyStockBtn').addEventListener('click',applyStock);$('#exportOutputCsv').addEventListener('click',exportOutput);
+  $('#exportJsonBtn').addEventListener('click',exportBackup);$('#importJsonBtn').addEventListener('click',()=>$('#importJsonFile').click());$('#importJsonFile').addEventListener('change',e=>{const f=e.target.files?.[0];if(f)importBackupFile(f);e.target.value='';});
+  $('#closePaste').addEventListener('click',()=>$('#pasteModal').classList.remove('open'));$('#cancelPaste').addEventListener('click',()=>$('#pasteModal').classList.remove('open'));$('#confirmPaste').addEventListener('click',confirmPaste);$('#pasteModal').addEventListener('click',e=>{if(e.target===$('#pasteModal'))$('#pasteModal').classList.remove('open');});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#pasteModal').classList.remove('open');});
+  // A small synthetic example helps test the first run without embedding project data from the workbook.
+  const demoButton=document.createElement('button');demoButton.type='button';demoButton.className='btn small';demoButton.textContent='Carica esempio';demoButton.title='Inserisce dati dimostrativi non derivati dal file Excel';$('#preflightText').parentElement.appendChild(demoButton);demoButton.addEventListener('click',()=>{if(!confirm('Caricare un esempio dimostrativo? I dati rapidi attuali verranno sostituiti.'))return;state.quickStock=[{id:newId(),qty:'10',length:'6,00'},{id:newId(),qty:'8',length:'12,00'},{id:newId(),qty:'6',length:'8,00'}];state.quickDemand=[{id:newId(),qty:'12',length:'5,80'},{id:newId(),qty:'14',length:'3,20'},{id:newId(),qty:'10',length:'2,40'}];state.result=null;renderQuick('quickStock');renderQuick('quickDemand');updatePreflight();saveState();setToast('Esempio dimostrativo caricato.');});
+  renderAll();
+})();
+</script>
+</body>
+</html>
