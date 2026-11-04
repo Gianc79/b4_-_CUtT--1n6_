@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { OptimizationResult } from '../types';
 import { fmt, intFmt, resultKey, unitWeight } from '../utils/math';
 import { buildOperationalPlan } from '../utils/optimizer';
+import { CutDiagramBar } from './CutDiagramBar';
 
 interface ResultsViewProps {
   result: OptimizationResult | null;
@@ -26,6 +27,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   onToggleStockOptionSelect,
   onToggleAllStockOptionsSelect,
 }) => {
+  const [displayMode, setDisplayMode] = useState<'visual' | 'table'>('visual');
+
   const totalUsedWeight = (r: OptimizationResult) => {
     return (r.usedByLength || []).reduce((sum, x) => sum + (Number(x.weight) || 0), 0);
   };
@@ -37,17 +40,17 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
       <div className="section-head optimization-head">
         <div>
           <h2>Ottimizzazione</h2>
-          <p>Elabora il Piano di Taglio in funzione della Richiesta e della Giacenza.</p>
+          <p>Piano di Taglio esecutivo generato in funzione di Giacenza e Richiesta.</p>
         </div>
         <button
-          className="btn primary"
+          className="btn primary optimize-pulse-btn"
           type="button"
           id="optimizeBtn"
           onClick={onOptimize}
           aria-label="Esegui ottimizzazione"
         >
           <span>
-            ▶ Esegui
+            ▶ Ricalcola
             <br />
             ottimizzazione
           </span>
@@ -55,10 +58,18 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
       </div>
 
       {!has && (
-        <div id="resultsEmpty" className="panel">
-          <div className="empty">
-            <strong>Nessun risultato disponibile.</strong> Inserisci i dati nelle pagine Giacenza e
-            Richiesta, quindi premi “Esegui ottimizzazione”.
+        <div id="resultsEmpty" className="panel empty-hero-panel">
+          <div className="empty-hero-content">
+            <div className="empty-hero-icon">▥</div>
+            <h3>Nessun risultato disponibile</h3>
+            <p>
+              Inserisci o verifica i dati nelle sezioni <strong>Giacenza</strong> e{' '}
+              <strong>Richiesta</strong>, quindi premi il pulsante in alto per calcolare la
+              combinazione ottimale dei tagli.
+            </p>
+            <button className="btn primary" type="button" onClick={onOptimize}>
+              ▶ Esegui ottimizzazione adesso
+            </button>
           </div>
         </div>
       )}
@@ -112,151 +123,215 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
         return (
           <div id="resultsContent">
-            <div className={`message ${result.allFulfilled ? '' : 'warn'}`}>
-              {result.allFulfilled
-                ? `Ottimizzazione completata: evasi ${intFmt(result.fulfilledPieces)} pezzi su ${intFmt(
-                    result.requestedPieces
-                  )} richiesti nei diametri lavorati.`
-                : `Ottimizzazione incompleta: evasi ${intFmt(result.fulfilledPieces)} pezzi su ${intFmt(
-                    result.requestedPieces
-                  )}. Restano ${intFmt(result.requestedPieces - result.fulfilledPieces)} pezzi da produrre.`}
+            {/* Status Message */}
+            <div className={`message-banner ${result.allFulfilled ? 'success' : 'warning'}`}>
+              <span className="banner-icon">{result.allFulfilled ? '✓' : '⚠'}</span>
+              <div className="banner-text">
+                <strong>
+                  {result.allFulfilled
+                    ? 'Ottimizzazione completata con successo'
+                    : 'Ottimizzazione parziale: fabbisogno residuo'}
+                </strong>
+                <p>
+                  {result.allFulfilled
+                    ? `Evasi tutti i ${intFmt(result.fulfilledPieces)} pezzi su ${intFmt(
+                        result.requestedPieces
+                      )} richiesti nei diametri lavorati.`
+                    : `Evasi ${intFmt(result.fulfilledPieces)} pezzi su ${intFmt(
+                        result.requestedPieces
+                      )}. Mancano ${intFmt(
+                        result.requestedPieces - result.fulfilledPieces
+                      )} pezzi per esaurimento scorte.`}
+                </p>
+              </div>
             </div>
 
-            <div className="kpis">
-              <div className="kpi">
-                <div className="label">Pezzi richiesti</div>
-                <div className="value">{intFmt(result.requestedPieces)}</div>
-                <div className="sub">totale distinta</div>
+            {/* KPI Cards Strip */}
+            <div className="kpis-modern">
+              <div className="kpi-card">
+                <div className="kpi-label">Pezzi Richiesti</div>
+                <div className="kpi-value">{intFmt(result.requestedPieces)}</div>
+                <div className="kpi-sub">totale distinta</div>
               </div>
-              <div className="kpi">
-                <div className="label">Pezzi evasi</div>
-                <div className="value">{intFmt(result.fulfilledPieces)}</div>
-                <div className="sub">
+
+              <div className="kpi-card accent-green">
+                <div className="kpi-label">Pezzi Evasi</div>
+                <div className="kpi-value">{intFmt(result.fulfilledPieces)}</div>
+                <div className="kpi-sub">
                   {result.allFulfilled
                     ? '100% evaso'
-                    : `${fmt((result.fulfilledPieces / Math.max(1, result.requestedPieces)) * 100, 1)}%`}
+                    : `${fmt((result.fulfilledPieces / Math.max(1, result.requestedPieces)) * 100, 1)}% evasione`}
                 </div>
               </div>
-              <div className="kpi">
-                <div className="label">Sfrido totale</div>
-                <div className="value">{fmt(result.scrapMeters)} m</div>
-                <div className="sub">{fmt(result.scrapPct, 1)}% delle barre</div>
+
+              <div className="kpi-card accent-amber">
+                <div className="kpi-label">Sfrido Totale</div>
+                <div className="kpi-value">{fmt(result.scrapMeters)} m</div>
+                <div className="kpi-sub">{fmt(result.scrapPct, 1)}% delle barre consumate</div>
               </div>
-              <div className="kpi">
-                <div className="label">Peso utilizzato</div>
-                <div className="value">{fmt(usedWeight)} kg</div>
-                <div className="sub">{`Diametri: ${diaList || '—'} mm`}</div>
+
+              <div className="kpi-card">
+                <div className="kpi-label">Peso Acciaio Utilizzato</div>
+                <div className="kpi-value">{fmt(usedWeight)} kg</div>
+                <div className="kpi-sub">Ø: {diaList || '—'} mm</div>
               </div>
             </div>
 
-            <div className="panel">
+            {/* Piano di Taglio Main Panel */}
+            <div className="panel cutting-plan-panel">
               <div className="panel-head">
-                <div>
-                  <h3>Piano di taglio</h3>
+                <div className="panel-title-with-subtitle">
+                  <h3>Piano di Taglio Operativo</h3>
+                  <p>Sequenza esecutiva per l'operatore di taglio con recuperi e sfridi.</p>
                 </div>
-                <button
-                  className="btn primary small"
-                  type="button"
-                  id="exportPlanBtn"
-                  onClick={onExportPlan}
-                >
-                  Esporta Piano
-                </button>
+
+                <div className="panel-head-actions">
+                  <div className="view-mode-toggle" role="group" aria-label="Visualizzazione piano">
+                    <button
+                      type="button"
+                      className={`view-toggle-btn ${displayMode === 'visual' ? 'active' : ''}`}
+                      onClick={() => setDisplayMode('visual')}
+                    >
+                      ✂ Diagrammi Visivi
+                    </button>
+                    <button
+                      type="button"
+                      className={`view-toggle-btn ${displayMode === 'table' ? 'active' : ''}`}
+                      onClick={() => setDisplayMode('table')}
+                    >
+                      ☰ Tabella Dati
+                    </button>
+                  </div>
+
+                  <button
+                    className="btn primary small"
+                    type="button"
+                    id="exportPlanBtn"
+                    onClick={onExportPlan}
+                  >
+                    ⇩ Esporta Piano XLS
+                  </button>
+                </div>
               </div>
+
               <div className="panel-body">
-                <div className="table-wrap">
-                  <table className="result-table" id="outputTable">
-                    <thead>
-                      <tr>
-                        <th>
-                          <span className="th-main">Ø</span>
-                          <span className="th-unit">[mm]</span>
-                        </th>
-                        <th>
-                          <span className="th-main">N. barre</span>
-                        </th>
-                        <th>
-                          <span className="th-main">Barra</span>
-                          <span className="th-unit">[m]</span>
-                        </th>
-                        <th>
-                          <span className="th-main">Recupero</span>
-                          <span className="th-unit">[m]</span>
-                        </th>
-                        <th>
-                          <span className="th-main">Scarto</span>
-                          <span className="th-unit">[m]</span>
-                        </th>
-                        {cuts.map((d, idx) => (
-                          <th key={idx}>
-                            <span className="th-main">Taglio Ø {d.diameter}</span>
-                            <span className="th-unit">{fmt(d.length / 100)} m</span>
-                          </th>
-                        ))}
-                        <th>
-                          <span className="th-main">Peso</span>
-                          <span className="th-unit">[kg]</span>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {operations.length === 0 ? (
+                {displayMode === 'visual' ? (
+                  /* Visual Segmented Bar Cards */
+                  <div className="visual-cutting-plan">
+                    {operations.length === 0 ? (
+                      <div className="empty">Nessuna barra utilizzata.</div>
+                    ) : (
+                      operations.map((p, idx) => (
+                        <CutDiagramBar
+                          key={idx}
+                          diameter={p.diameter}
+                          barUnits={p.barUnits}
+                          barCount={p.barCount}
+                          cutLength={p.cutLength}
+                          cutCount={p.cutCount}
+                          recoveryUnits={p.recoveryUnits}
+                          scrapUnits={p.scrapUnits}
+                        />
+                      ))
+                    )}
+                  </div>
+                ) : (
+                  /* Formal Result Table */
+                  <div className="table-wrap">
+                    <table className="result-table" id="outputTable">
+                      <thead>
                         <tr>
-                          <td colSpan={cuts.length + 6} className="empty">
-                            Nessuna barra utilizzata.
-                          </td>
-                        </tr>
-                      ) : (
-                        operations.map((p, idx) => {
-                          const allocatedCm =
-                            p.cutLength * p.cutCount + (p.recoveryUnits === 0 ? p.scrapUnits : 0);
-                          const allocatedWeight =
-                            (allocatedCm / 100) * unitWeight(p.diameter) * p.barCount;
-                          return (
-                            <tr key={idx}>
-                              <td>{intFmt(p.diameter)}</td>
-                              <td>{intFmt(p.barCount)}</td>
-                              <td>{fmt(p.barUnits / 100)}</td>
-                              <td>{fmt(p.recoveryUnits / 100)}</td>
-                              <td>{fmt(p.scrapUnits / 100)}</td>
-                              {cuts.map((d, cidx) => (
-                                <td key={cidx}>
-                                  {p.cutKey === resultKey(d.diameter, d.length)
-                                    ? intFmt(p.cutCount)
-                                    : '0'}
-                                </td>
-                              ))}
-                              <td>{fmt(allocatedWeight)}</td>
-                            </tr>
-                          );
-                        })
-                      )}
-                      {operations.length > 0 && (
-                        <tr className="total-row">
-                          <td>—</td>
-                          <td>{intFmt(result.usedBars)}</td>
-                          <td>{fmt(result.usedMeters)}</td>
-                          <td>—</td>
-                          <td>{fmt(result.scrapMeters)}</td>
-                          {cuts.map((d, cidx) => (
-                            <td key={cidx}>{intFmt(d.fulfilled)}</td>
+                          <th>
+                            <span className="th-main">Ø</span>
+                            <span className="th-unit">[mm]</span>
+                          </th>
+                          <th>
+                            <span className="th-main">N. barre</span>
+                          </th>
+                          <th>
+                            <span className="th-main">Barra</span>
+                            <span className="th-unit">[m]</span>
+                          </th>
+                          <th>
+                            <span className="th-main">Recupero</span>
+                            <span className="th-unit">[m]</span>
+                          </th>
+                          <th>
+                            <span className="th-main">Scarto</span>
+                            <span className="th-unit">[m]</span>
+                          </th>
+                          {cuts.map((d, idx) => (
+                            <th key={idx}>
+                              <span className="th-main">Taglio Ø {d.diameter}</span>
+                              <span className="th-unit">{fmt(d.length / 100)} m</span>
+                            </th>
                           ))}
-                          <td>{fmt(usedWeight)}</td>
+                          <th>
+                            <span className="th-main">Peso</span>
+                            <span className="th-unit">[kg]</span>
+                          </th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {operations.length === 0 ? (
+                          <tr>
+                            <td colSpan={cuts.length + 6} className="empty">
+                              Nessuna barra utilizzata.
+                            </td>
+                          </tr>
+                        ) : (
+                          operations.map((p, idx) => {
+                            const allocatedCm =
+                              p.cutLength * p.cutCount + (p.recoveryUnits === 0 ? p.scrapUnits : 0);
+                            const allocatedWeight =
+                              (allocatedCm / 100) * unitWeight(p.diameter) * p.barCount;
+                            return (
+                              <tr key={idx}>
+                                <td>{intFmt(p.diameter)}</td>
+                                <td>{intFmt(p.barCount)}</td>
+                                <td>{fmt(p.barUnits / 100)}</td>
+                                <td>{fmt(p.recoveryUnits / 100)}</td>
+                                <td>{fmt(p.scrapUnits / 100)}</td>
+                                {cuts.map((d, cidx) => (
+                                  <td key={cidx}>
+                                    {p.cutKey === resultKey(d.diameter, d.length)
+                                      ? intFmt(p.cutCount)
+                                      : '0'}
+                                  </td>
+                                ))}
+                                <td>{fmt(allocatedWeight)}</td>
+                              </tr>
+                            );
+                          })
+                        )}
+                        {operations.length > 0 && (
+                          <tr className="total-row">
+                            <td>—</td>
+                            <td>{intFmt(result.usedBars)}</td>
+                            <td>{fmt(result.usedMeters)}</td>
+                            <td>—</td>
+                            <td>{fmt(result.scrapMeters)}</td>
+                            {cuts.map((d, cidx) => (
+                              <td key={cidx}>{intFmt(d.fulfilled)}</td>
+                            ))}
+                            <td>{fmt(usedWeight)}</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
 
+            {/* Bottom Sub-Panels */}
             <div className="result-grid">
               {/* Riepilogo barre utilizzate */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
-                    <h3>Riepilogo barre utilizzate</h3>
-                    <p>Barre originarie consumate dal piano.</p>
+                    <h3>Riepilogo Barre Consumate</h3>
+                    <p>Barre integre da magazzino avviate al taglio.</p>
                   </div>
                 </div>
                 <div className="panel-body">
@@ -308,8 +383,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
-                    <h3>Richiesta non evasa</h3>
-                    <p>Tagli non evasi, in caso di esaurimento della Giacenza.</p>
+                    <h3>Richiesta Non Evasa</h3>
+                    <p>Tagli mancanti per esaurimento giacenza.</p>
                   </div>
                   <button
                     className="btn primary small"
@@ -386,8 +461,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
-                    <h3>Giacenza residua</h3>
-                    <p>Barre residue e sfridi recuperabili. Seleziona i record da mantenere nella Giacenza.</p>
+                    <h3>Giacenza Residua & Sfridi</h3>
+                    <p>Seleziona i pezzi da registrare a magazzino.</p>
                   </div>
                   <button
                     className="btn primary small"
@@ -461,8 +536,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                   </div>
                   <p className="result-note">
                     Confermando, la Giacenza esistente viene sostituita per tutti i diametri presenti in
-                    questa tabella, usando soltanto i record selezionati. I record non selezionati non
-                    saranno aggiunti; dopo l'aggiornamento tutte le caselle verranno disattivate.
+                    questa tabella, usando soltanto i record selezionati.
                   </p>
                 </div>
               </div>

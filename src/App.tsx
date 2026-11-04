@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AppState, MasterRow, OptimizationResult, SortLevel } from './types';
+import { AppState, MasterRow, SortLevel } from './types';
 import {
   blankMaster,
   inputNumber,
@@ -8,20 +8,19 @@ import {
   n,
   newId,
   validDiameter,
+  validMasterRows,
 } from './utils/math';
 import { normalizeResultRows, runOptimization } from './utils/optimizer';
 import {
-  clearRememberedFileHandle,
   loadState,
   normalizeNewState,
-  rememberFileHandle,
   saveAsAppFile,
   saveCurrentFile,
   saveState,
-  SCHEMA_VERSION,
 } from './utils/storage';
 import { exportMasterXls, exportPlanXls, parseMasterXls } from './utils/excel';
 import { TabType, TopBar } from './components/TopBar';
+import { BottomNav } from './components/BottomNav';
 import { MasterTable } from './components/MasterTable';
 import { ResultsView } from './components/ResultsView';
 import { HelpView } from './components/HelpView';
@@ -61,7 +60,7 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // master tables change
+  // Master tables change
   const handleStockChange = (newStock: MasterRow[]) => {
     setState(prev => ({ ...prev, stockDetail: newStock }));
   };
@@ -171,7 +170,9 @@ export const App: React.FC = () => {
       length: String(x.length),
     }));
 
-    const updatedUnmet = r.unmet.map(x => (x.selected && !x.added ? { ...x, added: true, selected: false } : x));
+    const updatedUnmet = r.unmet.map(x =>
+      x.selected && !x.added ? { ...x, added: true, selected: false } : x
+    );
 
     setState(prev => ({
       ...prev,
@@ -245,7 +246,6 @@ export const App: React.FC = () => {
       x => !affectedDiameters.has(Number(x.diameter)) && !isBlankMaster(x)
     );
 
-    // Helper to add quantity
     for (const option of selectedOptions) {
       const existing = newStock.find(
         x => Number(x.diameter) === option.diameter && Number(x.length) === option.length && Number(x.qty) > 0
@@ -365,7 +365,7 @@ export const App: React.FC = () => {
     });
   };
 
-  // JSON Import & Save
+  // JSON Import
   const handleImportJson = async (file: File) => {
     try {
       const text = await file.text();
@@ -385,7 +385,7 @@ export const App: React.FC = () => {
     }
   };
 
-  // XLS Import & Export
+  // XLS Import
   const handleImportXls = async (file: File, kind: 'stockDetail' | 'demandDetail') => {
     const label = kind === 'stockDetail' ? 'Giacenza' : 'Richiesta';
     try {
@@ -406,8 +406,11 @@ export const App: React.FC = () => {
     }
   };
 
+  const validStockCount = validMasterRows(state.stockDetail).length;
+  const validDemandCount = validMasterRows(state.demandDetail).length;
+
   return (
-    <>
+    <div className="app-layout-wrapper">
       <TopBar
         activeTab={activeTab}
         onTabChange={handleTabChange}
@@ -416,13 +419,13 @@ export const App: React.FC = () => {
         onSaveAs={() => saveAsAppFile(state, showToast)}
       />
 
-      <div className="shell">
+      <div className="shell app-shell-content">
         <main>
           {activeTab === 'stock' && (
             <MasterTable
               kind="stockDetail"
               title="Giacenza"
-              subtitle="Inserire o modificare le barre disponibili."
+              subtitle="Gestisci le barre disponibili a magazzino o in cantiere."
               rows={state.stockDetail}
               onChangeRows={handleStockChange}
               onOpenSort={() => setSortKind('stockDetail')}
@@ -436,7 +439,7 @@ export const App: React.FC = () => {
             <MasterTable
               kind="demandDetail"
               title="Richiesta"
-              subtitle="Inserire o modificare la Distinta dei ferri di armatura."
+              subtitle="Inserisci la distinta ferri e i tagli di armatura necessari."
               rows={state.demandDetail}
               onChangeRows={handleDemandChange}
               onOpenSort={() => setSortKind('demandDetail')}
@@ -444,6 +447,56 @@ export const App: React.FC = () => {
               onExportXls={() => exportMasterXls(state.demandDetail, 'richiesta', showToast)}
               onToast={showToast}
             />
+          )}
+
+          {/* Desktop Split View: Side-by-Side Giacenza & Richiesta */}
+          {activeTab === 'split' && (
+            <div className="split-view-container">
+              <div className="split-view-banner">
+                <div className="split-banner-info">
+                  <h3>Vista Affiancata: Giacenza & Richiesta</h3>
+                  <p>
+                    Confronta e modifica scorte e distinta di taglio in un unico colpo d'occhio.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn primary split-optimize-cta"
+                  onClick={handleOptimize}
+                >
+                  ▶ Calcola Ottimizzazione
+                </button>
+              </div>
+
+              <div className="split-view-grid">
+                <div className="split-column">
+                  <MasterTable
+                    kind="stockDetail"
+                    title="Giacenza Disponibile"
+                    subtitle="Barre pronte per il taglio a magazzino."
+                    rows={state.stockDetail}
+                    onChangeRows={handleStockChange}
+                    onOpenSort={() => setSortKind('stockDetail')}
+                    onImportXls={f => handleImportXls(f, 'stockDetail')}
+                    onExportXls={() => exportMasterXls(state.stockDetail, 'giacenza', showToast)}
+                    onToast={showToast}
+                  />
+                </div>
+                <div className="split-column">
+                  <MasterTable
+                    kind="demandDetail"
+                    title="Richiesta Tagli"
+                    subtitle="Distinta dei ferri di armatura di progetto."
+                    rows={state.demandDetail}
+                    onChangeRows={handleDemandChange}
+                    onOpenSort={() => setSortKind('demandDetail')}
+                    onImportXls={f => handleImportXls(f, 'demandDetail')}
+                    onExportXls={() => exportMasterXls(state.demandDetail, 'richiesta', showToast)}
+                    onToast={showToast}
+                  />
+                </div>
+              </div>
+            </div>
           )}
 
           {activeTab === 'results' && (
@@ -464,10 +517,20 @@ export const App: React.FC = () => {
         </main>
 
         <div className="footer-note">
-          OTTIMIZZAZIONE BARRE C.A. · v. 1.25 · dati conservati localmente nel browser
+          OTTIMIZZAZIONE BARRE C.A. · v. 1.25 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone da cantiere
         </div>
       </div>
 
+      {/* Mobile Fixed Bottom Navigation Bar */}
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        stockCount={validStockCount}
+        demandCount={validDemandCount}
+        hasResults={!!state.result}
+      />
+
+      {/* Multi-Level Sort Dialog */}
       <SortDialog
         isOpen={sortKind !== null}
         kind={sortKind || 'stockDetail'}
@@ -476,7 +539,8 @@ export const App: React.FC = () => {
       />
 
       <Toast message={toastMessage} />
-    </>
+    </div>
   );
 };
+
 export default App;

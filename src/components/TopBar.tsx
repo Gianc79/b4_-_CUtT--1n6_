@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-export type TabType = 'stock' | 'demand' | 'results' | 'help';
+export type TabType = 'stock' | 'demand' | 'results' | 'help' | 'split';
 
 interface TopBarProps {
   activeTab: TabType;
@@ -61,17 +61,17 @@ export const TopBar: React.FC<TopBarProps> = ({
         <div className="brand">
           <h1>OTTIMIZZAZIONE BARRE C.A.</h1>
           <p>
-            Elaborazione del Piano di Taglio ottimizzato. <span className="version">v. 1.25</span>
+            Piano di Taglio & Gestione Fabbisogno <span className="version">v. 1.25</span>
           </p>
         </div>
         <div className="top-actions">
-          <button className="btn" id="importJsonBtn" type="button" onClick={handleImportClick}>
+          <button className="btn" id="importJsonBtn" type="button" onClick={handleImportClick} title="Carica file di backup JSON">
             ⇧ Carica file
           </button>
-          <button className="btn" id="saveBtn" type="button" onClick={onSave}>
+          <button className="btn" id="saveBtn" type="button" onClick={onSave} title="Salva modifiche correnti">
             ▣ Salva
           </button>
-          <button className="btn" id="saveAsBtn" type="button" onClick={onSaveAs}>
+          <button className="btn" id="saveAsBtn" type="button" onClick={onSaveAs} title="Scarica copia backup JSON">
             ⇩ Salva con nome
           </button>
           <input
@@ -84,7 +84,9 @@ export const TopBar: React.FC<TopBarProps> = ({
           />
         </div>
       </div>
-      <nav className="nav topbar-nav" aria-label="Sezioni applicazione">
+
+      {/* Desktop Navigation */}
+      <nav className="nav topbar-nav desktop-nav" aria-label="Sezioni applicazione">
         <button
           type="button"
           className={activeTab === 'stock' ? 'active' : ''}
@@ -98,6 +100,14 @@ export const TopBar: React.FC<TopBarProps> = ({
           onClick={() => onTabChange('demand')}
         >
           <span className="nicon">≡</span>Richiesta
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'split' ? 'active split-tab-btn' : 'split-tab-btn'}
+          onClick={() => onTabChange('split')}
+          title="Visualizza Giacenza e Richiesta affiancate (ideale per grandi schermi)"
+        >
+          <span className="nicon">◫</span>Vista Affiancata
         </button>
         <button
           type="button"
