@@ -1829,23 +1829,24 @@ tr.row-applied td {
   box-shadow: 0 6px 18px rgba(5, 150, 105, 0.45);
 }
 
-/* Toast */
+/* Toast con riquadro stile SpesaSuMisura */
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 74px; /* above mobile nav */
+  bottom: 84px; /* sopra la navigazione flottante */
   transform: translate(-50%, 20px);
   opacity: 0;
   pointer-events: none;
-  z-index: 200;
+  z-index: 220;
   max-width: min(92vw, 500px);
-  padding: 10px 16px;
-  background: #0f172a;
-  color: #fff;
-  border-radius: 10px;
-  box-shadow: var(--shadow-lg);
-  font-size: 12px;
-  font-weight: 600;
+  padding: 11px 18px;
+  background: #1e293b;
+  color: #f8fafc;
+  border-radius: 12px;
+  border: 2px solid #38bdf8; /* Riquadro ciano vivace stile SpesaSuMisura */
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  font-size: 13px;
+  font-weight: 700;
   text-align: center;
   transition: opacity 0.2s, transform 0.2s;
 }
@@ -2668,5 +2669,269 @@ tr.row-applied td {
   justify-content: flex-end;
   margin-top: 12px;
 }
+
+/* ========================================================
+   TAGLIO BARRE C.A. — v. 1.29 Specific Styles & Enhancements
+   ======================================================== */
+
+/* 1) Fascia superiore compatta: versione affiancata al titolo, sottotitolo su una riga sotto, icone abbassate */
+.brandline-v129 {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+.brand-version-inline {
+  font-size: 13px;
+  font-weight: 750;
+  color: #93c5fd;
+  margin-left: 6px;
+  letter-spacing: 0;
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.brand-subtitle-compact {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.2;
+  color: #c7d2fe;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .brand-subtitle-compact {
+    white-space: normal;
+  }
+}
+
+.topbar-circular-actions-bottom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+  align-self: flex-end;
+  margin-bottom: -2px; /* traslate a ridosso della linea inferiore */
+}
+
+/* 2) Popup & Toast stile SpesaSuMisura con riquadro marcato */
+.undo-delete-toast-spesa {
+  position: fixed;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 11px 18px;
+  border-radius: 14px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 220;
+  border: 2px solid #38bdf8; /* Riquadro ciano vivace stile SpesaSuMisura */
+  animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: min(92vw, 480px);
+}
+
+.undo-toast-text-spesa {
+  font-size: 13px;
+  line-height: 1.35;
+  flex: 1;
+  color: #f1f5f9;
+}
+
+.undo-toast-text-spesa strong {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.undo-btn-spesa {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #f59e0b;
+  color: #0f172a;
+  font-weight: 850;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.undo-btn-spesa:hover {
+  background: #fbbf24;
+  transform: translateY(-1px);
+}
+
+.undo-btn-spesa:active {
+  transform: translateY(0);
+}
+
+/* Icone Immagine XLS e Ordina (Importa da XLS.jpg, Esporta in XLS.jpg, Ordina.jpg) */
+.excel-action-img {
+  display: block;
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.sort-trigger-img {
+  display: block;
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.xls-action-icon-btn-header {
+  width: 44px;
+  height: 44px;
+  padding: 2px;
+}
+
+/* 5) Finestra "Ordina Giacenza" / "Ordina Richiesta" v1.29:
+   - Select box spostato verso sx vicino alla label per far vedere tutto il testo
+   - Pulsanti + Aggiungi livello e - Elimina livello su riga singola con font e altezza ridotti */
+.sort-level-item-v4-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.sort-item-label-compact {
+  font-size: 13px;
+  font-weight: 750;
+  color: #334155;
+  width: 76px;
+  flex-shrink: 0;
+  letter-spacing: -0.01em;
+}
+
+.sort-item-select-v4-expanded {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-weight: 650;
+  background: #ffffff;
+  color: #1e293b;
+}
+
+.sort-level-btn-compact {
+  flex: 1;
+  min-height: 38px !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  border-radius: 8px !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 8px !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* 2) KPI Cards con formattazione a rilievo (3D) in Pagina Ottimizza */
+.kpis-modern-3d {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .kpis-modern-3d {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.kpi-card-3d {
+  background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1.5px solid #cbd5e1;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -2px 0 rgba(148, 163, 184, 0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 106px;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-card-3d:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.kpi-card-3d.accent-green-3d {
+  background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #86efac;
+  border-top-color: #bbf7d0;
+  border-left-color: #bbf7d0;
+  box-shadow: 0 6px 14px rgba(22, 163, 74, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.kpi-card-3d.accent-amber-3d {
+  background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fde68a;
+  border-top-color: #fef9c3;
+  border-left-color: #fef9c3;
+  box-shadow: 0 6px 14px rgba(217, 119, 6, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.kpi-label-3d {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+  line-height: 1.25;
+  min-height: 28px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.kpi-value-3d {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f2942;
+  line-height: 1.15;
+  margin: 6px 0 4px;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
+}
+
+.kpi-sub-3d {
+  font-size: 11px;
+  font-weight: 650;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+/* Ottimizza header v1.29 */
+.optimization-head-v129 {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
 
 

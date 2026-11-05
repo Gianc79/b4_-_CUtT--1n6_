@@ -104,14 +104,15 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   return (
     <section className="page active" id="page-results">
-      {/* Intestazione Ottimizza: Titolo a sinistra; Pulsante Esegui ottimizzazione ed Icona Esporta XLS a destra allineati */}
-      <div className="section-head optimization-head-v128">
+      {/* 5) Intestazione Ottimizza: Frase esplicativa aggiornata; Tasto Ottimizza ed Icona Esporta XLS a dx */}
+      <div className="section-head optimization-head-v129">
         <div className="optimization-head-text">
           <h2>Ottimizza</h2>
-          <p>Piano di Taglio Operativo generato sull'ottimizzazione della Giacenza.</p>
+          {/* 5) Frase esplicativa richiesta */}
+          <p>Piano Operativo di Taglio generato dall'ottimizzazione della Giacenza.</p>
         </div>
 
-        {/* 1) Riquadro allargato per non strabordare + 3) Icona Esporta XLS allineata tutta a destra */}
+        {/* 1) Icona Esporta XLS ufficiale tutta a destra allineata al pulsante Esegui ottimizzazione */}
         <div className="optimization-head-actions-row">
           <button
             className="btn primary optimize-pulse-btn-v128"
@@ -123,7 +124,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             <span className="optimize-btn-text-v128">▶ Esegui ottimizzazione</span>
           </button>
 
-          {/* Icona Esporta XLS fedele al modello excel posizionata tutta a dx */}
+          {/* 1) Icona Esporta in XLS ufficiale in formato 38x38 tutta a destra */}
           <button
             className="xls-action-icon-btn xls-action-icon-btn-header"
             type="button"
@@ -132,7 +133,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             title="Esporta Piano di Taglio in Excel (.xlsx)"
             aria-label="Esporta Piano XLS"
           >
-            <ExcelExportIcon size={34} />
+            <ExcelExportIcon size={38} />
           </button>
         </div>
       </div>
@@ -216,18 +217,18 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               </div>
             </div>
 
-            {/* 2) KPI Cards con allineamento verticale coerente per SFRIDO TOTALE e tutti i blocchi */}
-            <div className="kpis-modern-v128">
-              <div className="kpi-card-v128">
-                <div className="kpi-label-v128">Pezzi Richiesti</div>
-                <div className="kpi-value-v128">{intFmt(result.requestedPieces)}</div>
-                <div className="kpi-sub-v128">totale distinta</div>
+            {/* 2) KPI Cards in formato 3D / Rilievo con allineamento verticale coerente */}
+            <div className="kpis-modern-3d">
+              <div className="kpi-card-3d">
+                <div className="kpi-label-3d">Pezzi Richiesti</div>
+                <div className="kpi-value-3d">{intFmt(result.requestedPieces)}</div>
+                <div className="kpi-sub-3d">totale distinta</div>
               </div>
 
-              <div className="kpi-card-v128 accent-green">
-                <div className="kpi-label-v128">Pezzi Evasi</div>
-                <div className="kpi-value-v128">{intFmt(result.fulfilledPieces)}</div>
-                <div className="kpi-sub-v128">
+              <div className="kpi-card-3d accent-green-3d">
+                <div className="kpi-label-3d">Pezzi Evasi</div>
+                <div className="kpi-value-3d">{intFmt(result.fulfilledPieces)}</div>
+                <div className="kpi-sub-3d">
                   {result.allFulfilled
                     ? '100% evaso'
                     : `${fmt(
@@ -237,33 +238,34 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
               </div>
 
-              <div className="kpi-card-v128 accent-amber">
-                <div className="kpi-label-v128">Sfrido Totale</div>
-                <div className="kpi-value-v128">{fmt(result.scrapMeters)} m</div>
-                <div className="kpi-sub-v128">{fmt(result.scrapPct, 1)}% barre consumate</div>
+              <div className="kpi-card-3d accent-amber-3d">
+                <div className="kpi-label-3d">Sfrido Totale</div>
+                <div className="kpi-value-3d">{fmt(result.scrapMeters)} m</div>
+                <div className="kpi-sub-3d">{fmt(result.scrapPct, 1)}% barre consumate</div>
               </div>
 
-              <div className="kpi-card-v128">
-                <div className="kpi-label-v128">Peso Acciaio Utilizzato</div>
-                <div className="kpi-value-v128">{fmt(usedWeight)} kg</div>
-                <div className="kpi-sub-v128">Ø: {diaList || '—'} mm</div>
+              <div className="kpi-card-3d">
+                <div className="kpi-label-3d">Peso Acciaio Utilizzato</div>
+                <div className="kpi-value-3d">{fmt(usedWeight)} kg</div>
+                <div className="kpi-sub-3d">Ø: {diaList || '—'} mm</div>
               </div>
             </div>
 
-            {/* Piano di Taglio Operativo */}
+            {/* 3) Piano Operativo di Taglio */}
             <div className="panel cutting-plan-panel">
               <div className="panel-head plan-head-v128">
                 <div className="panel-title-with-subtitle">
-                  <h3>Piano di Taglio Operativo</h3>
-                  {/* 8) Nuova frase esplicativa esatta */}
+                  {/* 3) Titolo aggiornato in "Piano Operativo di Taglio" */}
+                  <h3>Piano Operativo di Taglio</h3>
+                  {/* 3) Frase esplicativa esatta richiesta */}
                   <p>
                     Sequenza cronologica dei pezzi da tagliare, con l'indicazione delle barre da
-                    utilizzare, dei tagli da recuperare e degli scarti/sfridi.
+                    utilizzare, dei tagli da recuperare e degli scarti/sfridi (da recuperare su richiesta).
                   </p>
                 </div>
 
                 <div className="panel-head-actions-v128">
-                  {/* 4) Widget delle schede Tabella Dati / Diagrammi Visivi leggermente ingrandito */}
+                  {/* Widget delle schede Tabella Dati / Diagrammi Visivi */}
                   <div className="view-mode-toggle-v128" role="group" aria-label="Visualizzazione piano">
                     <button
                       type="button"
@@ -396,7 +398,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
             {/* Pannelli inferiori */}
             <div className="result-grid">
-              {/* 5) Tabella "Riepilogo Barre Utilizzate": Totale sotto il primo campo e solo per il campo Peso */}
+              {/* Tabella "Riepilogo Barre Utilizzate": Totale sotto il primo campo e solo per Peso */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
@@ -450,7 +452,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                               </tr>
                             ))
                         )}
-                        {/* 5) Totale orizzontalmente sotto il primo campo, unico valore numerico su [Peso] */}
                         <tr className="total-row">
                           <td className="total-label-cell">Totale</td>
                           <td>—</td>
@@ -463,7 +464,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
               </div>
 
-              {/* 6) Tabella "Richiesta Non Evasa": Totale con stessi criteri + Pulsante Aggiorna Richiesta sotto a dx */}
+              {/* Tabella "Richiesta Non Evasa": Totale con stessi criteri + Pulsante Aggiorna Richiesta sotto a dx */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
@@ -513,7 +514,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                             </tr>
                           ))
                         )}
-                        {/* Riga Totale su Richiesta Non Evasa */}
                         {result.unmet.length > 0 && (
                           <tr className="total-row">
                             <td className="total-label-cell">Totale</td>
@@ -526,7 +526,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                     </table>
                   </div>
 
-                  {/* 6) Spostato il pulsante "Aggiorna Richiesta" sotto la tabella e tutto a dx */}
                   <div className="sfridi-footer-actions">
                     <button
                       className="btn primary small"
@@ -540,7 +539,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
               </div>
 
-              {/* 7) Tabella "Sfridi": Riga Totale con stessi criteri + Pulsante sotto a dx */}
+              {/* Tabella "Sfridi": Riga Totale con stessi criteri + Pulsante sotto a dx */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
@@ -616,7 +615,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                             );
                           })
                         )}
-                        {/* 7) Riga Totale su Sfridi: Totale sotto Ø, unico valore su Peso */}
                         {stockOptions.length > 0 && (
                           <tr className="total-row">
                             <td></td>
@@ -656,10 +654,11 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               onCancel={() => setConfirmDemandModalOpen(false)}
             />
 
+            {/* 4) Frase esplicativa esatta: "Gli sfridi selezionati verranno integrati nella Giacenza. Continuare?" */}
             <ConfirmModal
               isOpen={confirmStockModalOpen}
               title="Aggiorna Giacenza"
-              message="Gli sfridi selezionati verranno integrati nella tabella della Giacenza (aggiungendosi alle barre già registrate). Continuare?"
+              message="Gli sfridi selezionati verranno integrati nella Giacenza. Continuare?"
               confirmText="Integra Giacenza"
               cancelText="Annulla"
               onConfirm={() => handleConfirmStockUpdate(stockOptions)}

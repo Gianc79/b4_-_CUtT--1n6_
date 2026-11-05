@@ -51,8 +51,8 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <header className="topbar">
-      {/* Fascia superiore: Icona a sinistra, Titolo e sottotitolo a destra dell'icona, 3 icone circolari a destra */}
-      <div className="brandline-v128">
+      {/* Fascia superiore compatta v1.29: Titolo con versione a fianco, sottotitolo sotto, 3 icone traslate in basso */}
+      <div className="brandline-v129">
         <div className="brand-header-left">
           {/* Icona dell'app */}
           <div className="brandmark-app-icon" aria-hidden="true">
@@ -63,23 +63,22 @@ export const TopBar: React.FC<TopBarProps> = ({
             </svg>
           </div>
 
-          {/* Titolo e sottotitolo posizionati a destra dell'icona dell'app */}
+          {/* Titolo e versione di fianco sulla stessa riga, sottotitolo compatto sotto */}
           <div className="brand-titles-group">
             <div className="brand-title-row">
-              <h1 className="brand-app-name">TAGLIO BARRE C.A.</h1>
-              <span className="brand-version-pill">v. 1.28</span>
+              <h1 className="brand-app-name">
+                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.29</span>
+              </h1>
             </div>
-            <p className="brand-subtitle-twolines">
-              <span>Gestione ottimizzata</span>
-              <br />
-              <span>del Piano di Taglio.</span>
+            <p className="brand-subtitle-compact">
+              Gestione ottimizzata del Piano di Taglio.
             </p>
           </div>
         </div>
 
-        {/* 3 Icone SpesaSuMisura in cerchi bianchi (1.5x): Salva, Salva con nome, Apri */}
-        <div className="topbar-circular-actions" role="toolbar" aria-label="Operazioni file">
-          {/* 1) Salva: Floppy disk (uguale a Salva con nome ma senza matita) */}
+        {/* 3 Icone SpesaSuMisura in cerchi bianchi traslate a ridosso del bordo inferiore */}
+        <div className="topbar-circular-actions-bottom" role="toolbar" aria-label="Operazioni file">
+          {/* 1) Salva: Floppy disk */}
           <button
             className="topbar-circular-btn"
             type="button"
@@ -88,17 +87,14 @@ export const TopBar: React.FC<TopBarProps> = ({
             aria-label="Salva"
           >
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
-              {/* Corpo blu floppy */}
               <path
                 d="M4 3h13l4 4v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
                 fill="#2563EB"
                 stroke="#1D4ED8"
                 strokeWidth="1"
               />
-              {/* Cursore metallico superiore */}
               <rect x="6.5" y="3" width="9.5" height="6.5" rx="1" fill="#E2E8F0" />
               <rect x="12" y="4.2" width="2.5" height="4.5" rx="0.5" fill="#475569" />
-              {/* Etichetta bianca */}
               <rect x="5.5" y="12" width="13" height="8" rx="1" fill="#FFFFFF" />
               <line x1="7.5" y1="14.5" x2="16.5" y2="14.5" stroke="#3B82F6" strokeWidth="1.2" strokeLinecap="round" />
               <line x1="7.5" y1="17.5" x2="14" y2="17.5" stroke="#94A3B8" strokeWidth="1.2" strokeLinecap="round" />
@@ -114,20 +110,16 @@ export const TopBar: React.FC<TopBarProps> = ({
             aria-label="Salva con nome"
           >
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
-              {/* Corpo blu floppy */}
               <path
                 d="M4 3h13l4 4v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
                 fill="#2563EB"
                 stroke="#1D4ED8"
                 strokeWidth="1"
               />
-              {/* Cursore metallico superiore */}
               <rect x="6.5" y="3" width="9.5" height="6.5" rx="1" fill="#E2E8F0" />
               <rect x="12" y="4.2" width="2.5" height="4.5" rx="0.5" fill="#475569" />
-              {/* Etichetta bianca */}
               <rect x="5.5" y="12" width="13" height="8" rx="1" fill="#FFFFFF" />
               <line x1="7.5" y1="14.5" x2="13.5" y2="14.5" stroke="#3B82F6" strokeWidth="1.2" strokeLinecap="round" />
-              {/* Matita gialla sovrapposta in basso a destra */}
               <g transform="translate(10, 10)">
                 <rect
                   x="3"
@@ -164,12 +156,9 @@ export const TopBar: React.FC<TopBarProps> = ({
             aria-label="Apri file dati JSON"
           >
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
-              {/* Parte posteriore cartella */}
               <path d="M2 5a2 2 0 0 1 2-2h4l2 2h10a2 2 0 0 1 2 2v2H4a2 2 0 0 0-2 2V5z" fill="#D97706" />
-              {/* Foglio bianco che spunta */}
               <rect x="5" y="6" width="14" height="7" rx="1" fill="#FFFFFF" opacity="0.95" />
               <line x1="7" y1="8.5" x2="13" y2="8.5" stroke="#94A3B8" strokeWidth="1" strokeLinecap="round" />
-              {/* Tasca anteriore aperta inclinata */}
               <path
                 d="M2 19l2.2-9.2A2 2 0 0 1 6.1 8h15.4a1.5 1.5 0 0 1 1.4 1.9l-2.1 8.2a2 2 0 0 1-1.9 1.9H4a2 2 0 0 1-2-2z"
                 fill="#FBBF24"

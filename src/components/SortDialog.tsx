@@ -17,13 +17,10 @@ const SORT_FIELDS = [
 /**
  * Icona ordinamento fedele al file "Ordinamento crescente.jpg":
  * Freccia rivolta verso il basso a sinistra e 4 barre orizzontali a destra.
- * - isAsc: barre crescenti (da corta a lunga)
- * - isDesc: barre decrescenti (da lunga a corta)
  */
 const SortBarsOrderIcon: React.FC<{ isAsc: boolean }> = ({ isAsc }) => {
   return (
     <svg viewBox="0 0 36 32" width="28" height="25" fill="none">
-      {/* Freccia a sinistra rivolta verso il basso */}
       <path
         d="M7 4v20m0 0l-4-4.5M7 24l4-4.5"
         stroke="#475569"
@@ -31,10 +28,8 @@ const SortBarsOrderIcon: React.FC<{ isAsc: boolean }> = ({ isAsc }) => {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* 4 barre orizzontali azzurre con bordo */}
       {isAsc ? (
         <>
-          {/* Crescente: da corta (in alto) a lunga (in basso) */}
           <rect x="15" y="4" width="7" height="4" rx="1" fill="#38BDF8" stroke="#0284C7" strokeWidth="1" />
           <rect x="15" y="10.5" width="11" height="4" rx="1" fill="#38BDF8" stroke="#0284C7" strokeWidth="1" />
           <rect x="15" y="17" width="15" height="4" rx="1" fill="#38BDF8" stroke="#0284C7" strokeWidth="1" />
@@ -42,7 +37,6 @@ const SortBarsOrderIcon: React.FC<{ isAsc: boolean }> = ({ isAsc }) => {
         </>
       ) : (
         <>
-          {/* Decrescente: da lunga (in alto) a corta (in basso) */}
           <rect x="15" y="4" width="19" height="4" rx="1" fill="#38BDF8" stroke="#0284C7" strokeWidth="1" />
           <rect x="15" y="10.5" width="15" height="4" rx="1" fill="#38BDF8" stroke="#0284C7" strokeWidth="1" />
           <rect x="15" y="17" width="11" height="4" rx="1" fill="#38BDF8" stroke="#0284C7" strokeWidth="1" />
@@ -112,7 +106,7 @@ export const SortDialog: React.FC<SortDialogProps> = ({
         onClick={e => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit}>
-          {/* d) Titolo e X allineati verticalmente sulla stessa riga in alto */}
+          {/* Titolo e X allineati verticalmente sulla stessa riga in alto */}
           <div className="sort-dialog-head-v4">
             <h3 id="sort-dialog-title" className="sort-dialog-title-v4">
               {kind === 'stockDetail' ? 'Ordina Giacenza' : 'Ordina Richiesta'}
@@ -127,7 +121,7 @@ export const SortDialog: React.FC<SortDialogProps> = ({
             </button>
           </div>
 
-          {/* Lista livelli: spazio uniforme da titolo */}
+          {/* Lista livelli: casella select spostata più a sx vicino all'etichetta per visualizzare tutto il testo */}
           <div className="sort-levels-list-v4">
             {levels.map((level, index) => {
               const usedElsewhere = new Set(
@@ -139,15 +133,14 @@ export const SortDialog: React.FC<SortDialogProps> = ({
               const isAsc = level.direction === 'asc';
 
               return (
-                <div key={index} className="sort-level-item-v4">
-                  {/* Etichetta con font leggibile */}
-                  <span className="sort-item-label-v4">
+                <div key={index} className="sort-level-item-v4-compact">
+                  <span className="sort-item-label-compact">
                     {index === 0 ? 'Ordina per:' : 'Quindi per:'}
                   </span>
 
-                  {/* Casella Campo dimensionata proporzionatamente per contenere l'etichetta */}
+                  {/* Casella allargata verso sx */}
                   <select
-                    className="sort-item-select-v4"
+                    className="sort-item-select-v4-expanded"
                     value={level.field}
                     onChange={e => handleFieldChange(index, e.target.value as any)}
                     aria-label={`Campo ordinamento livello ${index + 1}`}
@@ -159,7 +152,7 @@ export const SortDialog: React.FC<SortDialogProps> = ({
                     ))}
                   </select>
 
-                  {/* a) Icona ordinamento fedele a Ordinamento crescente.jpg */}
+                  {/* Icona ordinamento fedele */}
                   <button
                     type="button"
                     className="sort-item-bars-btn"
@@ -174,11 +167,11 @@ export const SortDialog: React.FC<SortDialogProps> = ({
             })}
           </div>
 
-          {/* b) Tasti Aggiungi ed Elimina livello 1.5x più grandi con spaziatura uguale a titolo/"Ordina per" */}
+          {/* 5) Tasti Aggiungi ed Elimina livello su una sola riga con font e altezza ridotti */}
           <div className="sort-level-actions-group-v4">
             <button
               type="button"
-              className="btn neutral sort-level-btn-15x"
+              className="btn neutral sort-level-btn-compact"
               onClick={handleAddLevel}
               disabled={levels.length >= SORT_FIELDS.length}
             >
@@ -186,7 +179,7 @@ export const SortDialog: React.FC<SortDialogProps> = ({
             </button>
             <button
               type="button"
-              className="btn neutral sort-level-btn-15x"
+              className="btn neutral sort-level-btn-compact"
               onClick={handleRemoveLevel}
               disabled={levels.length <= 1}
             >
@@ -194,7 +187,7 @@ export const SortDialog: React.FC<SortDialogProps> = ({
             </button>
           </div>
 
-          {/* c) Azioni finali Annulla e Ordina: più larghe, spaziate tra loro e distanziate dai livelli con lo stesso spazio */}
+          {/* Azioni finali Annulla e Ordina distanziate */}
           <div className="sort-dialog-bottom-actions-v4">
             <button
               type="button"
