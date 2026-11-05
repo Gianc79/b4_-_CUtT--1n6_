@@ -4,6 +4,7 @@ import { fmt, intFmt, resultKey, unitWeight } from '../utils/math';
 import { buildOperationalPlan } from '../utils/optimizer';
 import { CutDiagramBar } from './CutDiagramBar';
 import { ConfirmModal } from './ConfirmModal';
+import { ExcelExportIcon } from './ExcelIcons';
 
 export interface SelectedStockItem {
   source: 'remaining' | 'scrap';
@@ -28,7 +29,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   onUpdateDemand,
   onUpdateStock,
 }) => {
-  // 2) Schermata principale e predefinita: Tabella Dati (sx)
+  // Schermata principale e predefinita: Tabella Dati (sx)
   const [displayMode, setDisplayMode] = useState<'table' | 'visual'>('table');
 
   // Selezione elementi in Sfridi
@@ -103,22 +104,37 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   return (
     <section className="page active" id="page-results">
-      {/* Intestazione Ottimizza */}
-      <div className="section-head optimization-head">
-        <div>
+      {/* Intestazione Ottimizza: Titolo a sinistra; Pulsante Esegui ottimizzazione ed Icona Esporta XLS a destra allineati */}
+      <div className="section-head optimization-head-v128">
+        <div className="optimization-head-text">
           <h2>Ottimizza</h2>
           <p>Piano di Taglio Operativo generato sull'ottimizzazione della Giacenza.</p>
         </div>
-        {/* 1) Font aumentato e simbolo play ▶ */}
-        <button
-          className="btn primary optimize-pulse-btn-v2 optimize-btn-large"
-          type="button"
-          id="optimizeBtn"
-          onClick={onOptimize}
-          aria-label="Esegui ottimizzazione"
-        >
-          <span className="optimize-btn-text">▶ Esegui ottimizzazione</span>
-        </button>
+
+        {/* 1) Riquadro allargato per non strabordare + 3) Icona Esporta XLS allineata tutta a destra */}
+        <div className="optimization-head-actions-row">
+          <button
+            className="btn primary optimize-pulse-btn-v128"
+            type="button"
+            id="optimizeBtn"
+            onClick={onOptimize}
+            aria-label="Esegui ottimizzazione"
+          >
+            <span className="optimize-btn-text-v128">▶ Esegui ottimizzazione</span>
+          </button>
+
+          {/* Icona Esporta XLS fedele al modello excel posizionata tutta a dx */}
+          <button
+            className="xls-action-icon-btn xls-action-icon-btn-header"
+            type="button"
+            id="exportPlanBtn"
+            onClick={onExportPlan}
+            title="Esporta Piano di Taglio in Excel (.xlsx)"
+            aria-label="Esporta Piano XLS"
+          >
+            <ExcelExportIcon size={34} />
+          </button>
+        </div>
       </div>
 
       {!has && (
@@ -130,7 +146,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               Inserisci o verifica i dati nelle sezioni <strong>Giacenza</strong> e{' '}
               <strong>Richiesta</strong>, quindi premi il pulsante in alto per calcolare il Piano di Taglio.
             </p>
-            <button className="btn primary optimize-btn-large" type="button" onClick={onOptimize}>
+            <button className="btn primary optimize-pulse-btn-v128" type="button" onClick={onOptimize}>
               ▶ Esegui ottimizzazione adesso
             </button>
           </div>
@@ -146,7 +162,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
         const { cuts, rows: operations } = buildOperationalPlan(result);
 
-        // 6) Mostrare SOLO gli sfridi recuperabili (non le barre integre rimanenti)
+        // Mostrare SOLO gli sfridi recuperabili
         const stockOptions: SelectedStockItem[] = result.scraps
           .map((x, i) => ({
             source: 'scrap' as const,
@@ -163,9 +179,21 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
         const stockSomeChecked =
           allStockKeys.some(k => selectedStockKeys.has(k)) && !stockAllChecked;
 
+        // Calcolo totale peso richiesta non evasa
+        const totalUnmetWeight = result.unmet.reduce(
+          (sum, x) => sum + x.remaining * (x.length / 100) * unitWeight(x.diameter),
+          0
+        );
+
+        // Calcolo totale peso sfridi
+        const totalScrapWeight = stockOptions.reduce(
+          (sum, x) => sum + x.qty * (x.length / 100) * unitWeight(x.diameter),
+          0
+        );
+
         return (
           <div id="resultsContent">
-            {/* Messaggio di stato in caso di completamento o parzialità */}
+            {/* Messaggio di stato */}
             <div className={`message-banner ${result.allFulfilled ? 'success' : 'warning'}`}>
               <span className="banner-icon">{result.allFulfilled ? '✓' : '⚠'}</span>
               <div className="banner-text">
@@ -188,18 +216,18 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               </div>
             </div>
 
-            {/* KPI Cards */}
-            <div className="kpis-modern">
-              <div className="kpi-card">
-                <div className="kpi-label">Pezzi Richiesti</div>
-                <div className="kpi-value">{intFmt(result.requestedPieces)}</div>
-                <div className="kpi-sub">totale distinta</div>
+            {/* 2) KPI Cards con allineamento verticale coerente per SFRIDO TOTALE e tutti i blocchi */}
+            <div className="kpis-modern-v128">
+              <div className="kpi-card-v128">
+                <div className="kpi-label-v128">Pezzi Richiesti</div>
+                <div className="kpi-value-v128">{intFmt(result.requestedPieces)}</div>
+                <div className="kpi-sub-v128">totale distinta</div>
               </div>
 
-              <div className="kpi-card accent-green">
-                <div className="kpi-label">Pezzi Evasi</div>
-                <div className="kpi-value">{intFmt(result.fulfilledPieces)}</div>
-                <div className="kpi-sub">
+              <div className="kpi-card-v128 accent-green">
+                <div className="kpi-label-v128">Pezzi Evasi</div>
+                <div className="kpi-value-v128">{intFmt(result.fulfilledPieces)}</div>
+                <div className="kpi-sub-v128">
                   {result.allFulfilled
                     ? '100% evaso'
                     : `${fmt(
@@ -209,75 +237,49 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
               </div>
 
-              <div className="kpi-card accent-amber">
-                <div className="kpi-label">Sfrido Totale</div>
-                <div className="kpi-value">{fmt(result.scrapMeters)} m</div>
-                <div className="kpi-sub">{fmt(result.scrapPct, 1)}% barre consumate</div>
+              <div className="kpi-card-v128 accent-amber">
+                <div className="kpi-label-v128">Sfrido Totale</div>
+                <div className="kpi-value-v128">{fmt(result.scrapMeters)} m</div>
+                <div className="kpi-sub-v128">{fmt(result.scrapPct, 1)}% barre consumate</div>
               </div>
 
-              <div className="kpi-card">
-                <div className="kpi-label">Peso Acciaio Utilizzato</div>
-                <div className="kpi-value">{fmt(usedWeight)} kg</div>
-                <div className="kpi-sub">Ø: {diaList || '—'} mm</div>
+              <div className="kpi-card-v128">
+                <div className="kpi-label-v128">Peso Acciaio Utilizzato</div>
+                <div className="kpi-value-v128">{fmt(usedWeight)} kg</div>
+                <div className="kpi-sub-v128">Ø: {diaList || '—'} mm</div>
               </div>
             </div>
 
             {/* Piano di Taglio Operativo */}
             <div className="panel cutting-plan-panel">
-              <div className="panel-head plan-head-v2">
+              <div className="panel-head plan-head-v128">
                 <div className="panel-title-with-subtitle">
                   <h3>Piano di Taglio Operativo</h3>
+                  {/* 8) Nuova frase esplicativa esatta */}
                   <p>
-                    Sequenza esecutiva con l'indicazione dei tagli raggruppati ed ordinati, dei tagli
-                    da recuperare e degli sfridi inutilizzabili.
+                    Sequenza cronologica dei pezzi da tagliare, con l'indicazione delle barre da
+                    utilizzare, dei tagli da recuperare e degli scarti/sfridi.
                   </p>
                 </div>
 
-                <div className="panel-head-actions-v2">
-                  {/* Toggle: Tabella Dati (sx) e Diagrammi Visivi (dx) */}
-                  <div className="view-mode-toggle" role="group" aria-label="Visualizzazione piano">
+                <div className="panel-head-actions-v128">
+                  {/* 4) Widget delle schede Tabella Dati / Diagrammi Visivi leggermente ingrandito */}
+                  <div className="view-mode-toggle-v128" role="group" aria-label="Visualizzazione piano">
                     <button
                       type="button"
-                      className={`view-toggle-btn ${displayMode === 'table' ? 'active' : ''}`}
+                      className={`view-toggle-btn-v128 ${displayMode === 'table' ? 'active' : ''}`}
                       onClick={() => setDisplayMode('table')}
                     >
                       ☰ Tabella Dati
                     </button>
                     <button
                       type="button"
-                      className={`view-toggle-btn ${displayMode === 'visual' ? 'active' : ''}`}
+                      className={`view-toggle-btn-v128 ${displayMode === 'visual' ? 'active' : ''}`}
                       onClick={() => setDisplayMode('visual')}
                     >
                       ✂ Diagrammi Visivi
                     </button>
                   </div>
-
-                  {/* 3) Icona professionale Esporta XLS rifatta in stile Excel verde elegante */}
-                  <button
-                    className="xls-export-btn-professional"
-                    type="button"
-                    id="exportPlanBtn"
-                    onClick={onExportPlan}
-                    title="Esporta Piano di Taglio in formato Excel (.xlsx)"
-                    aria-label="Esporta Piano XLS"
-                  >
-                    <div className="xls-icon-container">
-                      <svg viewBox="0 0 32 32" width="22" height="22" fill="none" className="xls-svg-icon">
-                        {/* Corpo foglio Excel verde */}
-                        <rect x="3" y="3" width="26" height="26" rx="4" fill="#107C41" />
-                        {/* Griglia foglio */}
-                        <line x1="8" y1="12" x2="24" y2="12" stroke="#FFFFFF" strokeWidth="1.5" strokeOpacity="0.4" />
-                        <line x1="8" y1="18" x2="24" y2="18" stroke="#FFFFFF" strokeWidth="1.5" strokeOpacity="0.4" />
-                        <line x1="16" y1="7" x2="16" y2="25" stroke="#FFFFFF" strokeWidth="1.5" strokeOpacity="0.4" />
-                        {/* Etichetta XLS o Freccia Download */}
-                        <rect x="5" y="8" width="13" height="15" rx="2" fill="#0D5C31" />
-                        <text x="11.5" y="19" fill="#FFFFFF" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="system-ui, sans-serif">X</text>
-                        {/* Freccina download bianca con accento */}
-                        <path d="M22 17l-3 3-3-3m3 3V11" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <span className="xls-btn-label">Esporta XLS</span>
-                    </div>
-                  </button>
                 </div>
               </div>
 
@@ -303,7 +305,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                     )}
                   </div>
                 ) : (
-                  /* Tabella Dati con intestazioni Tagli e altre colonne rigorosamente su 2 righe */
+                  /* Tabella Dati */
                   <div className="table-wrap">
                     <table className="result-table" id="outputTable">
                       <thead>
@@ -394,7 +396,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
             {/* Pannelli inferiori */}
             <div className="result-grid">
-              {/* Riepilogo Barre Utilizzate */}
+              {/* 5) Tabella "Riepilogo Barre Utilizzate": Totale sotto il primo campo e solo per il campo Peso */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
@@ -448,9 +450,11 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                               </tr>
                             ))
                         )}
+                        {/* 5) Totale orizzontalmente sotto il primo campo, unico valore numerico su [Peso] */}
                         <tr className="total-row">
-                          <td colSpan={2}>Totale</td>
-                          <td>{intFmt(result.usedBars)}</td>
+                          <td className="total-label-cell">Totale</td>
+                          <td>—</td>
+                          <td>—</td>
                           <td>{fmt(usedWeight)}</td>
                         </tr>
                       </tbody>
@@ -459,21 +463,13 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
               </div>
 
-              {/* 5) Richiesta Non Evasa con "Giacenza" in maiuscolo nel sottotitolo */}
+              {/* 6) Tabella "Richiesta Non Evasa": Totale con stessi criteri + Pulsante Aggiorna Richiesta sotto a dx */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
                     <h3>Richiesta Non Evasa</h3>
                     <p>Tagli non eseguiti a causa di esaurimento della Giacenza.</p>
                   </div>
-                  <button
-                    className="btn primary small"
-                    type="button"
-                    onClick={handleTriggerUpdateDemand}
-                    disabled={result.unmet.length === 0}
-                  >
-                    Aggiorna Richiesta
-                  </button>
                 </div>
                 <div className="panel-body">
                   <div className="table-wrap">
@@ -517,13 +513,34 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                             </tr>
                           ))
                         )}
+                        {/* Riga Totale su Richiesta Non Evasa */}
+                        {result.unmet.length > 0 && (
+                          <tr className="total-row">
+                            <td className="total-label-cell">Totale</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>{fmt(totalUnmetWeight)}</td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* 6) Spostato il pulsante "Aggiorna Richiesta" sotto la tabella e tutto a dx */}
+                  <div className="sfridi-footer-actions">
+                    <button
+                      className="btn primary small"
+                      type="button"
+                      onClick={handleTriggerUpdateDemand}
+                      disabled={result.unmet.length === 0}
+                    >
+                      Aggiorna Richiesta
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* 6) Sezione "Sfridi" - mostra solo sfridi, pulsante sotto a destra, nessuna frase sotto la tabella */}
+              {/* 7) Tabella "Sfridi": Riga Totale con stessi criteri + Pulsante sotto a dx */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
@@ -599,6 +616,16 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                             );
                           })
                         )}
+                        {/* 7) Riga Totale su Sfridi: Totale sotto Ø, unico valore su Peso */}
+                        {stockOptions.length > 0 && (
+                          <tr className="total-row">
+                            <td></td>
+                            <td className="total-label-cell">Totale</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>{fmt(totalScrapWeight)}</td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -653,4 +680,3 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
     </section>
   );
 };
-

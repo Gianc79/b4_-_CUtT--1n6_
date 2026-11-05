@@ -412,9 +412,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata senza "da cantiere" e v. 1.27 */}
+        {/* Frase in fondo alla pagina aggiornata senza "da cantiere" e v. 1.28 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.27 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.28 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 

@@ -10,6 +10,7 @@ import {
 } from '../utils/math';
 import { DiameterFilter } from './DiameterFilter';
 import { ConfirmModal } from './ConfirmModal';
+import { ExcelImportIcon, ExcelExportIcon } from './ExcelIcons';
 
 interface MasterTableProps {
   kind: 'stockDetail' | 'demandDetail';
@@ -34,6 +35,50 @@ interface DeletedRowRecord {
   index: number;
 }
 
+/**
+ * Icona "Tasto Ordina" fedele al file "Tasto Ordina.png":
+ * Lettera A blu sopra, divisorio orizzontale viola, lettera Z viola sotto, e freccia grigia ↓ a destra.
+ */
+const SortTriggerIcon: React.FC = () => {
+  return (
+    <svg viewBox="0 0 32 32" width="24" height="24" fill="none" className="sort-trigger-svg">
+      {/* Colonna lettere A / Z */}
+      <text
+        x="9"
+        y="12"
+        fill="#2563EB"
+        fontSize="12"
+        fontWeight="900"
+        textAnchor="middle"
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        A
+      </text>
+      <line x1="3" y1="15" x2="15" y2="15" stroke="#7C3AED" strokeWidth="1.6" strokeLinecap="round" />
+      <text
+        x="9"
+        y="26"
+        fill="#7C3AED"
+        fontSize="12"
+        fontWeight="900"
+        textAnchor="middle"
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        Z
+      </text>
+
+      {/* Freccia grigia rivolta in basso a destra */}
+      <path
+        d="M22 6v18m0 0l-4-4.5M22 24l4-4.5"
+        stroke="#64748B"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
 export const MasterTable: React.FC<MasterTableProps> = ({
   kind,
   title,
@@ -48,7 +93,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   const [selectedDiameter, setSelectedDiameter] = useState<number | 'all'>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Focus management per immissione con Invio
+  // Focus management per immissione con Invio e scorrimento su nuova riga
   const nextFocusRowIdRef = useRef<string | null>(null);
 
   // Memorizzazione valore precedente per ripristino in caso di diametro errato
@@ -63,7 +108,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   const [deletedRecord, setDeletedRecord] = useState<DeletedRowRecord | null>(null);
   const undoTimerRef = useRef<number | null>(null);
 
-  // Auto-focus sulla nuova riga appena aggiunta
+  // 4) Spostamento tabella in alto all'aggiunta di una riga per non finire dietro la tastiera mobile
   useEffect(() => {
     if (nextFocusRowIdRef.current) {
       const targetInput = document.querySelector<HTMLInputElement>(
@@ -71,6 +116,11 @@ export const MasterTable: React.FC<MasterTableProps> = ({
       );
       if (targetInput) {
         targetInput.focus();
+        try {
+          targetInput.select();
+        } catch (_) {}
+        // Scorrimento al centro dell'area visibile
+        targetInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       nextFocusRowIdRef.current = null;
     }
@@ -105,8 +155,17 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     onChangeRows(updated);
   };
 
-  const handleCellFocus = (id: string, field: 'diameter' | 'qty' | 'length', currentVal: string) => {
+  // 3) Seleziona tutto il contenuto al clic senza menu contestuale
+  const handleCellFocus = (
+    e: React.FocusEvent<HTMLInputElement>,
+    id: string,
+    field: 'diameter' | 'qty' | 'length',
+    currentVal: string
+  ) => {
     cellPreviousValuesRef.current[`${id}_${field}`] = currentVal;
+    try {
+      e.target.select();
+    } catch (_) {}
   };
 
   const handleCellBlur = (id: string, field: 'diameter' | 'qty' | 'length', rawVal: string) => {
@@ -161,19 +220,18 @@ export const MasterTable: React.FC<MasterTableProps> = ({
       return;
     }
 
-    const existingRow = currentRows.find(
+    const duplicateTarget = currentRows.find(
       r =>
         r.id !== currentId &&
         inputNumber(r.diameter) === curD &&
         inputNumber(r.length) === curL &&
-        inputNumber(r.qty) !== null &&
-        inputNumber(r.qty)! > 0
+        (inputNumber(r.qty) || 0) > 0
     );
 
-    if (existingRow) {
+    if (duplicateTarget) {
       setDuplicateCandidate({
         sourceRowId: currentId,
-        targetRowId: existingRow.id,
+        targetRowId: duplicateTarget.id,
         addQty: curQ,
       });
     }
@@ -186,23 +244,24 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     const updated = rows
       .map(r => {
         if (r.id === targetRowId) {
-          const oldQ = inputNumber(r.qty) || 0;
-          return { ...r, qty: String(oldQ + addQty) };
+          const currentQty = inputNumber(r.qty) || 0;
+          return { ...r, qty: String(currentQty + addQty) };
         }
         return r;
       })
       .filter(r => r.id !== sourceRowId);
 
-    onChangeRows(updated.length > 0 ? updated : [blankMaster()]);
+    const finalRows = updated.length > 0 ? updated : [blankMaster()];
+    onChangeRows(finalRows);
     setDuplicateCandidate(null);
-    onToast(`Quantità aggiunta all'elemento esistente.`);
+    onToast(`Quantità (${addQty} pz) aggiunta alla riga esistente.`);
   };
 
   const handleCancelMergeDuplicate = () => {
     setDuplicateCandidate(null);
   };
 
-  // Navigazione fluida con tasto Invio (senza causare il callout Traduci/Copia del browser)
+  // Navigazione tastiera (Invio): da Diametro -> Nr -> Lunghezza -> Riga successiva
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     rowIndex: number,
@@ -211,7 +270,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   ) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      (e.target as HTMLInputElement).blur();
+      e.currentTarget.blur();
 
       if (field === 'diameter') {
         const nextInput = document.querySelector<HTMLInputElement>(
@@ -224,77 +283,88 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         );
         nextInput?.focus();
       } else if (field === 'length') {
-        const nextRow = effectiveRows[rowIndex + 1];
-        if (nextRow) {
-          const nextDiaInput = document.querySelector<HTMLInputElement>(
+        // Se c'è una riga successiva nei dati visibili
+        if (rowIndex < effectiveRows.length - 1) {
+          const nextRow = effectiveRows[rowIndex + 1];
+          const nextInput = document.querySelector<HTMLInputElement>(
             `input[data-row-id="${nextRow.id}"][data-field="diameter"]`
           );
-          nextDiaInput?.focus();
+          nextInput?.focus();
         } else {
-          const newRowId = newId();
-          nextFocusRowIdRef.current = newRowId;
-          const newRow: MasterRow = {
-            id: newRowId,
-            diameter: selectedDiameter !== 'all' ? String(selectedDiameter) : '',
-            qty: '',
-            length: '',
-          };
+          // Ultima riga: aggiungi nuova riga e scorri
+          const newRow = blankMaster();
+          if (isFiltered) {
+            newRow.diameter = String(selectedDiameter);
+          }
+          nextFocusRowIdRef.current = newRow.id;
           onChangeRows([...rows, newRow]);
         }
       }
     }
   };
 
+  // Aggiungi riga manuale
   const handleAddRow = () => {
-    const newRowId = newId();
-    nextFocusRowIdRef.current = newRowId;
-    const newRow: MasterRow = {
-      id: newRowId,
-      diameter: selectedDiameter !== 'all' ? String(selectedDiameter) : '',
-      qty: '',
-      length: '',
-    };
+    const newRow = blankMaster();
+    if (isFiltered) {
+      newRow.diameter = String(selectedDiameter);
+    }
+    nextFocusRowIdRef.current = newRow.id;
     onChangeRows([...rows, newRow]);
   };
 
-  // Rimozione record con popup compatto a riga singola e Annulla
+  // Eliminazione riga con Undo Toast
   const handleDeleteRow = (id: string, index: number) => {
-    const rowToDelete = rows.find(r => r.id === id);
-    if (!rowToDelete) return;
+    const targetRow = rows.find(r => r.id === id);
+    if (!targetRow) return;
 
-    const isEmpty =
-      !rowToDelete.diameter.trim() &&
-      !rowToDelete.qty.trim() &&
-      !rowToDelete.length.trim();
+    const isEmptyRow =
+      !targetRow.diameter.trim() && !targetRow.qty.trim() && !targetRow.length.trim();
 
     const updated = rows.filter(r => r.id !== id);
-    onChangeRows(updated.length > 0 ? updated : [blankMaster()]);
+    const finalRows = updated.length > 0 ? updated : [blankMaster()];
+    onChangeRows(finalRows);
 
-    if (!isEmpty) {
+    if (!isEmptyRow) {
       if (undoTimerRef.current) {
         window.clearTimeout(undoTimerRef.current);
       }
-      setDeletedRecord({ row: rowToDelete, index });
+      setDeletedRecord({ row: targetRow, index });
       undoTimerRef.current = window.setTimeout(() => {
         setDeletedRecord(null);
-      }, 6000);
+      }, 5000);
     }
   };
 
   const handleUndoDelete = () => {
     if (!deletedRecord) return;
-    const newRows = [...rows];
-    const insertIdx = Math.min(deletedRecord.index, newRows.length);
-    newRows.splice(insertIdx, 0, deletedRecord.row);
-    onChangeRows(newRows);
+    const restored = [...rows];
+    restored.splice(deletedRecord.index, 0, deletedRecord.row);
+    onChangeRows(restored);
     setDeletedRecord(null);
-    onToast('Riga ripristinata.');
+    if (undoTimerRef.current) {
+      window.clearTimeout(undoTimerRef.current);
+    }
+    onToast('Riga ripristinata con successo.');
   };
 
+  // 5) Svuota tabella: se filtro attivo, elimina solo i record filtrati; se Tutti, svuota tutti
   const handleConfirmClearTable = () => {
-    onChangeRows([blankMaster()]);
-    setClearTableModalOpen(false);
-    onToast('Tabella svuotata.');
+    if (selectedDiameter === 'all') {
+      onChangeRows([blankMaster()]);
+      setClearTableModalOpen(false);
+      onToast(`${kind === 'stockDetail' ? 'Giacenza' : 'Richiesta'}: tabella svuotata.`);
+    } else {
+      const remaining = rows.filter(r => inputNumber(r.diameter) !== selectedDiameter);
+      const updated = remaining.length > 0 ? remaining : [blankMaster()];
+      onChangeRows(updated);
+      setClearTableModalOpen(false);
+      onToast(`Eliminati i record con diametro Ø ${selectedDiameter} mm.`);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -305,29 +375,44 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     e.target.value = '';
   };
 
+  const clearModalTitle =
+    selectedDiameter === 'all'
+      ? 'Svuota tabella'
+      : `Elimina elementi Ø ${selectedDiameter} mm`;
+
+  const clearModalMessage =
+    selectedDiameter === 'all'
+      ? 'Gli elementi della tabella stanno per essere eliminati definitivamente. Continuare?'
+      : `Gli elementi della tabella con diametro Ø ${selectedDiameter} mm stanno per essere eliminati definitivamente. Continuare?`;
+
   return (
-    <section className="page active" id={`page-${kind === 'stockDetail' ? 'stock' : 'demand'}`}>
-      {/* Intestazione pagina */}
-      <div className="section-head master-page-head">
-        <div>
+    <section className="page active" id={`page-${kind}`}>
+      {/* 1) Testata: Titolo e sottotitolo a sinistra, 2 icone XLS (Importa ed Esporta) a destra */}
+      <div className="section-head section-head-with-xls-icons">
+        <div className="section-head-text">
           <h2>{title}</h2>
           <p>{subtitle}</p>
         </div>
-        {/* Pulsanti Importa ed Esporta XLS sulla stessa riga */}
-        <div className="heading-actions-row">
+
+        {/* 2 icone XLS a destra all'altezza del titolo e del sottotitolo */}
+        <div className="section-head-actions-xls">
           <button
-            className="btn neutral"
+            className="xls-action-icon-btn"
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleImportClick}
+            title="Importa da Excel (.xlsx)"
+            aria-label="Importa da Excel"
           >
-            Importa XLS
+            <ExcelImportIcon size={34} />
           </button>
           <button
-            className="btn neutral"
+            className="xls-action-icon-btn"
             type="button"
             onClick={onExportXls}
+            title="Esporta in Excel (.xlsx)"
+            aria-label="Esporta in Excel"
           >
-            Esporta XLS
+            <ExcelExportIcon size={34} />
           </button>
           <input
             ref={fileInputRef}
@@ -339,7 +424,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         </div>
       </div>
 
-      {/* 1) Etichetta in grassetto sopra il filtro dei diametri */}
+      {/* Etichetta in grassetto sopra il filtro dei diametri */}
       <div className="filter-section-header">
         <strong>Filtra Diametri</strong>
       </div>
@@ -351,7 +436,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         onSelectDiameter={setSelectedDiameter}
       />
 
-      {/* 2) Widget Totali dinamici affiancati orizzontalmente (mai uno sopra l'altro) */}
+      {/* Widget Totali dinamici affiancati orizzontalmente (mai uno sopra l'altro) */}
       <div className="calc-total totals-side-by-side">
         <div className="summary-box">
           <div className="s-label">
@@ -379,24 +464,28 @@ export const MasterTable: React.FC<MasterTableProps> = ({
       </div>
 
       {/* Pannello Principale Tabella */}
-      <div className="panel">
-        {/* 3) Intestazione stabile: Titolo e tasto Ordina restano sempre fissi a sinistra */}
-        <div className="panel-head master-head-stable">
+      <div className="panel master-table-panel">
+        {/* 2) Intestazione stabile: Titolo a sinistra e Tasto Ordina tipo Tasto Ordina.png tutto a destra */}
+        <div className="panel-head master-head-with-sort-right">
           <div className="master-head-title-row">
             <h3>{kind === 'stockDetail' ? 'Elenco Giacenza' : 'Elenco Richiesta'}</h3>
-            <button
-              className="btn btn-sort-wide"
-              type="button"
-              onClick={onOpenSort}
-            >
-              Ordina
-            </button>
             {isFiltered && (
               <span className="active-filter-badge">
                 Ø {selectedDiameter} mm ({effectiveRows.length})
               </span>
             )}
           </div>
+
+          {/* Pulsante Ordina tutto a destra con icona fedele a Tasto Ordina.png */}
+          <button
+            className="btn-sort-icon-trigger"
+            type="button"
+            onClick={onOpenSort}
+            title={`Ordina ${kind === 'stockDetail' ? 'Giacenza' : 'Richiesta'}`}
+            aria-label="Ordina tabella"
+          >
+            <SortTriggerIcon />
+          </button>
         </div>
 
         <div className="panel-body">
@@ -422,7 +511,11 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                       type="button"
                       onClick={() => setClearTableModalOpen(true)}
                       aria-label="Svuota tabella"
-                      title="Svuota tabella"
+                      title={
+                        isFiltered
+                          ? `Elimina elementi Ø ${selectedDiameter} mm`
+                          : 'Svuota tabella'
+                      }
                     >
                       ×
                     </button>
@@ -448,6 +541,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                   return (
                     <tr key={r.id}>
                       <td>
+                        {/* 3) Selezione testo al clic senza menu contestuale tramite contextmenu preventDefault */}
                         <input
                           className="cell-input"
                           type="number"
@@ -460,7 +554,12 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                           aria-label={`Diametro riga ${i + 1}`}
                           value={r.diameter}
                           placeholder="Ø"
-                          onFocus={e => handleCellFocus(r.id, 'diameter', e.target.value)}
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="none"
+                          spellCheck={false}
+                          onContextMenu={e => e.preventDefault()}
+                          onFocus={e => handleCellFocus(e, r.id, 'diameter', e.target.value)}
                           onChange={e => handleCellChange(r.id, 'diameter', e.target.value)}
                           onBlur={e => handleCellBlur(r.id, 'diameter', e.target.value)}
                           onKeyDown={e => handleKeyDown(e, i, 'diameter', r.id)}
@@ -479,7 +578,12 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                           aria-label={`Numero riga ${i + 1}`}
                           value={r.qty}
                           placeholder="Nr."
-                          onFocus={e => handleCellFocus(r.id, 'qty', e.target.value)}
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="none"
+                          spellCheck={false}
+                          onContextMenu={e => e.preventDefault()}
+                          onFocus={e => handleCellFocus(e, r.id, 'qty', e.target.value)}
                           onChange={e => handleCellChange(r.id, 'qty', e.target.value)}
                           onBlur={e => handleCellBlur(r.id, 'qty', e.target.value)}
                           onKeyDown={e => handleKeyDown(e, i, 'qty', r.id)}
@@ -498,7 +602,12 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                           aria-label={`Lunghezza in centimetri riga ${i + 1}`}
                           value={r.length}
                           placeholder="cm"
-                          onFocus={e => handleCellFocus(r.id, 'length', e.target.value)}
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="none"
+                          spellCheck={false}
+                          onContextMenu={e => e.preventDefault()}
+                          onFocus={e => handleCellFocus(e, r.id, 'length', e.target.value)}
                           onChange={e => handleCellChange(r.id, 'length', e.target.value)}
                           onBlur={e => handleCellBlur(r.id, 'length', e.target.value)}
                           onKeyDown={e => handleKeyDown(e, i, 'length', r.id)}
@@ -537,7 +646,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         </div>
       </div>
 
-      {/* 4) Toast Annulla (Undo) su singola riga ampia senza spezzarsi su 4 righe */}
+      {/* Toast Annulla (Undo) su singola riga ampia */}
       {deletedRecord && (
         <div className="undo-delete-toast-v3" role="alert">
           <span className="undo-toast-text-v3">
@@ -565,11 +674,11 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         onConfirm={() => setInvalidDiaModalOpen(false)}
       />
 
-      {/* 5) Modale Svuota Tabella: Annulla a sx (colore neutro) ed Elimina tutti a dx (rosso) */}
+      {/* 5) Modale Svuota Tabella: se filtro attivo elimina solo quel diametro, altrimenti tutti */}
       <ConfirmModal
         isOpen={clearTableModalOpen}
-        title="Svuota tabella"
-        message="Gli elementi della tabella stanno per essere eliminati definitivamente. Continuare?"
+        title={clearModalTitle}
+        message={clearModalMessage}
         confirmText="Elimina tutti"
         cancelText="Annulla"
         confirmStyle="danger"
