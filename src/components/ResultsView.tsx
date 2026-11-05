@@ -28,10 +28,10 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   onUpdateDemand,
   onUpdateStock,
 }) => {
-  // Toggle: Tabella Dati (sx) e Diagrammi Visivi (dx)
-  const [displayMode, setDisplayMode] = useState<'table' | 'visual'>('visual');
+  // 2) Schermata principale e predefinita: Tabella Dati (sx)
+  const [displayMode, setDisplayMode] = useState<'table' | 'visual'>('table');
 
-  // Selezione elementi in Giacenza Residua & Sfridi
+  // Selezione elementi in Sfridi
   const [selectedStockKeys, setSelectedStockKeys] = useState<Set<string>>(new Set());
 
   // Modali in-app di conferma
@@ -45,11 +45,10 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const has = !!(result && Array.isArray(result.patterns));
 
-  // Genera chiave univoca per la selezione
-  const getItemKey = (source: 'remaining' | 'scrap', idx: number) => `${source}_${idx}`;
+  const getItemKey = (idx: number) => `scrap_${idx}`;
 
-  const handleToggleStockItem = (source: 'remaining' | 'scrap', idx: number) => {
-    const key = getItemKey(source, idx);
+  const handleToggleStockItem = (idx: number) => {
+    const key = getItemKey(idx);
     setSelectedStockKeys(prev => {
       const next = new Set(prev);
       if (next.has(key)) {
@@ -73,19 +72,19 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   };
 
   const handleTriggerUpdateStock = (stockItems: SelectedStockItem[]) => {
-    const selected = stockItems.filter(item =>
-      selectedStockKeys.has(getItemKey(item.source, item.sourceIndex))
+    const selected = stockItems.filter((_, idx) =>
+      selectedStockKeys.has(getItemKey(idx))
     );
     if (selected.length === 0) {
-      setAlertModalMessage('Seleziona almeno un pezzo dalla tabella prima di aggiornare la Giacenza.');
+      setAlertModalMessage('Seleziona almeno uno sfrido dalla tabella prima di aggiornare la Giacenza.');
       return;
     }
     setConfirmStockModalOpen(true);
   };
 
   const handleConfirmStockUpdate = (stockItems: SelectedStockItem[]) => {
-    const selected = stockItems.filter(item =>
-      selectedStockKeys.has(getItemKey(item.source, item.sourceIndex))
+    const selected = stockItems.filter((_, idx) =>
+      selectedStockKeys.has(getItemKey(idx))
     );
     onUpdateStock(selected);
     setSelectedStockKeys(new Set());
@@ -104,21 +103,21 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   return (
     <section className="page active" id="page-results">
-      {/* 1) Titolo: "Ottimizza" e frase esplicativa aggiornata */}
+      {/* Intestazione Ottimizza */}
       <div className="section-head optimization-head">
         <div>
           <h2>Ottimizza</h2>
           <p>Piano di Taglio Operativo generato sull'ottimizzazione della Giacenza.</p>
         </div>
-        {/* 2) Pulsante "> Esegui ottimizzazione" più largo e font più grande */}
+        {/* 1) Font aumentato e simbolo play ▶ */}
         <button
-          className="btn primary optimize-pulse-btn-v2"
+          className="btn primary optimize-pulse-btn-v2 optimize-btn-large"
           type="button"
           id="optimizeBtn"
           onClick={onOptimize}
           aria-label="Esegui ottimizzazione"
         >
-          <span>&gt; Esegui ottimizzazione</span>
+          <span className="optimize-btn-text">▶ Esegui ottimizzazione</span>
         </button>
       </div>
 
@@ -131,8 +130,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               Inserisci o verifica i dati nelle sezioni <strong>Giacenza</strong> e{' '}
               <strong>Richiesta</strong>, quindi premi il pulsante in alto per calcolare il Piano di Taglio.
             </p>
-            <button className="btn primary" type="button" onClick={onOptimize}>
-              &gt; Esegui ottimizzazione adesso
+            <button className="btn primary optimize-btn-large" type="button" onClick={onOptimize}>
+              ▶ Esegui ottimizzazione adesso
             </button>
           </div>
         </div>
@@ -147,30 +146,18 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
         const { cuts, rows: operations } = buildOperationalPlan(result);
 
-        // Lista pezzi residui / sfridi
-        const stockOptions: SelectedStockItem[] = [
-          ...result.remainingStock.map((x, i) => ({
-            source: 'remaining' as const,
-            sourceIndex: i,
-            diameter: x.diameter,
-            qty: x.qty,
-            length: x.length,
-          })),
-          ...result.scraps.map((x, i) => ({
+        // 6) Mostrare SOLO gli sfridi recuperabili (non le barre integre rimanenti)
+        const stockOptions: SelectedStockItem[] = result.scraps
+          .map((x, i) => ({
             source: 'scrap' as const,
             sourceIndex: i,
             diameter: x.diameter,
             qty: x.qty,
             length: x.length,
-          })),
-        ].sort(
-          (a, b) =>
-            a.diameter - b.diameter ||
-            b.length - a.length ||
-            (a.source === b.source ? 0 : a.source === 'remaining' ? -1 : 1)
-        );
+          }))
+          .sort((a, b) => a.diameter - b.diameter || b.length - a.length);
 
-        const allStockKeys = stockOptions.map(o => getItemKey(o.source, o.sourceIndex));
+        const allStockKeys = stockOptions.map((_, idx) => getItemKey(idx));
         const stockAllChecked =
           allStockKeys.length > 0 && allStockKeys.every(k => selectedStockKeys.has(k));
         const stockSomeChecked =
@@ -178,7 +165,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
         return (
           <div id="resultsContent">
-            {/* 9) Messaggio di stato in caso di completamento o parzialità */}
+            {/* Messaggio di stato in caso di completamento o parzialità */}
             <div className={`message-banner ${result.allFulfilled ? 'success' : 'warning'}`}>
               <span className="banner-icon">{result.allFulfilled ? '✓' : '⚠'}</span>
               <div className="banner-text">
@@ -196,7 +183,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                         result.requestedPieces
                       )}. Non evasi ${intFmt(
                         result.requestedPieces - result.fulfilledPieces
-                      )} pezzi a causa di esaurimento della giacenza.`}
+                      )} pezzi a causa di esaurimento della Giacenza.`}
                 </p>
               </div>
             </div>
@@ -240,7 +227,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               <div className="panel-head plan-head-v2">
                 <div className="panel-title-with-subtitle">
                   <h3>Piano di Taglio Operativo</h3>
-                  {/* 3) Frase esplicativa esatta richiesta */}
                   <p>
                     Sequenza esecutiva con l'indicazione dei tagli raggruppati ed ordinati, dei tagli
                     da recuperare e degli sfridi inutilizzabili.
@@ -248,7 +234,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
 
                 <div className="panel-head-actions-v2">
-                  {/* 4) Invertite le posizioni: Tabella Dati (sx) e Diagrammi Visivi (dx) */}
+                  {/* Toggle: Tabella Dati (sx) e Diagrammi Visivi (dx) */}
                   <div className="view-mode-toggle" role="group" aria-label="Visualizzazione piano">
                     <button
                       type="button"
@@ -266,24 +252,31 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                     </button>
                   </div>
 
-                  {/* 5) Icona Esporta Piano XLS posizionata tutta a dx */}
+                  {/* 3) Icona professionale Esporta XLS rifatta in stile Excel verde elegante */}
                   <button
-                    className="icon-xls-export-btn"
+                    className="xls-export-btn-professional"
                     type="button"
                     id="exportPlanBtn"
                     onClick={onExportPlan}
                     title="Esporta Piano di Taglio in formato Excel (.xlsx)"
                     aria-label="Esporta Piano XLS"
                   >
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                      <polyline points="10 9 9 9 8 9" />
-                    </svg>
-                    <span className="xls-tag">XLS</span>
-                    <span className="xls-arrow">⇩</span>
+                    <div className="xls-icon-container">
+                      <svg viewBox="0 0 32 32" width="22" height="22" fill="none" className="xls-svg-icon">
+                        {/* Corpo foglio Excel verde */}
+                        <rect x="3" y="3" width="26" height="26" rx="4" fill="#107C41" />
+                        {/* Griglia foglio */}
+                        <line x1="8" y1="12" x2="24" y2="12" stroke="#FFFFFF" strokeWidth="1.5" strokeOpacity="0.4" />
+                        <line x1="8" y1="18" x2="24" y2="18" stroke="#FFFFFF" strokeWidth="1.5" strokeOpacity="0.4" />
+                        <line x1="16" y1="7" x2="16" y2="25" stroke="#FFFFFF" strokeWidth="1.5" strokeOpacity="0.4" />
+                        {/* Etichetta XLS o Freccia Download */}
+                        <rect x="5" y="8" width="13" height="15" rx="2" fill="#0D5C31" />
+                        <text x="11.5" y="19" fill="#FFFFFF" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="system-ui, sans-serif">X</text>
+                        {/* Freccina download bianca con accento */}
+                        <path d="M22 17l-3 3-3-3m3 3V11" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className="xls-btn-label">Esporta XLS</span>
+                    </div>
                   </button>
                 </div>
               </div>
@@ -310,7 +303,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                     )}
                   </div>
                 ) : (
-                  /* 7) Tabella Dati con intestazioni Tagli e altre colonne rigorosamente su 2 righe */
+                  /* Tabella Dati con intestazioni Tagli e altre colonne rigorosamente su 2 righe */
                   <div className="table-wrap">
                     <table className="result-table" id="outputTable">
                       <thead>
@@ -401,7 +394,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
             {/* Pannelli inferiori */}
             <div className="result-grid">
-              {/* 13) Riepilogo Barre Utilizzate con titolo e frase aggiornati */}
+              {/* Riepilogo Barre Utilizzate */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
@@ -466,12 +459,12 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
               </div>
 
-              {/* 10) Richiesta Non Evasa (senza checkbox, aggiornamento totale) */}
+              {/* 5) Richiesta Non Evasa con "Giacenza" in maiuscolo nel sottotitolo */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
                     <h3>Richiesta Non Evasa</h3>
-                    <p>Tagli non eseguiti a causa di esaurimento della giacenza.</p>
+                    <p>Tagli non eseguiti a causa di esaurimento della Giacenza.</p>
                   </div>
                   <button
                     className="btn primary small"
@@ -530,21 +523,13 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
               </div>
 
-              {/* 11 & 12) Giacenza Residua & Sfridi (integrativa, elementi flaggabili persistenti) */}
+              {/* 6) Sezione "Sfridi" - mostra solo sfridi, pulsante sotto a destra, nessuna frase sotto la tabella */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
-                    <h3>Giacenza Residua & Sfridi</h3>
-                    <p>Seleziona i pezzi da aggiungere eventualmente alla Giacenza attuale.</p>
+                    <h3>Sfridi</h3>
+                    <p>Seleziona gli eventuali sfridi da integrare nella Giacenza attuale.</p>
                   </div>
-                  <button
-                    className="btn primary small"
-                    type="button"
-                    onClick={() => handleTriggerUpdateStock(stockOptions)}
-                    disabled={stockOptions.length === 0}
-                  >
-                    Aggiorna Giacenza
-                  </button>
                 </div>
                 <div className="panel-body">
                   <div className="table-wrap">
@@ -561,7 +546,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                               }}
                               onChange={() => handleToggleAllStock(allStockKeys, stockAllChecked)}
                               disabled={stockOptions.length === 0}
-                              aria-label="Seleziona tutti i pezzi residui"
+                              aria-label="Seleziona tutti gli sfridi"
                             />
                           </th>
                           <th>
@@ -586,14 +571,12 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                         {stockOptions.length === 0 ? (
                           <tr>
                             <td colSpan={5} className="empty">
-                              Nessuna barra residua o sfrido recuperabile.
+                              Nessuno sfrido generato dal piano di taglio.
                             </td>
                           </tr>
                         ) : (
                           stockOptions.map((x, i) => {
-                            const isChecked = selectedStockKeys.has(
-                              getItemKey(x.source, x.sourceIndex)
-                            );
+                            const isChecked = selectedStockKeys.has(getItemKey(i));
                             const w = x.qty * (x.length / 100) * unitWeight(x.diameter);
                             return (
                               <tr key={i}>
@@ -602,8 +585,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                                     className="scrap-check"
                                     type="checkbox"
                                     checked={isChecked}
-                                    onChange={() => handleToggleStockItem(x.source, x.sourceIndex)}
-                                    aria-label={`Seleziona Ø ${intFmt(x.diameter)}, ${intFmt(
+                                    onChange={() => handleToggleStockItem(i)}
+                                    aria-label={`Seleziona sfrido Ø ${intFmt(x.diameter)}, ${intFmt(
                                       x.qty
                                     )} pz da ${intFmt(x.length)} cm`}
                                   />
@@ -619,14 +602,23 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                       </tbody>
                     </table>
                   </div>
-                  <p className="result-note">
-                    I pezzi selezionati verranno integrati nella Giacenza attuale sommando le quantità dei tipi esistenti.
-                  </p>
+
+                  {/* Pulsante "Aggiorna Giacenza" posizionato sotto la tabella a destra */}
+                  <div className="sfridi-footer-actions">
+                    <button
+                      className="btn primary small"
+                      type="button"
+                      onClick={() => handleTriggerUpdateStock(stockOptions)}
+                      disabled={stockOptions.length === 0}
+                    >
+                      Aggiorna Giacenza
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Modali di Conferma In-App (eliminano 'gianc79.github.io dice') */}
+            {/* Modali di Conferma In-App */}
             <ConfirmModal
               isOpen={confirmDemandModalOpen}
               title="Aggiorna Richiesta"
@@ -640,7 +632,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             <ConfirmModal
               isOpen={confirmStockModalOpen}
               title="Aggiorna Giacenza"
-              message="I pezzi selezionati verranno integrati nella tabella della Giacenza (aggiungendosi alle barre già registrate). Continuare?"
+              message="Gli sfridi selezionati verranno integrati nella tabella della Giacenza (aggiungendosi alle barre già registrate). Continuare?"
               confirmText="Integra Giacenza"
               cancelText="Annulla"
               onConfirm={() => handleConfirmStockUpdate(stockOptions)}
@@ -661,3 +653,4 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
     </section>
   );
 };
+

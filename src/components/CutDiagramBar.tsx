@@ -47,7 +47,7 @@ export const CutDiagramBar: React.FC<CutDiagramBarProps> = ({
     });
   }
 
-  // Segmenti singoli di taglio per la barra
+  // Singoli pezzi di taglio
   const pieces = Array.from({ length: cutCount }, (_, idx) => ({
     id: idx,
     pct: (cutLength / totalLength) * 100,
@@ -55,102 +55,106 @@ export const CutDiagramBar: React.FC<CutDiagramBarProps> = ({
   }));
 
   const recoveryPct = (recoveryUnits / totalLength) * 100;
-  const scrapPct = Math.max(0, 100 - (cutLength * cutCount + recoveryUnits) / totalLength * 100);
+  const scrapPct = Math.max(0, 100 - ((cutLength * cutCount + recoveryUnits) / totalLength) * 100);
 
   return (
-    <div className="cut-diagram-card">
-      {/* Header con i due riquadri: Diametro e Lunghezza con cerchietto quantità */}
-      <div className="cut-diagram-header-v2">
-        <div className="cut-badges-group">
-          {/* Riquadro 1: Diametro (sfondo azzurrino) */}
-          <div className="dia-badge-box">
+    <div className="cut-diagram-card-3d">
+      {/* 4) Numero delle barre posizionato nell'angolo in alto a destra DEL RIQUADRO GENERICO con font 1.5x */}
+      <div
+        className="diagram-card-barcount-badge"
+        title={`${barCount} ${barCount === 1 ? 'barra' : 'barre'}`}
+      >
+        <span className="badge-count-num">{intFmt(barCount)}</span>
+      </div>
+
+      {/* Header con i riquadri Diametro e Lunghezza barra */}
+      <div className="cut-diagram-header-v3">
+        <div className="cut-badges-group-v3">
+          {/* Riquadro Diametro */}
+          <div className="dia-badge-box-v3">
             Ø {diameter} mm
           </div>
 
-          {/* Riquadro 2: Lunghezza barra con cerchietto quantità in alto a destra */}
-          <div className="bar-length-badge-box">
+          {/* Riquadro Lunghezza barra */}
+          <div className="bar-length-badge-box-v3">
             <span>Barra {fmt(barUnits / 100)} m</span>
-            <span
-              className="bar-count-badge-circle"
-              title={`${barCount} ${barCount === 1 ? 'barra' : 'barre'}`}
-            >
-              {intFmt(barCount)}
-            </span>
           </div>
         </div>
 
-        {/* Indicazioni sopra la barra (solo in metri #,## m) */}
-        <div className="cut-diagram-summary-v2">
-          <span className="summary-indicator tag-cut">
+        {/* Indicazioni riassuntive sopra la barra (solo in metri #,## m) */}
+        <div className="cut-diagram-summary-v3">
+          <span className="summary-indicator-v3 tag-cut-3d">
             Taglio: {cutCount > 1 ? `${cutCount}× ` : ''}{fmt(cutLength / 100)} m
           </span>
           {recoveryUnits > 0 && (
-            <span className="summary-indicator tag-rec">
+            <span className="summary-indicator-v3 tag-rec-3d">
               Recupero: {fmt(recoveryUnits / 100)} m
             </span>
           )}
           {scrapUnits > 0 && (
-            <span className="summary-indicator tag-scrap">
+            <span className="summary-indicator-v3 tag-scrap-3d">
               Sfrido: {fmt(scrapUnits / 100)} m
             </span>
           )}
         </div>
       </div>
 
-      {/* Barra segmentata con spigoli rigorosamente retti (border-radius: 0) */}
-      <div className="cut-bar-container-v2">
-        {/* Singoli pezzi di taglio (colore verde) */}
+      {/* Barra con spigoli retti (border-radius: 0) ed EFFETTO 3D lucido/metallico */}
+      <div className="cut-bar-container-3d">
+        {/* Pezzi di taglio (Verde 3D con riflesso e separatori marcati) */}
         {pieces.map(piece => (
           <div
             key={piece.id}
-            className="cut-segment-v2 seg-cut"
+            className="cut-segment-3d seg-cut-3d"
             style={{ width: `${piece.pct}%` }}
             title={`Taglio: ${piece.meters} m`}
           >
-            <span className="seg-label">{piece.meters} m</span>
+            <span className="seg-label-3d">{piece.meters} m</span>
           </div>
         ))}
 
-        {/* Recupero (colore blu) */}
+        {/* Recupero (Blu 3D) */}
         {recoveryUnits > 0 && (
           <div
-            className="cut-segment-v2 seg-recovery"
+            className="cut-segment-3d seg-recovery-3d"
             style={{ width: `${recoveryPct}%` }}
             title={`Recupero: ${fmt(recoveryUnits / 100)} m`}
           >
-            <span className="seg-label">{fmt(recoveryUnits / 100)} m</span>
+            <span className="seg-label-3d">{fmt(recoveryUnits / 100)} m</span>
           </div>
         )}
 
-        {/* Sfrido (colore rosso) */}
+        {/* Sfrido (Rosso 3D) */}
         {scrapUnits > 0 && (
           <div
-            className="cut-segment-v2 seg-scrap"
+            className="cut-segment-3d seg-scrap-3d"
             style={{ width: `${scrapPct}%` }}
             title={`Sfrido: ${fmt(scrapUnits / 100)} m`}
           >
-            <span className="seg-label">{fmt(scrapUnits / 100)} m</span>
+            <span className="seg-label-3d">{fmt(scrapUnits / 100)} m</span>
           </div>
         )}
       </div>
 
-      {/* Forbici verticali sotto alla barra in corrispondenza di OGNI taglio */}
-      <div className="cut-markers-track">
+      {/* Forbici orientate rigorosamente in VERTICALE sotto alla barra per ogni taglio */}
+      <div className="cut-markers-track-v3">
         {cutPoints.map((cp, idx) => (
           <div
             key={idx}
-            className="cut-marker-item"
+            className="cut-marker-item-v3"
             style={{ left: `${cp.pct}%` }}
             title={`Punto di taglio a ${cp.meters} m`}
           >
-            <div className="cut-marker-line" />
-            <div className="cut-marker-icon">
-              {/* Forbice orientata in verticale */}
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm9.5-8c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1zm3.5-9h-3l-4.34 4.34 2.12 2.12L22 4.41V3h-3z" />
+            <div className="cut-marker-line-v3" />
+            <div className="cut-marker-scissors-vertical" aria-hidden="true">
+              {/* Forbice con lame orientate verso l'alto verso la linea di taglio */}
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <g transform="rotate(-90 12 12)">
+                  <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm9.5-8c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1zm3.5-9h-3l-4.34 4.34 2.12 2.12L22 4.41V3h-3z" />
+                </g>
               </svg>
             </div>
-            <span className="cut-marker-label">{cp.meters} m</span>
+            <span className="cut-marker-label-v3">{cp.meters} m</span>
           </div>
         ))}
       </div>

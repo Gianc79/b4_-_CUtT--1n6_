@@ -10,7 +10,6 @@ export interface ConfirmModalProps {
   showCancel?: boolean;
   onConfirm: () => void;
   onCancel?: () => void;
-  // Per il dialog duplicati con "NO" a sx e "SI" a dx
   isDuplicatePrompt?: boolean;
 }
 
@@ -58,6 +57,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <div className="in-app-modal-actions">
           {isDuplicatePrompt ? (
             <>
+              {/* NO a sinistra */}
               <button
                 type="button"
                 className="btn neutral modal-btn-half"
@@ -65,6 +65,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               >
                 NO
               </button>
+              {/* SI a destra */}
               <button
                 type="button"
                 className="btn primary modal-btn-half"
@@ -75,15 +76,17 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             </>
           ) : (
             <>
+              {/* Annulla a sinistra: colore standard grigino (btn neutral), non verde */}
               {showCancel && onCancel && (
                 <button
                   type="button"
-                  className={confirmStyle === 'danger' ? 'btn primary modal-btn-half' : 'btn neutral modal-btn-half'}
+                  className="btn neutral modal-btn-half"
                   onClick={onCancel}
                 >
                   {cancelText}
                 </button>
               )}
+              {/* Conferma (es. Elimina tutti) a destra */}
               <button
                 type="button"
                 className={`btn ${confirmStyle === 'danger' ? 'btn-danger-bg' : 'primary'} modal-btn-half`}

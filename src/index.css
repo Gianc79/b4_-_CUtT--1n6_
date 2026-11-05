@@ -1954,3 +1954,482 @@ tr.row-applied td {
     margin-top: 4px;
   }
 }
+
+/* ========================================================
+   TAGLIO BARRE C.A. — v. 1.27 Custom Refinements
+   ======================================================== */
+
+/* Compact 2-line header with bottom-aligned SpesaSuMisura action icons */
+.brandline-compact {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  padding-bottom: 2px;
+}
+
+.subtitle-twolines {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.25;
+  color: #c7d2fe;
+}
+
+.topbar-action-icons-aligned {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.topbar-rich-icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.topbar-rich-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+/* MasterTable: Filtra Diametri label & side-by-side totals */
+.filter-section-header {
+  font-size: 13px;
+  font-weight: 800;
+  color: #102b46;
+  margin: 12px 0 6px 2px;
+}
+
+.totals-side-by-side {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  margin: 10px 0 16px !important;
+}
+
+.totals-side-by-side .summary-box {
+  margin: 0 !important;
+}
+
+.master-head-stable {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.master-head-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Sort Dialog V3: rock-solid flex centering, top-right X, proportional inputs */
+.sort-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 220;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10vh;
+}
+
+.sort-dialog-card-v3 {
+  position: relative;
+  width: min(440px, calc(100vw - 24px));
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35);
+  border: 1px solid #e2e8f0;
+  box-sizing: border-box;
+}
+
+.sort-dialog-close-topright {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.sort-dialog-title-v3 {
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #102b46;
+}
+
+.sort-levels-list-v3 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.sort-level-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sort-level-label-v3 {
+  font-size: 13px;
+  font-weight: 750;
+  color: #334155;
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.sort-level-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sort-item-select {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #ffffff;
+  color: #1e293b;
+}
+
+.sort-item-dir-btn {
+  width: 68px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 800;
+  color: #1e293b;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.sort-item-dir-btn:hover {
+  background: #f1f5f9;
+}
+
+.sort-level-btn-row {
+  display: flex;
+  gap: 12px;
+  margin: 10px 0 16px;
+}
+
+.sort-btn-add,
+.sort-btn-del {
+  flex: 1;
+  min-height: 36px;
+  font-size: 12px;
+  font-weight: 750;
+  border-radius: 8px;
+}
+
+.sort-dialog-actions-v3 {
+  display: flex;
+  gap: 10px;
+}
+
+/* Undo Toast V3: single horizontal line, no wrapping over 4 lines */
+.undo-delete-toast-v3 {
+  position: fixed;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 10px 18px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  z-index: 150;
+  border: 1px solid #334155;
+  width: max-content;
+  max-width: min(94vw, 520px);
+  white-space: nowrap;
+}
+
+.undo-toast-text-v3 {
+  font-size: 13px;
+  color: #f1f5f9;
+}
+
+.undo-btn-v3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #f59e0b;
+  color: #000;
+  font-weight: 800;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.undo-btn-v3:hover {
+  background: #d97706;
+}
+
+/* Optimize CTA button with larger font */
+.optimize-btn-large {
+  font-size: 14px !important;
+  font-weight: 850 !important;
+  padding: 8px 18px !important;
+  letter-spacing: 0.01em;
+}
+
+.optimize-btn-text {
+  font-size: 14px;
+  font-weight: 850;
+}
+
+/* Professional Excel export button */
+.xls-export-btn-professional {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.xls-export-btn-professional:hover {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+  transform: translateY(-1px);
+}
+
+.xls-icon-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.xls-btn-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #065f46;
+}
+
+/* Cut Diagram 3D, Cards & Vertical upward scissors */
+.cut-diagram-card-3d {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.diagram-card-barcount-badge {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: #102b46;
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgba(16, 43, 70, 0.25);
+  z-index: 5;
+}
+
+.badge-count-num {
+  font-size: 18px; /* ~1.5x of standard 12px */
+  font-weight: 900;
+}
+
+.cut-diagram-header-v3 {
+  margin-bottom: 12px;
+  padding-right: 70px;
+}
+
+.cut-badges-group-v3 {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.dia-badge-box-v3 {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.bar-length-badge-box-v3 {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.cut-diagram-summary-v3 {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tag-cut-3d {
+  color: #15803d;
+}
+
+.tag-rec-3d {
+  color: #1d4ed8;
+}
+
+.tag-scrap-3d {
+  color: #b91c1c;
+}
+
+.cut-bar-container-3d {
+  display: flex;
+  width: 100%;
+  height: 38px;
+  border-radius: 0; /* straight sharp edges */
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.7), inset 0 -2px 4px rgba(0, 0, 0, 0.35), 0 3px 6px rgba(0, 0, 0, 0.15);
+  border: 2px solid #334155;
+  background: #475569;
+}
+
+.cut-segment-3d {
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-right: 2.5px solid #0f172a; /* marked vertical separators */
+  transition: opacity 0.15s ease;
+}
+
+.cut-segment-3d:last-child {
+  border-right: none;
+}
+
+.seg-cut-3d {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 45%, #15803d 85%, #14532d 100%);
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.seg-recovery-3d {
+  background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 45%, #1d4ed8 85%, #1e3a8a 100%);
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.seg-scrap-3d {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 45%, #b91c1c 85%, #7f1d1d 100%);
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.seg-label-3d {
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+}
+
+.cut-markers-track-v3 {
+  position: relative;
+  width: 100%;
+  height: 48px;
+  margin-top: 2px;
+}
+
+.cut-marker-item-v3 {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.cut-marker-line-v3 {
+  width: 2px;
+  height: 6px;
+  background: #334155;
+}
+
+.cut-marker-scissors-vertical {
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.cut-marker-label-v3 {
+  font-size: 10px;
+  font-weight: 800;
+  color: #1e293b;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 1px 4px;
+  border-radius: 4px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* Sfridi section bottom actions placed on the right */
+.sfridi-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+

@@ -51,111 +51,98 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <header className="topbar">
-      {/* Riga superiore: Logo, Titolo a tutta larghezza e Sottotitolo */}
-      <div className="brandline-full">
-        <div className="brandmark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" fill="none">
-            <path d="M4 8h24M4 16h24M4 24h24" stroke="#8ED9CE" strokeWidth="3" strokeLinecap="round" />
-            <path d="M10 4v24M22 4v24" stroke="#fff" strokeOpacity=".75" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+      {/* Fascia compatta: Titolo e sottotitolo su 2 righe a sx; 3 Icone SpesaSuMisura allineate in basso a dx */}
+      <div className="brandline-compact">
+        <div className="brand-left">
+          <div className="brandmark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M4 8h24M4 16h24M4 24h24" stroke="#8ED9CE" strokeWidth="3" strokeLinecap="round" />
+              <path d="M10 4v24M22 4v24" stroke="#fff" strokeOpacity=".75" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div className="brand">
+            <h1>
+              TAGLIO BARRE C.A. <span className="version">v. 1.27</span>
+            </h1>
+            <p className="subtitle-twolines">
+              <span>Gestione ottimizzata</span>
+              <br />
+              <span>del Piano di Taglio.</span>
+            </p>
+          </div>
         </div>
-        <div className="brand">
-          <h1>TAGLIO BARRE C.A.</h1>
-          <p>
-            Gestione ottimizzata della giacenza e del Piano di Taglio.{' '}
-            <span className="version">v. 1.26</span>
-          </p>
-        </div>
-      </div>
 
-      {/* Riga inferiore: Navigazione a sinistra e Icone Azioni (Apri, Salva, Salva con nome) a destra */}
-      <div className="topbar-bottom-row">
-        <nav className="nav topbar-nav desktop-nav" aria-label="Sezioni applicazione">
+        {/* 3 Icone SpesaSuMisura: Apri (Cartella gialla), Salva (Floppy), Salva con nome (Floppy + matita) */}
+        <div className="topbar-action-icons-aligned" role="toolbar" aria-label="Operazioni file">
+          {/* Apri: Cartella gialla aperta */}
           <button
-            type="button"
-            className={activeTab === 'stock' ? 'active' : ''}
-            onClick={() => onTabChange('stock')}
-          >
-            <span className="nicon">▤</span>Giacenza
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'demand' ? 'active' : ''}
-            onClick={() => onTabChange('demand')}
-          >
-            <span className="nicon">≡</span>Richiesta
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'split' ? 'active split-tab-btn' : 'split-tab-btn'}
-            onClick={() => onTabChange('split')}
-            title="Visualizza Giacenza e Richiesta affiancate (ideale per grandi schermi)"
-          >
-            <span className="nicon">◫</span>Vista Affiancata
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'results' ? 'active' : ''}
-            onClick={() => onTabChange('results')}
-          >
-            <span className="nicon">▥</span>Ottimizza
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'help' ? 'active' : ''}
-            onClick={() => onTabChange('help')}
-            aria-label="Guida rapida"
-            title="Guida rapida"
-          >
-            <span className="nicon">ⓘ</span>
-            <span className="nav-label">Guida</span>
-          </button>
-        </nav>
-
-        {/* 2) Icone Apri, Salva, Salva con nome posizionate sulla parte bassa della fascia */}
-        <div className="topbar-action-icons" role="toolbar" aria-label="Operazioni file">
-          {/* Icona Apri file */}
-          <button
-            className="topbar-icon-action"
+            className="topbar-rich-icon-btn"
             type="button"
             onClick={handleImportClick}
             title="Apri file dati (.json)"
             aria-label="Apri file dati JSON"
           >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-              <polyline points="12 11 12 17 9 14" />
-              <polyline points="12 11 12 17 15 14" />
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+              {/* Parte posteriore cartella */}
+              <path d="M2 5a2 2 0 0 1 2-2h4l2 2h10a2 2 0 0 1 2 2v2H4a2 2 0 0 0-2 2V5z" fill="#D97706" />
+              {/* Foglio bianco che spunta */}
+              <rect x="5" y="6" width="14" height="7" rx="1" fill="#FFFFFF" opacity="0.95" />
+              <line x1="7" y1="8.5" x2="13" y2="8.5" stroke="#94A3B8" strokeWidth="1" strokeLinecap="round" />
+              {/* Tasca anteriore aperta inclinata */}
+              <path
+                d="M2 19l2.2-9.2A2 2 0 0 1 6.1 8h15.4a1.5 1.5 0 0 1 1.4 1.9l-2.1 8.2a2 2 0 0 1-1.9 1.9H4a2 2 0 0 1-2-2z"
+                fill="#FBBF24"
+                stroke="#D97706"
+                strokeWidth="1"
+              />
             </svg>
           </button>
 
-          {/* Icona Salva */}
+          {/* Salva: Floppy disk */}
           <button
-            className="topbar-icon-action"
+            className="topbar-rich-icon-btn"
             type="button"
             onClick={onSave}
             title="Salva modifiche correnti"
             aria-label="Salva"
           >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-              <polyline points="17 21 17 13 7 13 7 21" />
-              <polyline points="7 3 7 8 15 8" />
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+              {/* Corpo blu disco */}
+              <path d="M4 3h13l4 4v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#2563EB" stroke="#1D4ED8" strokeWidth="1" />
+              {/* Cursore metallico superiore */}
+              <rect x="6" y="3" width="10" height="6.5" rx="1" fill="#E2E8F0" />
+              <rect x="12" y="4" width="2.5" height="4.5" rx="0.5" fill="#475569" />
+              {/* Etichetta bianca */}
+              <rect x="5" y="12" width="14" height="8" rx="1" fill="#FFFFFF" />
+              <line x1="7.5" y1="14.5" x2="16.5" y2="14.5" stroke="#3B82F6" strokeWidth="1.2" strokeLinecap="round" />
+              <line x1="7.5" y1="17.5" x2="14" y2="17.5" stroke="#94A3B8" strokeWidth="1.2" strokeLinecap="round" />
             </svg>
           </button>
 
-          {/* Icona Salva con nome */}
+          {/* Salva con nome: Floppy disk con matita */}
           <button
-            className="topbar-icon-action"
+            className="topbar-rich-icon-btn"
             type="button"
             onClick={onSaveAs}
             title="Salva con nome (.json)"
             aria-label="Salva con nome"
           >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+              {/* Corpo blu disco */}
+              <path d="M4 3h13l4 4v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#2563EB" stroke="#1D4ED8" strokeWidth="1" />
+              {/* Cursore metallico */}
+              <rect x="6" y="3" width="10" height="6.5" rx="1" fill="#E2E8F0" />
+              <rect x="12" y="4" width="2.5" height="4.5" rx="0.5" fill="#475569" />
+              {/* Etichetta bianca */}
+              <rect x="5" y="12" width="14" height="8" rx="1" fill="#FFFFFF" />
+              <line x1="7.5" y1="14.5" x2="13.5" y2="14.5" stroke="#3B82F6" strokeWidth="1.2" strokeLinecap="round" />
+              {/* Matita gialla sovrapposta in basso a destra */}
+              <g transform="translate(10, 10)">
+                <rect x="3" y="1" width="3.5" height="9" rx="0.5" transform="rotate(-45 3 1)" fill="#F59E0B" stroke="#B45309" strokeWidth="0.8" />
+                <polygon points="1.5,10.5 3.5,11.5 0,13" fill="#FDE68A" stroke="#B45309" strokeWidth="0.5" />
+                <polygon points="0,13 0.8,12.2 1.3,12.7" fill="#1E293B" />
+                <rect x="8.5" y="-4.5" width="3.5" height="2.5" rx="0.5" transform="rotate(-45 8.5 -4.5)" fill="#F43F5E" />
+              </g>
             </svg>
           </button>
 
@@ -169,6 +156,49 @@ export const TopBar: React.FC<TopBarProps> = ({
           />
         </div>
       </div>
+
+      {/* Navigazione Desktop (visibile su schermi >= 768px) */}
+      <nav className="nav topbar-nav desktop-nav" aria-label="Sezioni applicazione">
+        <button
+          type="button"
+          className={activeTab === 'stock' ? 'active' : ''}
+          onClick={() => onTabChange('stock')}
+        >
+          <span className="nicon">▤</span>Giacenza
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'demand' ? 'active' : ''}
+          onClick={() => onTabChange('demand')}
+        >
+          <span className="nicon">≡</span>Richiesta
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'split' ? 'active split-tab-btn' : 'split-tab-btn'}
+          onClick={() => onTabChange('split')}
+          title="Visualizza Giacenza e Richiesta affiancate (ideale per grandi schermi)"
+        >
+          <span className="nicon">◫</span>Vista Affiancata
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'results' ? 'active' : ''}
+          onClick={() => onTabChange('results')}
+        >
+          <span className="nicon">▥</span>Ottimizza
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'help' ? 'active' : ''}
+          onClick={() => onTabChange('help')}
+          aria-label="Guida rapida"
+          title="Guida rapida"
+        >
+          <span className="nicon">ⓘ</span>
+          <span className="nav-label">Guida</span>
+        </button>
+      </nav>
     </header>
   );
 };

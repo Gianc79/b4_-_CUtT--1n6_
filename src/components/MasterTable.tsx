@@ -48,13 +48,13 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   const [selectedDiameter, setSelectedDiameter] = useState<number | 'all'>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Focus management per immissione fluida con Invio
+  // Focus management per immissione con Invio
   const nextFocusRowIdRef = useRef<string | null>(null);
 
   // Memorizzazione valore precedente per ripristino in caso di diametro errato
   const cellPreviousValuesRef = useRef<Record<string, string>>({});
 
-  // Stato per i modali in-app
+  // Modali in-app
   const [invalidDiaModalOpen, setInvalidDiaModalOpen] = useState(false);
   const [clearTableModalOpen, setClearTableModalOpen] = useState(false);
   const [duplicateCandidate, setDuplicateCandidate] = useState<DuplicateCandidate | null>(null);
@@ -71,13 +71,12 @@ export const MasterTable: React.FC<MasterTableProps> = ({
       );
       if (targetInput) {
         targetInput.focus();
-        targetInput.select();
       }
       nextFocusRowIdRef.current = null;
     }
   }, [rows]);
 
-  // Calcolo statistiche dinamiche (totali o per il diametro selezionato)
+  // Calcolo statistiche dinamiche (affiancate orizzontalmente)
   const isFiltered = selectedDiameter !== 'all';
   const effectiveRows = rows.filter(r => {
     if (!isFiltered) return true;
@@ -120,7 +119,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
 
     if (field === 'diameter') {
       if (!validDiameter(value)) {
-        // Ripristina il valore precedente (non cancellarlo!) e mostra finestra modale
+        // Ripristina il valore precedente senza cancellarlo e mostra dialog modale
         const updated = rows.map(r => (r.id === id ? { ...r, diameter: prevVal } : r));
         onChangeRows(updated);
         setInvalidDiaModalOpen(true);
@@ -142,16 +141,14 @@ export const MasterTable: React.FC<MasterTableProps> = ({
       }
     }
 
-    // Normalizza valore
     const normalized = String(value);
     const updated = rows.map(r => (r.id === id ? { ...r, [field]: normalized } : r));
     onChangeRows(updated);
 
-    // Controlla se la riga completata è un duplicato di un'altra riga esistente
     checkDuplicates(id, updated);
   };
 
-  // Controllo duplicati (diametro + lunghezza già presenti in tabella)
+  // Controllo duplicati
   const checkDuplicates = (currentId: string, currentRows: MasterRow[]) => {
     const currentRow = currentRows.find(r => r.id === currentId);
     if (!currentRow) return;
@@ -164,7 +161,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
       return;
     }
 
-    // Cerca un'altra riga con stesso diametro e stessa lunghezza
     const existingRow = currentRows.find(
       r =>
         r.id !== currentId &&
@@ -206,7 +202,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     setDuplicateCandidate(null);
   };
 
-  // Navigazione fluida con tasto Invio
+  // Navigazione fluida con tasto Invio (senza causare il callout Traduci/Copia del browser)
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     rowIndex: number,
@@ -215,7 +211,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   ) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      // Forza blur per triggerare validazione e salvataggio
       (e.target as HTMLInputElement).blur();
 
       if (field === 'diameter') {
@@ -223,24 +218,19 @@ export const MasterTable: React.FC<MasterTableProps> = ({
           `input[data-row-id="${rowId}"][data-field="qty"]`
         );
         nextInput?.focus();
-        nextInput?.select();
       } else if (field === 'qty') {
         const nextInput = document.querySelector<HTMLInputElement>(
           `input[data-row-id="${rowId}"][data-field="length"]`
         );
         nextInput?.focus();
-        nextInput?.select();
       } else if (field === 'length') {
-        // Ultima cella della riga: passa alla prima cella della riga successiva
         const nextRow = effectiveRows[rowIndex + 1];
         if (nextRow) {
           const nextDiaInput = document.querySelector<HTMLInputElement>(
             `input[data-row-id="${nextRow.id}"][data-field="diameter"]`
           );
           nextDiaInput?.focus();
-          nextDiaInput?.select();
         } else {
-          // Aggiunge automaticamente una nuova riga e passa il focus
           const newRowId = newId();
           nextFocusRowIdRef.current = newRowId;
           const newRow: MasterRow = {
@@ -267,7 +257,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     onChangeRows([...rows, newRow]);
   };
 
-  // Rimozione record con popup e Annulla
+  // Rimozione record con popup compatto a riga singola e Annulla
   const handleDeleteRow = (id: string, index: number) => {
     const rowToDelete = rows.find(r => r.id === id);
     if (!rowToDelete) return;
@@ -294,7 +284,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   const handleUndoDelete = () => {
     if (!deletedRecord) return;
     const newRows = [...rows];
-    // Inserisce di nuovo alla posizione memorizzata o alla fine
     const insertIdx = Math.min(deletedRecord.index, newRows.length);
     newRows.splice(insertIdx, 0, deletedRecord.row);
     onChangeRows(newRows);
@@ -302,7 +291,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     onToast('Riga ripristinata.');
   };
 
-  // Svuota tabella con modale personalizzato
   const handleConfirmClearTable = () => {
     onChangeRows([blankMaster()]);
     setClearTableModalOpen(false);
@@ -351,15 +339,20 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         </div>
       </div>
 
-      {/* Filtro rapido Diametri (mostra solo i diametri presenti) */}
+      {/* 1) Etichetta in grassetto sopra il filtro dei diametri */}
+      <div className="filter-section-header">
+        <strong>Filtra Diametri</strong>
+      </div>
+
+      {/* Filtro rapido Diametri */}
       <DiameterFilter
         rows={rows}
         selectedDiameter={selectedDiameter}
         onSelectDiameter={setSelectedDiameter}
       />
 
-      {/* Widget Totali dinamici posizionati tra il filtro e l'elenco */}
-      <div className="calc-total totals-between-filter">
+      {/* 2) Widget Totali dinamici affiancati orizzontalmente (mai uno sopra l'altro) */}
+      <div className="calc-total totals-side-by-side">
         <div className="summary-box">
           <div className="s-label">
             {isFiltered
@@ -387,17 +380,10 @@ export const MasterTable: React.FC<MasterTableProps> = ({
 
       {/* Pannello Principale Tabella */}
       <div className="panel">
-        <div className="panel-head">
-          <div className="panel-title-group">
+        {/* 3) Intestazione stabile: Titolo e tasto Ordina restano sempre fissi a sinistra */}
+        <div className="panel-head master-head-stable">
+          <div className="master-head-title-row">
             <h3>{kind === 'stockDetail' ? 'Elenco Giacenza' : 'Elenco Richiesta'}</h3>
-            {isFiltered && (
-              <span className="active-filter-badge">
-                Filtrato: Ø {selectedDiameter} mm ({effectiveRows.length})
-              </span>
-            )}
-          </div>
-          <div className="panel-head-actions">
-            {/* Tasto Ordina più largo e font leggermente più grande */}
             <button
               className="btn btn-sort-wide"
               type="button"
@@ -405,6 +391,11 @@ export const MasterTable: React.FC<MasterTableProps> = ({
             >
               Ordina
             </button>
+            {isFiltered && (
+              <span className="active-filter-badge">
+                Ø {selectedDiameter} mm ({effectiveRows.length})
+              </span>
+            )}
           </div>
         </div>
 
@@ -425,7 +416,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                   <th>L [cm]</th>
                   <th>P [kg]</th>
                   <th>
-                    {/* Pulsante X per svuotare con dialog personalizzato */}
+                    {/* Pulsante X per svuotare con modale in-app */}
                     <button
                       className="header-clear"
                       type="button"
@@ -469,11 +460,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                           aria-label={`Diametro riga ${i + 1}`}
                           value={r.diameter}
                           placeholder="Ø"
-                          onClick={e => e.currentTarget.select()}
-                          onFocus={e => {
-                            e.currentTarget.select();
-                            handleCellFocus(r.id, 'diameter', e.target.value);
-                          }}
+                          onFocus={e => handleCellFocus(r.id, 'diameter', e.target.value)}
                           onChange={e => handleCellChange(r.id, 'diameter', e.target.value)}
                           onBlur={e => handleCellBlur(r.id, 'diameter', e.target.value)}
                           onKeyDown={e => handleKeyDown(e, i, 'diameter', r.id)}
@@ -492,11 +479,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                           aria-label={`Numero riga ${i + 1}`}
                           value={r.qty}
                           placeholder="Nr."
-                          onClick={e => e.currentTarget.select()}
-                          onFocus={e => {
-                            e.currentTarget.select();
-                            handleCellFocus(r.id, 'qty', e.target.value);
-                          }}
+                          onFocus={e => handleCellFocus(r.id, 'qty', e.target.value)}
                           onChange={e => handleCellChange(r.id, 'qty', e.target.value)}
                           onBlur={e => handleCellBlur(r.id, 'qty', e.target.value)}
                           onKeyDown={e => handleKeyDown(e, i, 'qty', r.id)}
@@ -515,11 +498,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                           aria-label={`Lunghezza in centimetri riga ${i + 1}`}
                           value={r.length}
                           placeholder="cm"
-                          onClick={e => e.currentTarget.select()}
-                          onFocus={e => {
-                            e.currentTarget.select();
-                            handleCellFocus(r.id, 'length', e.target.value);
-                          }}
+                          onFocus={e => handleCellFocus(r.id, 'length', e.target.value)}
                           onChange={e => handleCellChange(r.id, 'length', e.target.value)}
                           onBlur={e => handleCellBlur(r.id, 'length', e.target.value)}
                           onKeyDown={e => handleKeyDown(e, i, 'length', r.id)}
@@ -558,19 +537,16 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         </div>
       </div>
 
-      {/* Toast con Annulla (Undo) per eliminazione riga */}
+      {/* 4) Toast Annulla (Undo) su singola riga ampia senza spezzarsi su 4 righe */}
       {deletedRecord && (
-        <div className="undo-delete-toast" role="alert">
-          <span className="undo-toast-text">
-            Rimosso:{' '}
-            <strong>
-              Ø {deletedRecord.row.diameter || '?'} - L:{' '}
-              {deletedRecord.row.length || '?'} cm ({deletedRecord.row.qty || '?'} pz)
-            </strong>
+        <div className="undo-delete-toast-v3" role="alert">
+          <span className="undo-toast-text-v3">
+            Rimosso: <strong>Ø {deletedRecord.row.diameter || '?'}</strong> · L:{' '}
+            <strong>{deletedRecord.row.length || '?'} cm</strong> ({deletedRecord.row.qty || '?'} pz)
           </span>
           <button
             type="button"
-            className="undo-btn"
+            className="undo-btn-v3"
             onClick={handleUndoDelete}
             title="Annulla eliminazione"
           >
@@ -589,7 +565,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         onConfirm={() => setInvalidDiaModalOpen(false)}
       />
 
-      {/* Modale Svuota Tabella */}
+      {/* 5) Modale Svuota Tabella: Annulla a sx (colore neutro) ed Elimina tutti a dx (rosso) */}
       <ConfirmModal
         isOpen={clearTableModalOpen}
         title="Svuota tabella"
@@ -601,7 +577,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         onCancel={() => setClearTableModalOpen(false)}
       />
 
-      {/* Modale Duplicato: Aggiungere alla quantità esistente? */}
+      {/* Modale Duplicato */}
       <ConfirmModal
         isOpen={duplicateCandidate !== null}
         title="Elemento già presente in tabella"

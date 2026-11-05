@@ -64,28 +64,32 @@ export const SortDialog: React.FC<SortDialogProps> = ({
   };
 
   return (
-    <div className="in-app-modal-backdrop" onClick={onClose}>
+    <div className="in-app-modal-backdrop sort-dialog-backdrop" onClick={onClose}>
       <div
-        className="sort-dialog-card-v2"
+        className="sort-dialog-card-v3"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="sort-title"
+        aria-labelledby="sort-dialog-title"
         onClick={e => e.stopPropagation()}
       >
+        {/* X di chiusura rigorosamente nell'angolo in alto a destra */}
+        <button
+          type="button"
+          className="sort-dialog-close-topright"
+          onClick={onClose}
+          aria-label="Chiudi finestra"
+        >
+          ×
+        </button>
+
         <form onSubmit={handleSubmit}>
-          <div className="sort-dialog-head">
-            <h3 id="sort-title">{kind === 'stockDetail' ? 'Ordina Giacenza' : 'Ordina Richiesta'}</h3>
-            <button
-              type="button"
-              className="in-app-modal-close"
-              onClick={onClose}
-              aria-label="Chiudi finestra"
-            >
-              ×
-            </button>
+          <div className="sort-dialog-header-clean">
+            <h3 id="sort-dialog-title">
+              {kind === 'stockDetail' ? 'Ordina Giacenza' : 'Ordina Richiesta'}
+            </h3>
           </div>
 
-          <div className="sort-levels-container">
+          <div className="sort-levels-list">
             {levels.map((level, index) => {
               const usedElsewhere = new Set(
                 levels.filter((_, i) => i !== index).map(l => l.field)
@@ -96,14 +100,15 @@ export const SortDialog: React.FC<SortDialogProps> = ({
               const isAsc = level.direction === 'asc';
 
               return (
-                <div key={index} className="sort-level-row-v2">
-                  <span className="sort-level-label">
+                <div key={index} className="sort-level-item">
+                  {/* Etichetta con font più grande */}
+                  <span className="sort-item-label">
                     {index === 0 ? 'Ordina per:' : 'Quindi per:'}
                   </span>
 
-                  {/* Campo con larghezza abbondante per farci stare tutta la scritta Lunghezza [cm] */}
+                  {/* Casella Campo dimensionata proporzionatamente */}
                   <select
-                    className="sort-field-select"
+                    className="sort-item-select"
                     value={level.field}
                     onChange={e => handleFieldChange(index, e.target.value as any)}
                     aria-label={`Campo ordinamento livello ${index + 1}`}
@@ -115,29 +120,24 @@ export const SortDialog: React.FC<SortDialogProps> = ({
                     ))}
                   </select>
 
-                  {/* Icona pulsante AZ con freccia in giù (crescente) / ZA con freccia in giù (decrescente) */}
+                  {/* Pulsante Direzione AZ / ZA */}
                   <button
                     type="button"
-                    className={`sort-direction-btn ${isAsc ? 'is-asc' : 'is-desc'}`}
+                    className={`sort-item-dir-btn ${isAsc ? 'is-asc' : 'is-desc'}`}
                     onClick={() => handleToggleDirection(index)}
-                    title={isAsc ? 'Crescente (AZ ↓) - Clicca per invertire' : 'Decrescente (ZA ↓) - Clicca per invertire'}
+                    title={isAsc ? 'Crescente (A-Z ↓)' : 'Decrescente (Z-A ↓)'}
                     aria-label={isAsc ? 'Ordine crescente' : 'Ordine decrescente'}
                   >
-                    <span className="sort-dir-text">{isAsc ? 'A-Z' : 'Z-A'}</span>
-                    <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <span className="dir-text">{isAsc ? 'A-Z' : 'Z-A'}</span>
+                    <span className="dir-arrow">↓</span>
                   </button>
                 </div>
               );
             })}
           </div>
 
-          <div className="sort-level-buttons">
+          {/* Pulsanti Aggiungi ed Elimina livello ben distanziati */}
+          <div className="sort-level-actions-group">
             <button
               type="button"
               className="btn neutral small"
@@ -156,18 +156,18 @@ export const SortDialog: React.FC<SortDialogProps> = ({
             </button>
           </div>
 
-          {/* Pulsanti Annulla e Ordina con stessa larghezza aumentata e font più grande */}
-          <div className="sort-dialog-actions-v2">
+          {/* Azioni finali Annulla e Ordina con stessa larghezza e font 14px */}
+          <div className="sort-dialog-bottom-actions">
             <button
               type="button"
-              className="btn neutral sort-action-btn"
+              className="btn neutral modal-btn-large"
               onClick={onClose}
             >
               Annulla
             </button>
             <button
               type="submit"
-              className="btn primary sort-action-btn"
+              className="btn primary modal-btn-large"
             >
               Ordina
             </button>

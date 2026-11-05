@@ -339,7 +339,7 @@ export const App: React.FC = () => {
             <MasterTable
               kind="demandDetail"
               title="Richiesta"
-              subtitle="Inserisci la distinta ferri richiesta."
+              subtitle="Inserisci la Richiesta/Distinta ferri."
               rows={state.demandDetail}
               onChangeRows={handleDemandChange}
               onOpenSort={() => setSortKind('demandDetail')}
@@ -364,7 +364,7 @@ export const App: React.FC = () => {
                   className="btn primary split-optimize-cta"
                   onClick={handleOptimize}
                 >
-                  ▶ &gt; Esegui ottimizzazione
+                  ▶ Esegui ottimizzazione
                 </button>
               </div>
 
@@ -386,7 +386,7 @@ export const App: React.FC = () => {
                   <MasterTable
                     kind="demandDetail"
                     title="Richiesta"
-                    subtitle="Inserisci la distinta ferri richiesta."
+                    subtitle="Inserisci la Richiesta/Distinta ferri."
                     rows={state.demandDetail}
                     onChangeRows={handleDemandChange}
                     onOpenSort={() => setSortKind('demandDetail')}
@@ -412,9 +412,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* 3) Frase in fondo alla pagina aggiornata senza "da cantiere" */}
+        {/* Frase in fondo alla pagina aggiornata senza "da cantiere" e v. 1.27 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.26 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.27 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 
