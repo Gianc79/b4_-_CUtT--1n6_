@@ -1,15 +1,15 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MasterRow } from '../types';
 import {
   blankMaster,
   fmt,
   inputNumber,
-  masterStats,
+  newId,
   unitWeight,
   validDiameter,
 } from '../utils/math';
 import { DiameterFilter } from './DiameterFilter';
-import { ItemCard } from './ItemCard';
+import { ConfirmModal } from './ConfirmModal';
 
 interface MasterTableProps {
   kind: 'stockDetail' | 'demandDetail';
@@ -23,6 +23,17 @@ interface MasterTableProps {
   onToast: (msg: string) => void;
 }
 
+interface DuplicateCandidate {
+  sourceRowId: string;
+  targetRowId: string;
+  addQty: number;
+}
+
+interface DeletedRowRecord {
+  row: MasterRow;
+  index: number;
+}
+
 export const MasterTable: React.FC<MasterTableProps> = ({
   kind,
   title,
@@ -34,123 +45,268 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   onExportXls,
   onToast,
 }) => {
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [selectedDiameter, setSelectedDiameter] = useState<number | 'all'>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const stats = masterStats(rows);
+  // Focus management per immissione fluida con Invio
+  const nextFocusRowIdRef = useRef<string | null>(null);
 
-  // Quick add state
-  const [quickDia, setQuickDia] = useState<string>('12');
-  const [quickQty, setQuickQty] = useState<string>('1');
-  const [quickLength, setQuickLength] = useState<string>('1200');
+  // Memorizzazione valore precedente per ripristino in caso di diametro errato
+  const cellPreviousValuesRef = useRef<Record<string, string>>({});
 
+  // Stato per i modali in-app
+  const [invalidDiaModalOpen, setInvalidDiaModalOpen] = useState(false);
+  const [clearTableModalOpen, setClearTableModalOpen] = useState(false);
+  const [duplicateCandidate, setDuplicateCandidate] = useState<DuplicateCandidate | null>(null);
+
+  // Undo eliminazione riga
+  const [deletedRecord, setDeletedRecord] = useState<DeletedRowRecord | null>(null);
+  const undoTimerRef = useRef<number | null>(null);
+
+  // Auto-focus sulla nuova riga appena aggiunta
+  useEffect(() => {
+    if (nextFocusRowIdRef.current) {
+      const targetInput = document.querySelector<HTMLInputElement>(
+        `input[data-row-id="${nextFocusRowIdRef.current}"][data-field="diameter"]`
+      );
+      if (targetInput) {
+        targetInput.focus();
+        targetInput.select();
+      }
+      nextFocusRowIdRef.current = null;
+    }
+  }, [rows]);
+
+  // Calcolo statistiche dinamiche (totali o per il diametro selezionato)
+  const isFiltered = selectedDiameter !== 'all';
+  const effectiveRows = rows.filter(r => {
+    if (!isFiltered) return true;
+    return inputNumber(r.diameter) === selectedDiameter;
+  });
+
+  let statsMeters = 0;
+  let statsWeight = 0;
+  let statsPieces = 0;
+
+  for (const r of effectiveRows) {
+    const q = inputNumber(r.qty);
+    const l = inputNumber(r.length);
+    const d = inputNumber(r.diameter);
+    if (validDiameter(d) && q && l && q > 0 && l > 0) {
+      const m = (q * l) / 100;
+      statsMeters += m;
+      statsPieces += q;
+      statsWeight += m * unitWeight(d!);
+    }
+  }
+
+  // Gestione modifiche cella
   const handleCellChange = (id: string, field: 'diameter' | 'qty' | 'length', val: string) => {
     const updated = rows.map(r => (r.id === id ? { ...r, [field]: val } : r));
     onChangeRows(updated);
   };
 
+  const handleCellFocus = (id: string, field: 'diameter' | 'qty' | 'length', currentVal: string) => {
+    cellPreviousValuesRef.current[`${id}_${field}`] = currentVal;
+  };
+
   const handleCellBlur = (id: string, field: 'diameter' | 'qty' | 'length', rawVal: string) => {
     const trimmed = rawVal.trim();
+    const prevVal = cellPreviousValuesRef.current[`${id}_${field}`] || '';
+
     if (trimmed === '') return;
 
     const value = inputNumber(trimmed);
-    let valid = value !== null;
-    let message = '';
 
     if (field === 'diameter') {
-      valid = validDiameter(value);
-      message = 'Diametro non valido. Sono ammessi soltanto numeri pari da 6 a 40.';
+      if (!validDiameter(value)) {
+        // Ripristina il valore precedente (non cancellarlo!) e mostra finestra modale
+        const updated = rows.map(r => (r.id === id ? { ...r, diameter: prevVal } : r));
+        onChangeRows(updated);
+        setInvalidDiaModalOpen(true);
+        return;
+      }
     } else if (field === 'qty') {
-      valid = Number.isInteger(value) && value! >= 1 && value! <= 10000;
-      message = 'Valore Nr. non valido. Inserire un numero intero positivo da 1 a 10.000.';
+      if (!Number.isInteger(value) || value! < 1 || value! > 10000) {
+        const updated = rows.map(r => (r.id === id ? { ...r, qty: prevVal } : r));
+        onChangeRows(updated);
+        onToast('Quantità non valida: inserire un intero positivo da 1 a 10.000.');
+        return;
+      }
     } else if (field === 'length') {
-      valid = Number.isInteger(value) && value! >= 1 && value! <= 1200;
-      message = 'Lunghezza non valida. Inserire un numero intero positivo da 1 a 1.200 cm.';
+      if (!Number.isInteger(value) || value! < 1 || value! > 1200) {
+        const updated = rows.map(r => (r.id === id ? { ...r, length: prevVal } : r));
+        onChangeRows(updated);
+        onToast('Lunghezza non valida: inserire un intero in cm da 1 a 1.200.');
+        return;
+      }
     }
 
-    if (!valid) {
-      alert(message);
-      const updated = rows.map(r => (r.id === id ? { ...r, [field]: '' } : r));
-      onChangeRows(updated);
-      return;
-    }
-
+    // Normalizza valore
     const normalized = String(value);
     const updated = rows.map(r => (r.id === id ? { ...r, [field]: normalized } : r));
     onChangeRows(updated);
+
+    // Controlla se la riga completata è un duplicato di un'altra riga esistente
+    checkDuplicates(id, updated);
   };
 
-  const handleAddRow = (initial?: Partial<MasterRow>) => {
+  // Controllo duplicati (diametro + lunghezza già presenti in tabella)
+  const checkDuplicates = (currentId: string, currentRows: MasterRow[]) => {
+    const currentRow = currentRows.find(r => r.id === currentId);
+    if (!currentRow) return;
+
+    const curD = inputNumber(currentRow.diameter);
+    const curL = inputNumber(currentRow.length);
+    const curQ = inputNumber(currentRow.qty);
+
+    if (!validDiameter(curD) || !curL || curL <= 0 || !curQ || curQ <= 0) {
+      return;
+    }
+
+    // Cerca un'altra riga con stesso diametro e stessa lunghezza
+    const existingRow = currentRows.find(
+      r =>
+        r.id !== currentId &&
+        inputNumber(r.diameter) === curD &&
+        inputNumber(r.length) === curL &&
+        inputNumber(r.qty) !== null &&
+        inputNumber(r.qty)! > 0
+    );
+
+    if (existingRow) {
+      setDuplicateCandidate({
+        sourceRowId: currentId,
+        targetRowId: existingRow.id,
+        addQty: curQ,
+      });
+    }
+  };
+
+  const handleConfirmMergeDuplicate = () => {
+    if (!duplicateCandidate) return;
+    const { sourceRowId, targetRowId, addQty } = duplicateCandidate;
+
+    const updated = rows
+      .map(r => {
+        if (r.id === targetRowId) {
+          const oldQ = inputNumber(r.qty) || 0;
+          return { ...r, qty: String(oldQ + addQty) };
+        }
+        return r;
+      })
+      .filter(r => r.id !== sourceRowId);
+
+    onChangeRows(updated.length > 0 ? updated : [blankMaster()]);
+    setDuplicateCandidate(null);
+    onToast(`Quantità aggiunta all'elemento esistente.`);
+  };
+
+  const handleCancelMergeDuplicate = () => {
+    setDuplicateCandidate(null);
+  };
+
+  // Navigazione fluida con tasto Invio
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    rowIndex: number,
+    field: 'diameter' | 'qty' | 'length',
+    rowId: string
+  ) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Forza blur per triggerare validazione e salvataggio
+      (e.target as HTMLInputElement).blur();
+
+      if (field === 'diameter') {
+        const nextInput = document.querySelector<HTMLInputElement>(
+          `input[data-row-id="${rowId}"][data-field="qty"]`
+        );
+        nextInput?.focus();
+        nextInput?.select();
+      } else if (field === 'qty') {
+        const nextInput = document.querySelector<HTMLInputElement>(
+          `input[data-row-id="${rowId}"][data-field="length"]`
+        );
+        nextInput?.focus();
+        nextInput?.select();
+      } else if (field === 'length') {
+        // Ultima cella della riga: passa alla prima cella della riga successiva
+        const nextRow = effectiveRows[rowIndex + 1];
+        if (nextRow) {
+          const nextDiaInput = document.querySelector<HTMLInputElement>(
+            `input[data-row-id="${nextRow.id}"][data-field="diameter"]`
+          );
+          nextDiaInput?.focus();
+          nextDiaInput?.select();
+        } else {
+          // Aggiunge automaticamente una nuova riga e passa il focus
+          const newRowId = newId();
+          nextFocusRowIdRef.current = newRowId;
+          const newRow: MasterRow = {
+            id: newRowId,
+            diameter: selectedDiameter !== 'all' ? String(selectedDiameter) : '',
+            qty: '',
+            length: '',
+          };
+          onChangeRows([...rows, newRow]);
+        }
+      }
+    }
+  };
+
+  const handleAddRow = () => {
+    const newRowId = newId();
+    nextFocusRowIdRef.current = newRowId;
     const newRow: MasterRow = {
-      ...blankMaster(),
-      diameter: initial?.diameter || (selectedDiameter !== 'all' ? String(selectedDiameter) : ''),
-      qty: initial?.qty || '',
-      length: initial?.length || '',
+      id: newRowId,
+      diameter: selectedDiameter !== 'all' ? String(selectedDiameter) : '',
+      qty: '',
+      length: '',
     };
     onChangeRows([...rows, newRow]);
   };
 
-  const handleDeleteRow = (id: string) => {
-    if (rows.length <= 1) {
-      onChangeRows([blankMaster()]);
-    } else {
-      onChangeRows(rows.filter(r => r.id !== id));
+  // Rimozione record con popup e Annulla
+  const handleDeleteRow = (id: string, index: number) => {
+    const rowToDelete = rows.find(r => r.id === id);
+    if (!rowToDelete) return;
+
+    const isEmpty =
+      !rowToDelete.diameter.trim() &&
+      !rowToDelete.qty.trim() &&
+      !rowToDelete.length.trim();
+
+    const updated = rows.filter(r => r.id !== id);
+    onChangeRows(updated.length > 0 ? updated : [blankMaster()]);
+
+    if (!isEmpty) {
+      if (undoTimerRef.current) {
+        window.clearTimeout(undoTimerRef.current);
+      }
+      setDeletedRecord({ row: rowToDelete, index });
+      undoTimerRef.current = window.setTimeout(() => {
+        setDeletedRecord(null);
+      }, 6000);
     }
   };
 
-  const handleClearTable = () => {
-    if (!confirm('Sei sicuro di voler svuotare la tabella?')) return;
+  const handleUndoDelete = () => {
+    if (!deletedRecord) return;
+    const newRows = [...rows];
+    // Inserisce di nuovo alla posizione memorizzata o alla fine
+    const insertIdx = Math.min(deletedRecord.index, newRows.length);
+    newRows.splice(insertIdx, 0, deletedRecord.row);
+    onChangeRows(newRows);
+    setDeletedRecord(null);
+    onToast('Riga ripristinata.');
+  };
+
+  // Svuota tabella con modale personalizzato
+  const handleConfirmClearTable = () => {
     onChangeRows([blankMaster()]);
+    setClearTableModalOpen(false);
     onToast('Tabella svuotata.');
-  };
-
-  const handleQuickAdd = (e: React.FormEvent) => {
-    e.preventDefault();
-    const d = inputNumber(quickDia);
-    const q = inputNumber(quickQty);
-    const l = inputNumber(quickLength);
-
-    if (!validDiameter(d)) {
-      alert('Diametro non valido. Scegli un numero pari tra 6 e 40 mm.');
-      return;
-    }
-    if (!q || q < 1 || q > 10000) {
-      alert('Quantità non valida. Inserisci un intero positivo da 1 a 10.000.');
-      return;
-    }
-    if (!l || l < 1 || l > 1200) {
-      alert('Lunghezza non valida. Inserisci un intero in cm da 1 a 1.200.');
-      return;
-    }
-
-    // Check if there is an empty row we can populate
-    const emptyIndex = rows.findIndex(
-      r => !r.diameter.trim() && !r.qty.trim() && !r.length.trim()
-    );
-
-    if (emptyIndex >= 0) {
-      const updated = [...rows];
-      updated[emptyIndex] = {
-        ...updated[emptyIndex],
-        diameter: String(d),
-        qty: String(q),
-        length: String(l),
-      };
-      onChangeRows(updated);
-    } else {
-      onChangeRows([
-        ...rows,
-        {
-          ...blankMaster(),
-          diameter: String(d),
-          qty: String(q),
-          length: String(l),
-        },
-      ]);
-    }
-
-    onToast(`Aggiunto: ${q} barre Ø ${d} da ${l} cm.`);
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,42 +317,16 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     e.target.value = '';
   };
 
-  // Filter rows if a specific diameter is selected
-  const filteredRows = rows.filter(r => {
-    if (selectedDiameter === 'all') return true;
-    const d = inputNumber(r.diameter);
-    return d === selectedDiameter;
-  });
-
   return (
     <section className="page active" id={`page-${kind === 'stockDetail' ? 'stock' : 'demand'}`}>
-      {/* Section Head */}
+      {/* Intestazione pagina */}
       <div className="section-head master-page-head">
         <div>
           <h2>{title}</h2>
           <p>{subtitle}</p>
         </div>
-        <div className="heading-actions">
-          {/* View mode toggle */}
-          <div className="view-mode-toggle" role="group" aria-label="Modalità di visualizzazione">
-            <button
-              type="button"
-              className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
-              onClick={() => setViewMode('cards')}
-              title="Vista Schede Touch (ideale per smartphone e cantiere)"
-            >
-              ⊞ Schede
-            </button>
-            <button
-              type="button"
-              className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
-              onClick={() => setViewMode('table')}
-              title="Vista Tabella Densa"
-            >
-              ☰ Tabella
-            </button>
-          </div>
-
+        {/* Pulsanti Importa ed Esporta XLS sulla stessa riga */}
+        <div className="heading-actions-row">
           <button
             className="btn neutral"
             type="button"
@@ -204,7 +334,11 @@ export const MasterTable: React.FC<MasterTableProps> = ({
           >
             Importa XLS
           </button>
-          <button className="btn neutral" type="button" onClick={onExportXls}>
+          <button
+            className="btn neutral"
+            type="button"
+            onClick={onExportXls}
+          >
             Esporta XLS
           </button>
           <input
@@ -217,302 +351,265 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         </div>
       </div>
 
-      {/* Totals Summary Cards */}
-      <div className="calc-total top-totals">
-        <div className="summary-box">
-          <div className="s-label">Sviluppo Complessivo</div>
-          <div className="s-value">
-            {fmt(stats.totalMeters)}
-            <span className="s-unit">m</span>
-          </div>
-          <div className="s-sub">{stats.totalQty} pezzi totali</div>
-        </div>
-        <div className="summary-box">
-          <div className="s-label">Peso Totale</div>
-          <div className="s-value">
-            {fmt(stats.totalWeight)}
-            <span className="s-unit">kg</span>
-          </div>
-          <div className="s-sub">Acciaio B450C</div>
-        </div>
-      </div>
-
-      {/* Quick Add Bar for Fast Entry */}
-      <div className="panel quick-add-panel">
-        <form onSubmit={handleQuickAdd} className="quick-add-form">
-          <div className="quick-add-title">
-            <span>＋ Inserimento Rapido</span>
-          </div>
-          <div className="quick-add-fields">
-            <div className="field-group">
-              <label htmlFor={`quick-dia-${kind}`}>Ø mm</label>
-              <select
-                id={`quick-dia-${kind}`}
-                value={quickDia}
-                onChange={e => setQuickDia(e.target.value)}
-              >
-                {[6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 36, 40].map(dia => (
-                  <option key={dia} value={dia}>
-                    Ø {dia} mm
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="field-group">
-              <label htmlFor={`quick-length-${kind}`}>Lunghezza</label>
-              <div className="input-with-suffix">
-                <input
-                  id={`quick-length-${kind}`}
-                  type="number"
-                  min="1"
-                  max="1200"
-                  step="1"
-                  value={quickLength}
-                  onChange={e => setQuickLength(e.target.value)}
-                  placeholder="cm"
-                />
-                <span className="input-suffix">cm</span>
-              </div>
-            </div>
-
-            <div className="field-group">
-              <label htmlFor={`quick-qty-${kind}`}>Quantità</label>
-              <input
-                id={`quick-qty-${kind}`}
-                type="number"
-                min="1"
-                max="10000"
-                step="1"
-                value={quickQty}
-                onChange={e => setQuickQty(e.target.value)}
-                placeholder="Nr."
-              />
-            </div>
-
-            <button type="submit" className="btn primary quick-add-submit">
-              ＋ Inserisci
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Diameter Filter Bar */}
+      {/* Filtro rapido Diametri (mostra solo i diametri presenti) */}
       <DiameterFilter
         rows={rows}
         selectedDiameter={selectedDiameter}
         onSelectDiameter={setSelectedDiameter}
       />
 
-      {/* Main Content Panel */}
+      {/* Widget Totali dinamici posizionati tra il filtro e l'elenco */}
+      <div className="calc-total totals-between-filter">
+        <div className="summary-box">
+          <div className="s-label">
+            {isFiltered
+              ? `SVILUPPO BARRE Ø ${selectedDiameter}`
+              : 'SVILUPPO COMPLESSIVO'}
+          </div>
+          <div className="s-value">
+            {fmt(statsMeters)}
+            <span className="s-unit">m</span>
+          </div>
+          <div className="s-sub">
+            {isFiltered ? `${statsPieces} pezzi` : `${statsPieces} pezzi totali`}
+          </div>
+        </div>
+
+        <div className="summary-box">
+          <div className="s-label">PESO TOTALE</div>
+          <div className="s-value">
+            {fmt(statsWeight)}
+            <span className="s-unit">kg</span>
+          </div>
+          <div className="s-sub">Acciaio B450C</div>
+        </div>
+      </div>
+
+      {/* Pannello Principale Tabella */}
       <div className="panel">
         <div className="panel-head">
           <div className="panel-title-group">
             <h3>{kind === 'stockDetail' ? 'Elenco Giacenza' : 'Elenco Richiesta'}</h3>
-            {selectedDiameter !== 'all' && (
+            {isFiltered && (
               <span className="active-filter-badge">
-                Filtrato: Ø {selectedDiameter} mm ({filteredRows.length})
+                Filtrato: Ø {selectedDiameter} mm ({effectiveRows.length})
               </span>
             )}
           </div>
           <div className="panel-head-actions">
-            <button className="btn small sort" type="button" onClick={onOpenSort}>
-              Ordina
-            </button>
+            {/* Tasto Ordina più largo e font leggermente più grande */}
             <button
-              className="btn small neutral text-danger"
+              className="btn btn-sort-wide"
               type="button"
-              onClick={handleClearTable}
-              title="Svuota l'intera tabella"
+              onClick={onOpenSort}
             >
-              Svuota
+              Ordina
             </button>
           </div>
         </div>
 
         <div className="panel-body">
-          {viewMode === 'cards' ? (
-            /* Cards View */
-            <div className="cards-view-wrap">
-              {filteredRows.length === 0 ? (
-                <div className="empty-filter-state">
-                  <p>Nessun elemento registrato per questo filtro.</p>
-                  <button
-                    type="button"
-                    className="btn primary small"
-                    onClick={() =>
-                      handleAddRow({
-                        diameter: selectedDiameter !== 'all' ? String(selectedDiameter) : '',
-                      })
-                    }
-                  >
-                    ＋ Aggiungi barra {selectedDiameter !== 'all' ? `Ø ${selectedDiameter}` : ''}
-                  </button>
-                </div>
-              ) : (
-                <div className="item-cards-grid">
-                  {filteredRows.map((r, i) => (
-                    <ItemCard
-                      key={r.id}
-                      row={r}
-                      index={i}
-                      onUpdate={updated => {
-                        const newRows = rows.map(item =>
-                          item.id === r.id ? { ...item, ...updated } : item
-                        );
-                        onChangeRows(newRows);
-                      }}
-                      onDelete={() => handleDeleteRow(r.id)}
-                      onValidateField={(field, val) => handleCellBlur(r.id, field, val)}
-                    />
-                  ))}
-                </div>
-              )}
+          <div className="table-wrap">
+            <table className="master-table">
+              <colgroup>
+                <col className="dia" />
+                <col className="qty" />
+                <col className="length" />
+                <col className="weight" />
+                <col className="action" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Ø [mm]</th>
+                  <th>Nr.</th>
+                  <th>L [cm]</th>
+                  <th>P [kg]</th>
+                  <th>
+                    {/* Pulsante X per svuotare con dialog personalizzato */}
+                    <button
+                      className="header-clear"
+                      type="button"
+                      onClick={() => setClearTableModalOpen(true)}
+                      aria-label="Svuota tabella"
+                      title="Svuota tabella"
+                    >
+                      ×
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {effectiveRows.map((r, i) => {
+                  const q = inputNumber(r.qty);
+                  const l = inputNumber(r.length);
+                  const d = inputNumber(r.diameter);
+                  const rowWeight =
+                    Number.isInteger(q) &&
+                    q! > 0 &&
+                    q! <= 10000 &&
+                    Number.isInteger(l) &&
+                    l! > 0 &&
+                    l! <= 1200 &&
+                    validDiameter(d)
+                      ? ((q! * l!) / 100) * unitWeight(d!)
+                      : 0;
 
-              <div className="table-bottom-actions">
-                <button
-                  className="btn primary"
-                  type="button"
-                  onClick={() =>
-                    handleAddRow({
-                      diameter: selectedDiameter !== 'all' ? String(selectedDiameter) : '',
-                    })
-                  }
-                >
-                  ＋ Aggiungi Riga
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* Table View */
-            <>
-              <div className="table-wrap">
-                <table className="master-table">
-                  <colgroup>
-                    <col className="dia" />
-                    <col className="qty" />
-                    <col className="length" />
-                    <col className="weight" />
-                    <col className="action" />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>Ø [mm]</th>
-                      <th>Nr.</th>
-                      <th>L [cm]</th>
-                      <th>P [kg]</th>
-                      <th>
+                  return (
+                    <tr key={r.id}>
+                      <td>
+                        <input
+                          className="cell-input"
+                          type="number"
+                          min="6"
+                          max="40"
+                          step="2"
+                          inputMode="numeric"
+                          data-row-id={r.id}
+                          data-field="diameter"
+                          aria-label={`Diametro riga ${i + 1}`}
+                          value={r.diameter}
+                          placeholder="Ø"
+                          onClick={e => e.currentTarget.select()}
+                          onFocus={e => {
+                            e.currentTarget.select();
+                            handleCellFocus(r.id, 'diameter', e.target.value);
+                          }}
+                          onChange={e => handleCellChange(r.id, 'diameter', e.target.value)}
+                          onBlur={e => handleCellBlur(r.id, 'diameter', e.target.value)}
+                          onKeyDown={e => handleKeyDown(e, i, 'diameter', r.id)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="cell-input"
+                          type="number"
+                          min="1"
+                          max="10000"
+                          step="1"
+                          inputMode="numeric"
+                          data-row-id={r.id}
+                          data-field="qty"
+                          aria-label={`Numero riga ${i + 1}`}
+                          value={r.qty}
+                          placeholder="Nr."
+                          onClick={e => e.currentTarget.select()}
+                          onFocus={e => {
+                            e.currentTarget.select();
+                            handleCellFocus(r.id, 'qty', e.target.value);
+                          }}
+                          onChange={e => handleCellChange(r.id, 'qty', e.target.value)}
+                          onBlur={e => handleCellBlur(r.id, 'qty', e.target.value)}
+                          onKeyDown={e => handleKeyDown(e, i, 'qty', r.id)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="cell-input"
+                          type="number"
+                          min="1"
+                          max="1200"
+                          step="1"
+                          inputMode="numeric"
+                          data-row-id={r.id}
+                          data-field="length"
+                          aria-label={`Lunghezza in centimetri riga ${i + 1}`}
+                          value={r.length}
+                          placeholder="cm"
+                          onClick={e => e.currentTarget.select()}
+                          onFocus={e => {
+                            e.currentTarget.select();
+                            handleCellFocus(r.id, 'length', e.target.value);
+                          }}
+                          onChange={e => handleCellChange(r.id, 'length', e.target.value)}
+                          onBlur={e => handleCellBlur(r.id, 'length', e.target.value)}
+                          onKeyDown={e => handleKeyDown(e, i, 'length', r.id)}
+                        />
+                      </td>
+                      <td className="weight-cell">
+                        <span>{rowWeight > 0 ? fmt(rowWeight) : '—'}</span>
+                      </td>
+                      <td className="action-cell">
                         <button
-                          className="header-clear"
+                          className="icon-btn"
                           type="button"
-                          onClick={handleClearTable}
-                          aria-label={`Svuota tutti i record della ${title}`}
+                          onClick={() => handleDeleteRow(r.id, i)}
+                          aria-label={`Elimina riga ${i + 1}`}
+                          title="Elimina riga"
                         >
                           ×
                         </button>
-                      </th>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {filteredRows.map((r, i) => {
-                      const q = inputNumber(r.qty);
-                      const l = inputNumber(r.length);
-                      const d = inputNumber(r.diameter);
-                      const rowWeight =
-                        Number.isInteger(q) &&
-                        q! > 0 &&
-                        q! <= 10000 &&
-                        Number.isInteger(l) &&
-                        l! > 0 &&
-                        l! <= 1200 &&
-                        validDiameter(d)
-                          ? ((q! * l!) / 100) * unitWeight(d)
-                          : 0;
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
-                      return (
-                        <tr key={r.id} data-master-row={r.id}>
-                          <td>
-                            <input
-                              className="cell-input"
-                              type="number"
-                              min="6"
-                              max="40"
-                              step="2"
-                              inputMode="numeric"
-                              aria-label={`Diametro riga ${i + 1}`}
-                              value={r.diameter}
-                              placeholder="Ø"
-                              onChange={e => handleCellChange(r.id, 'diameter', e.target.value)}
-                              onBlur={e => handleCellBlur(r.id, 'diameter', e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              className="cell-input"
-                              type="number"
-                              min="1"
-                              max="10000"
-                              step="1"
-                              inputMode="numeric"
-                              aria-label={`Numero riga ${i + 1}`}
-                              value={r.qty}
-                              placeholder="Nr."
-                              onChange={e => handleCellChange(r.id, 'qty', e.target.value)}
-                              onBlur={e => handleCellBlur(r.id, 'qty', e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              className="cell-input"
-                              type="number"
-                              min="1"
-                              max="1200"
-                              step="1"
-                              inputMode="numeric"
-                              aria-label={`Lunghezza in centimetri riga ${i + 1}`}
-                              value={r.length}
-                              placeholder="cm"
-                              onChange={e => handleCellChange(r.id, 'length', e.target.value)}
-                              onBlur={e => handleCellBlur(r.id, 'length', e.target.value)}
-                            />
-                          </td>
-                          <td className="weight-cell">
-                            <span>{rowWeight > 0 ? fmt(rowWeight) : '—'}</span>
-                          </td>
-                          <td className="action-cell">
-                            <button
-                              className="icon-btn"
-                              type="button"
-                              onClick={() => handleDeleteRow(r.id)}
-                              aria-label={`Elimina riga ${i + 1}`}
-                            >
-                              ×
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="table-bottom-actions">
-                <button
-                  className="btn primary small"
-                  type="button"
-                  onClick={() =>
-                    handleAddRow({
-                      diameter: selectedDiameter !== 'all' ? String(selectedDiameter) : '',
-                    })
-                  }
-                >
-                  ＋ Aggiungi Riga
-                </button>
-              </div>
-            </>
-          )}
+          <div className="table-bottom-actions">
+            <button
+              className="btn primary small"
+              type="button"
+              onClick={handleAddRow}
+            >
+              ＋ Aggiungi Riga
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Toast con Annulla (Undo) per eliminazione riga */}
+      {deletedRecord && (
+        <div className="undo-delete-toast" role="alert">
+          <span className="undo-toast-text">
+            Rimosso:{' '}
+            <strong>
+              Ø {deletedRecord.row.diameter || '?'} - L:{' '}
+              {deletedRecord.row.length || '?'} cm ({deletedRecord.row.qty || '?'} pz)
+            </strong>
+          </span>
+          <button
+            type="button"
+            className="undo-btn"
+            onClick={handleUndoDelete}
+            title="Annulla eliminazione"
+          >
+            <span className="undo-icon">↶</span> Annulla
+          </button>
+        </div>
+      )}
+
+      {/* Modale Diametro Non Valido */}
+      <ConfirmModal
+        isOpen={invalidDiaModalOpen}
+        title="Diametro non valido"
+        message="Sono ammessi solo numeri pari da 6 a 40."
+        confirmText="OK"
+        showCancel={false}
+        onConfirm={() => setInvalidDiaModalOpen(false)}
+      />
+
+      {/* Modale Svuota Tabella */}
+      <ConfirmModal
+        isOpen={clearTableModalOpen}
+        title="Svuota tabella"
+        message="Gli elementi della tabella stanno per essere eliminati definitivamente. Continuare?"
+        confirmText="Elimina tutti"
+        cancelText="Annulla"
+        confirmStyle="danger"
+        onConfirm={handleConfirmClearTable}
+        onCancel={() => setClearTableModalOpen(false)}
+      />
+
+      {/* Modale Duplicato: Aggiungere alla quantità esistente? */}
+      <ConfirmModal
+        isOpen={duplicateCandidate !== null}
+        title="Elemento già presente in tabella"
+        message="Elemento già presente in tabella: aggiungere alla quantità esistente?"
+        isDuplicatePrompt={true}
+        onConfirm={handleConfirmMergeDuplicate}
+        onCancel={handleCancelMergeDuplicate}
+      />
     </section>
   );
 };

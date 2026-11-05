@@ -21,93 +21,138 @@ export const CutDiagramBar: React.FC<CutDiagramBarProps> = ({
   scrapUnits,
 }) => {
   const totalLength = Math.max(1, barUnits);
-  const totalCutUnits = cutLength * cutCount;
-  const cutPct = Math.min(100, Math.max(0, (totalCutUnits / totalLength) * 100));
-  const recoveryPct = Math.min(100 - cutPct, Math.max(0, (recoveryUnits / totalLength) * 100));
-  const scrapPct = Math.max(0, 100 - cutPct - recoveryPct);
+
+  // Calcolo punti di taglio effettivi lungo la barra (in cm e in percentuale)
+  const cutPoints: Array<{ cm: number; meters: string; pct: number }> = [];
+  let accumCm = 0;
+
+  for (let i = 1; i <= cutCount; i++) {
+    accumCm += cutLength;
+    if (accumCm < totalLength) {
+      cutPoints.push({
+        cm: accumCm,
+        meters: fmt(accumCm / 100),
+        pct: (accumCm / totalLength) * 100,
+      });
+    }
+  }
+
+  // Se c'è recupero prima dello sfrido, il punto di separazione tra recupero e sfrido è un taglio
+  if (recoveryUnits > 0 && accumCm + recoveryUnits < totalLength) {
+    const recEndCm = accumCm + recoveryUnits;
+    cutPoints.push({
+      cm: recEndCm,
+      meters: fmt(recEndCm / 100),
+      pct: (recEndCm / totalLength) * 100,
+    });
+  }
+
+  // Segmenti singoli di taglio per la barra
+  const pieces = Array.from({ length: cutCount }, (_, idx) => ({
+    id: idx,
+    pct: (cutLength / totalLength) * 100,
+    meters: fmt(cutLength / 100),
+  }));
+
+  const recoveryPct = (recoveryUnits / totalLength) * 100;
+  const scrapPct = Math.max(0, 100 - (cutLength * cutCount + recoveryUnits) / totalLength * 100);
 
   return (
     <div className="cut-diagram-card">
-      <div className="cut-diagram-header">
-        <div className="cut-diagram-meta">
-          <span className="diagram-dia-badge">Ø {diameter} mm</span>
-          <span className="diagram-bar-count">
-            <strong>{intFmt(barCount)}</strong> {barCount === 1 ? 'barra' : 'barre'} da{' '}
-            <strong>{fmt(barUnits / 100)} m</strong>
-          </span>
+      {/* Header con i due riquadri: Diametro e Lunghezza con cerchietto quantità */}
+      <div className="cut-diagram-header-v2">
+        <div className="cut-badges-group">
+          {/* Riquadro 1: Diametro (sfondo azzurrino) */}
+          <div className="dia-badge-box">
+            Ø {diameter} mm
+          </div>
+
+          {/* Riquadro 2: Lunghezza barra con cerchietto quantità in alto a destra */}
+          <div className="bar-length-badge-box">
+            <span>Barra {fmt(barUnits / 100)} m</span>
+            <span
+              className="bar-count-badge-circle"
+              title={`${barCount} ${barCount === 1 ? 'barra' : 'barre'}`}
+            >
+              {intFmt(barCount)}
+            </span>
+          </div>
         </div>
-        <div className="cut-diagram-summary">
-          <span className="diagram-summary-cut">
-            {cutCount}× {intFmt(cutLength)} cm ({fmt(totalCutUnits / 100)} m)
+
+        {/* Indicazioni sopra la barra (solo in metri #,## m) */}
+        <div className="cut-diagram-summary-v2">
+          <span className="summary-indicator tag-cut">
+            Taglio: {cutCount > 1 ? `${cutCount}× ` : ''}{fmt(cutLength / 100)} m
           </span>
           {recoveryUnits > 0 && (
-            <span className="diagram-summary-rec">
-              Recupero: {intFmt(recoveryUnits)} cm ({fmt(recoveryUnits / 100)} m)
+            <span className="summary-indicator tag-rec">
+              Recupero: {fmt(recoveryUnits / 100)} m
             </span>
           )}
           {scrapUnits > 0 && (
-            <span className="diagram-summary-scrap">
-              Sfrido: {intFmt(scrapUnits)} cm ({fmt(scrapUnits / 100)} m)
+            <span className="summary-indicator tag-scrap">
+              Sfrido: {fmt(scrapUnits / 100)} m
             </span>
           )}
         </div>
       </div>
 
-      {/* Proportional Segmented Bar */}
-      <div
-        className="cut-bar-container"
-        title={`Barra: ${fmt(barUnits / 100)} m | Tagli: ${cutCount}x ${intFmt(cutLength)} cm | Recupero: ${intFmt(
-          recoveryUnits
-        )} cm | Sfrido: ${intFmt(scrapUnits)} cm`}
-      >
-        {/* Cut Pieces */}
-        {cutPct > 0 && (
+      {/* Barra segmentata con spigoli rigorosamente retti (border-radius: 0) */}
+      <div className="cut-bar-container-v2">
+        {/* Singoli pezzi di taglio (colore verde) */}
+        {pieces.map(piece => (
           <div
-            className="cut-segment cut-piece"
-            style={{ width: `${cutPct}%` }}
+            key={piece.id}
+            className="cut-segment-v2 seg-cut"
+            style={{ width: `${piece.pct}%` }}
+            title={`Taglio: ${piece.meters} m`}
           >
-            <div className="cut-segment-content">
-              <span className="cut-icon">✂</span>
-              <span className="cut-label">
-                {cutCount > 1 ? `${cutCount}× ` : ''}
-                {intFmt(cutLength)} cm
-              </span>
-            </div>
+            <span className="seg-label">{piece.meters} m</span>
           </div>
-        )}
+        ))}
 
-        {/* Recovery (if any) */}
-        {recoveryPct > 0 && (
+        {/* Recupero (colore blu) */}
+        {recoveryUnits > 0 && (
           <div
-            className="cut-segment cut-recovery"
+            className="cut-segment-v2 seg-recovery"
             style={{ width: `${recoveryPct}%` }}
+            title={`Recupero: ${fmt(recoveryUnits / 100)} m`}
           >
-            <div className="cut-segment-content">
-              <span className="cut-icon">↻</span>
-              <span className="cut-label">Rec. {intFmt(recoveryUnits)} cm</span>
-            </div>
+            <span className="seg-label">{fmt(recoveryUnits / 100)} m</span>
           </div>
         )}
 
-        {/* Scrap (if any) */}
-        {scrapPct > 0 && (
+        {/* Sfrido (colore rosso) */}
+        {scrapUnits > 0 && (
           <div
-            className="cut-segment cut-scrap"
+            className="cut-segment-v2 seg-scrap"
             style={{ width: `${scrapPct}%` }}
+            title={`Sfrido: ${fmt(scrapUnits / 100)} m`}
           >
-            <div className="cut-segment-content">
-              <span className="cut-label">
-                {scrapPct > 12 ? `Sfrido ${intFmt(scrapUnits)} cm` : `${intFmt(scrapUnits)}`}
-              </span>
-            </div>
+            <span className="seg-label">{fmt(scrapUnits / 100)} m</span>
           </div>
         )}
       </div>
 
-      <div className="cut-diagram-ticks">
-        <span>0 cm</span>
-        <span>{fmt(totalCutUnits / 100)} m (taglio)</span>
-        <span>{fmt(barUnits / 100)} m (totale)</span>
+      {/* Forbici verticali sotto alla barra in corrispondenza di OGNI taglio */}
+      <div className="cut-markers-track">
+        {cutPoints.map((cp, idx) => (
+          <div
+            key={idx}
+            className="cut-marker-item"
+            style={{ left: `${cp.pct}%` }}
+            title={`Punto di taglio a ${cp.meters} m`}
+          >
+            <div className="cut-marker-line" />
+            <div className="cut-marker-icon">
+              {/* Forbice orientata in verticale */}
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm9.5-8c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1zm3.5-9h-3l-4.34 4.34 2.12 2.12L22 4.41V3h-3z" />
+              </svg>
+            </div>
+            <span className="cut-marker-label">{cp.meters} m</span>
+          </div>
+        ))}
       </div>
     </div>
   );

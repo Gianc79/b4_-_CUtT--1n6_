@@ -63,19 +63,11 @@ export const HelpView: React.FC = () => {
           <div>
             <h4>Leggi e aggiorna i risultati</h4>
             <p>
-              La pagina “Ottimizzazione” mostra il Piano di taglio operativo, il Riepilogo barre
-              utilizzate, la Richiesta non evasa e la Giacenza residua. Il Piano traduce le combinazioni
-              ottimizzate in passaggi successivi: prima i tagli più lunghi, poi quelli più corti; il
-              recupero di un passaggio diventa la barra disponibile per il passaggio successivo. All’interno
-              di ogni misura di taglio, le configurazioni sono ordinate dalla barra più lunga alla più corta.
-              Nelle righe operative il Peso considera i tagli eseguiti e lo scarto finale; il totale si
-              riferisce al peso delle barre originarie utilizzate, senza conteggiare più volte il recupero.
-              Puoi esportare il Piano in formato Excel (.xlsx): il file contiene tutte le righe operative,
-              senza la colonna Peso e senza la riga Totale. Selezionando record nella “Richiesta non evasa” e
-              premendo “Aggiorna Richiesta”, la tabella Richiesta viene sostituita con i record selezionati.
-              Selezionando record nella “Giacenza residua” e premendo “Aggiorna Giacenza”, la Giacenza
-              esistente viene sostituita per i diametri presenti nel riquadro, usando soltanto i record
-              selezionati; gli altri diametri restano invariati.
+              La pagina “Ottimizza” mostra il Piano di Taglio Operativo, il Riepilogo Barre
+              Utilizzate, la Richiesta Non Evasa e la Giacenza Residua & Sfridi.
+              All'esecuzione dell'ottimizzazione, le barre consumate vengono <strong>automaticamente scalate dalla tabella Giacenza</strong>.
+              Nel riquadro “Richiesta Non Evasa”, premendo “Aggiorna Richiesta” tutti i tagli non evasi sostituiscono integralmente la distinta Richiesta.
+              Nel riquadro “Giacenza Residua & Sfridi”, puoi selezionare i pezzi da recuperare: premendo “Aggiorna Giacenza”, i pezzi selezionati vengono <strong>integrati</strong> nella Giacenza attuale (sommandosi alle quantità esistenti o aggiungendo nuove righe), mentre i pezzi non selezionati rimangono disponibili per eventuali aggiornamenti futuri.
             </p>
           </div>
         </div>

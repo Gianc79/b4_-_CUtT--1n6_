@@ -3,17 +3,22 @@ import { OptimizationResult } from '../types';
 import { fmt, intFmt, resultKey, unitWeight } from '../utils/math';
 import { buildOperationalPlan } from '../utils/optimizer';
 import { CutDiagramBar } from './CutDiagramBar';
+import { ConfirmModal } from './ConfirmModal';
+
+export interface SelectedStockItem {
+  source: 'remaining' | 'scrap';
+  sourceIndex: number;
+  diameter: number;
+  length: number;
+  qty: number;
+}
 
 interface ResultsViewProps {
   result: OptimizationResult | null;
   onOptimize: () => void;
   onExportPlan: () => void;
   onUpdateDemand: () => void;
-  onUpdateStock: () => void;
-  onToggleUnmetSelect: (index: number, selected: boolean) => void;
-  onToggleAllUnmetSelect: (selected: boolean) => void;
-  onToggleStockOptionSelect: (source: 'remaining' | 'scrap', index: number, selected: boolean) => void;
-  onToggleAllStockOptionsSelect: (selected: boolean) => void;
+  onUpdateStock: (selected: SelectedStockItem[]) => void;
 }
 
 export const ResultsView: React.FC<ResultsViewProps> = ({
@@ -22,12 +27,17 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   onExportPlan,
   onUpdateDemand,
   onUpdateStock,
-  onToggleUnmetSelect,
-  onToggleAllUnmetSelect,
-  onToggleStockOptionSelect,
-  onToggleAllStockOptionsSelect,
 }) => {
-  const [displayMode, setDisplayMode] = useState<'visual' | 'table'>('visual');
+  // Toggle: Tabella Dati (sx) e Diagrammi Visivi (dx)
+  const [displayMode, setDisplayMode] = useState<'table' | 'visual'>('visual');
+
+  // Selezione elementi in Giacenza Residua & Sfridi
+  const [selectedStockKeys, setSelectedStockKeys] = useState<Set<string>>(new Set());
+
+  // Modali in-app di conferma
+  const [confirmDemandModalOpen, setConfirmDemandModalOpen] = useState(false);
+  const [confirmStockModalOpen, setConfirmStockModalOpen] = useState(false);
+  const [alertModalMessage, setAlertModalMessage] = useState<string | null>(null);
 
   const totalUsedWeight = (r: OptimizationResult) => {
     return (r.usedByLength || []).reduce((sum, x) => sum + (Number(x.weight) || 0), 0);
@@ -35,25 +45,80 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const has = !!(result && Array.isArray(result.patterns));
 
+  // Genera chiave univoca per la selezione
+  const getItemKey = (source: 'remaining' | 'scrap', idx: number) => `${source}_${idx}`;
+
+  const handleToggleStockItem = (source: 'remaining' | 'scrap', idx: number) => {
+    const key = getItemKey(source, idx);
+    setSelectedStockKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleAllStock = (
+    allKeys: string[],
+    allChecked: boolean
+  ) => {
+    if (allChecked) {
+      setSelectedStockKeys(new Set());
+    } else {
+      setSelectedStockKeys(new Set(allKeys));
+    }
+  };
+
+  const handleTriggerUpdateStock = (stockItems: SelectedStockItem[]) => {
+    const selected = stockItems.filter(item =>
+      selectedStockKeys.has(getItemKey(item.source, item.sourceIndex))
+    );
+    if (selected.length === 0) {
+      setAlertModalMessage('Seleziona almeno un pezzo dalla tabella prima di aggiornare la Giacenza.');
+      return;
+    }
+    setConfirmStockModalOpen(true);
+  };
+
+  const handleConfirmStockUpdate = (stockItems: SelectedStockItem[]) => {
+    const selected = stockItems.filter(item =>
+      selectedStockKeys.has(getItemKey(item.source, item.sourceIndex))
+    );
+    onUpdateStock(selected);
+    setSelectedStockKeys(new Set());
+    setConfirmStockModalOpen(false);
+  };
+
+  const handleTriggerUpdateDemand = () => {
+    if (!result || result.unmet.length === 0) return;
+    setConfirmDemandModalOpen(true);
+  };
+
+  const handleConfirmDemandUpdate = () => {
+    onUpdateDemand();
+    setConfirmDemandModalOpen(false);
+  };
+
   return (
     <section className="page active" id="page-results">
+      {/* 1) Titolo: "Ottimizza" e frase esplicativa aggiornata */}
       <div className="section-head optimization-head">
         <div>
-          <h2>Ottimizzazione</h2>
-          <p>Piano di Taglio esecutivo generato in funzione di Giacenza e Richiesta.</p>
+          <h2>Ottimizza</h2>
+          <p>Piano di Taglio Operativo generato sull'ottimizzazione della Giacenza.</p>
         </div>
+        {/* 2) Pulsante "> Esegui ottimizzazione" più largo e font più grande */}
         <button
-          className="btn primary optimize-pulse-btn"
+          className="btn primary optimize-pulse-btn-v2"
           type="button"
           id="optimizeBtn"
           onClick={onOptimize}
           aria-label="Esegui ottimizzazione"
         >
-          <span>
-            ▶ Ricalcola
-            <br />
-            ottimizzazione
-          </span>
+          <span>&gt; Esegui ottimizzazione</span>
         </button>
       </div>
 
@@ -64,11 +129,10 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             <h3>Nessun risultato disponibile</h3>
             <p>
               Inserisci o verifica i dati nelle sezioni <strong>Giacenza</strong> e{' '}
-              <strong>Richiesta</strong>, quindi premi il pulsante in alto per calcolare la
-              combinazione ottimale dei tagli.
+              <strong>Richiesta</strong>, quindi premi il pulsante in alto per calcolare il Piano di Taglio.
             </p>
             <button className="btn primary" type="button" onClick={onOptimize}>
-              ▶ Esegui ottimizzazione adesso
+              &gt; Esegui ottimizzazione adesso
             </button>
           </div>
         </div>
@@ -83,21 +147,14 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
         const { cuts, rows: operations } = buildOperationalPlan(result);
 
-        const unmetEligible = result.unmet.filter(x => !x.added);
-        const unmetAllChecked = unmetEligible.length > 0 && unmetEligible.every(x => x.selected);
-        const unmetSomeChecked = unmetEligible.some(x => x.selected);
-
-        const stockOptions = [
+        // Lista pezzi residui / sfridi
+        const stockOptions: SelectedStockItem[] = [
           ...result.remainingStock.map((x, i) => ({
             source: 'remaining' as const,
             sourceIndex: i,
             diameter: x.diameter,
             qty: x.qty,
             length: x.length,
-            selected: !!x.selected,
-            done: !!x.applied,
-            weight: x.qty * (x.length / 100) * unitWeight(x.diameter),
-            label: 'Barra intera',
           })),
           ...result.scraps.map((x, i) => ({
             source: 'scrap' as const,
@@ -105,10 +162,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             diameter: x.diameter,
             qty: x.qty,
             length: x.length,
-            selected: !!x.selected,
-            done: !!x.added,
-            weight: x.qty * (x.length / 100) * unitWeight(x.diameter),
-            label: 'Sfrido',
           })),
         ].sort(
           (a, b) =>
@@ -117,36 +170,38 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             (a.source === b.source ? 0 : a.source === 'remaining' ? -1 : 1)
         );
 
-        const stockEligible = stockOptions.filter(x => !x.done);
-        const stockAllChecked = stockEligible.length > 0 && stockEligible.every(x => x.selected);
-        const stockSomeChecked = stockEligible.some(x => x.selected);
+        const allStockKeys = stockOptions.map(o => getItemKey(o.source, o.sourceIndex));
+        const stockAllChecked =
+          allStockKeys.length > 0 && allStockKeys.every(k => selectedStockKeys.has(k));
+        const stockSomeChecked =
+          allStockKeys.some(k => selectedStockKeys.has(k)) && !stockAllChecked;
 
         return (
           <div id="resultsContent">
-            {/* Status Message */}
+            {/* 9) Messaggio di stato in caso di completamento o parzialità */}
             <div className={`message-banner ${result.allFulfilled ? 'success' : 'warning'}`}>
               <span className="banner-icon">{result.allFulfilled ? '✓' : '⚠'}</span>
               <div className="banner-text">
                 <strong>
                   {result.allFulfilled
-                    ? 'Ottimizzazione completata con successo'
-                    : 'Ottimizzazione parziale: fabbisogno residuo'}
+                    ? 'Ottimizzazione completata'
+                    : 'Ottimizzazione parziale'}
                 </strong>
                 <p>
                   {result.allFulfilled
                     ? `Evasi tutti i ${intFmt(result.fulfilledPieces)} pezzi su ${intFmt(
                         result.requestedPieces
-                      )} richiesti nei diametri lavorati.`
+                      )} richiesti.`
                     : `Evasi ${intFmt(result.fulfilledPieces)} pezzi su ${intFmt(
                         result.requestedPieces
-                      )}. Mancano ${intFmt(
+                      )}. Non evasi ${intFmt(
                         result.requestedPieces - result.fulfilledPieces
-                      )} pezzi per esaurimento scorte.`}
+                      )} pezzi a causa di esaurimento della giacenza.`}
                 </p>
               </div>
             </div>
 
-            {/* KPI Cards Strip */}
+            {/* KPI Cards */}
             <div className="kpis-modern">
               <div className="kpi-card">
                 <div className="kpi-label">Pezzi Richiesti</div>
@@ -160,14 +215,17 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 <div className="kpi-sub">
                   {result.allFulfilled
                     ? '100% evaso'
-                    : `${fmt((result.fulfilledPieces / Math.max(1, result.requestedPieces)) * 100, 1)}% evasione`}
+                    : `${fmt(
+                        (result.fulfilledPieces / Math.max(1, result.requestedPieces)) * 100,
+                        1
+                      )}% evasione`}
                 </div>
               </div>
 
               <div className="kpi-card accent-amber">
                 <div className="kpi-label">Sfrido Totale</div>
                 <div className="kpi-value">{fmt(result.scrapMeters)} m</div>
-                <div className="kpi-sub">{fmt(result.scrapPct, 1)}% delle barre consumate</div>
+                <div className="kpi-sub">{fmt(result.scrapPct, 1)}% barre consumate</div>
               </div>
 
               <div className="kpi-card">
@@ -177,23 +235,21 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               </div>
             </div>
 
-            {/* Piano di Taglio Main Panel */}
+            {/* Piano di Taglio Operativo */}
             <div className="panel cutting-plan-panel">
-              <div className="panel-head">
+              <div className="panel-head plan-head-v2">
                 <div className="panel-title-with-subtitle">
                   <h3>Piano di Taglio Operativo</h3>
-                  <p>Sequenza esecutiva per l'operatore di taglio con recuperi e sfridi.</p>
+                  {/* 3) Frase esplicativa esatta richiesta */}
+                  <p>
+                    Sequenza esecutiva con l'indicazione dei tagli raggruppati ed ordinati, dei tagli
+                    da recuperare e degli sfridi inutilizzabili.
+                  </p>
                 </div>
 
-                <div className="panel-head-actions">
+                <div className="panel-head-actions-v2">
+                  {/* 4) Invertite le posizioni: Tabella Dati (sx) e Diagrammi Visivi (dx) */}
                   <div className="view-mode-toggle" role="group" aria-label="Visualizzazione piano">
-                    <button
-                      type="button"
-                      className={`view-toggle-btn ${displayMode === 'visual' ? 'active' : ''}`}
-                      onClick={() => setDisplayMode('visual')}
-                    >
-                      ✂ Diagrammi Visivi
-                    </button>
                     <button
                       type="button"
                       className={`view-toggle-btn ${displayMode === 'table' ? 'active' : ''}`}
@@ -201,15 +257,33 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                     >
                       ☰ Tabella Dati
                     </button>
+                    <button
+                      type="button"
+                      className={`view-toggle-btn ${displayMode === 'visual' ? 'active' : ''}`}
+                      onClick={() => setDisplayMode('visual')}
+                    >
+                      ✂ Diagrammi Visivi
+                    </button>
                   </div>
 
+                  {/* 5) Icona Esporta Piano XLS posizionata tutta a dx */}
                   <button
-                    className="btn primary small"
+                    className="icon-xls-export-btn"
                     type="button"
                     id="exportPlanBtn"
                     onClick={onExportPlan}
+                    title="Esporta Piano di Taglio in formato Excel (.xlsx)"
+                    aria-label="Esporta Piano XLS"
                   >
-                    ⇩ Esporta Piano XLS
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    <span className="xls-tag">XLS</span>
+                    <span className="xls-arrow">⇩</span>
                   </button>
                 </div>
               </div>
@@ -236,39 +310,40 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                     )}
                   </div>
                 ) : (
-                  /* Formal Result Table */
+                  /* 7) Tabella Dati con intestazioni Tagli e altre colonne rigorosamente su 2 righe */
                   <div className="table-wrap">
                     <table className="result-table" id="outputTable">
                       <thead>
                         <tr>
                           <th>
-                            <span className="th-main">Ø</span>
-                            <span className="th-unit">[mm]</span>
+                            <span className="th-line1">Ø</span>
+                            <span className="th-line2">[mm]</span>
                           </th>
                           <th>
-                            <span className="th-main">N. barre</span>
+                            <span className="th-line1">N. barre</span>
+                            <span className="th-line2">[n]</span>
                           </th>
                           <th>
-                            <span className="th-main">Barra</span>
-                            <span className="th-unit">[m]</span>
+                            <span className="th-line1">Barra</span>
+                            <span className="th-line2">[m]</span>
                           </th>
                           <th>
-                            <span className="th-main">Recupero</span>
-                            <span className="th-unit">[m]</span>
+                            <span className="th-line1">Recupero</span>
+                            <span className="th-line2">[m]</span>
                           </th>
                           <th>
-                            <span className="th-main">Scarto</span>
-                            <span className="th-unit">[m]</span>
+                            <span className="th-line1">Scarto</span>
+                            <span className="th-line2">[m]</span>
                           </th>
                           {cuts.map((d, idx) => (
-                            <th key={idx}>
-                              <span className="th-main">Taglio Ø {d.diameter}</span>
-                              <span className="th-unit">{fmt(d.length / 100)} m</span>
+                            <th key={idx} className="th-cut-col">
+                              <span className="th-line1">Taglio Ø {d.diameter}</span>
+                              <span className="th-line2">{fmt(d.length / 100)} m</span>
                             </th>
                           ))}
                           <th>
-                            <span className="th-main">Peso</span>
-                            <span className="th-unit">[kg]</span>
+                            <span className="th-line1">Peso</span>
+                            <span className="th-line2">[kg]</span>
                           </th>
                         </tr>
                       </thead>
@@ -324,14 +399,14 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               </div>
             </div>
 
-            {/* Bottom Sub-Panels */}
+            {/* Pannelli inferiori */}
             <div className="result-grid">
-              {/* Riepilogo barre utilizzate */}
+              {/* 13) Riepilogo Barre Utilizzate con titolo e frase aggiornati */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
-                    <h3>Riepilogo Barre Consumate</h3>
-                    <p>Barre integre da magazzino avviate al taglio.</p>
+                    <h3>Riepilogo Barre Utilizzate</h3>
+                    <p>Barre prelevate dalla Giacenza ed avviate al taglio.</p>
                   </div>
                 </div>
                 <div className="panel-body">
@@ -339,10 +414,22 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                     <table className="result-table">
                       <thead>
                         <tr>
-                          <th>Ø [mm]</th>
-                          <th>Barra [cm]</th>
-                          <th>Numero</th>
-                          <th>Peso [kg]</th>
+                          <th>
+                            <span className="th-line1">Ø</span>
+                            <span className="th-line2">[mm]</span>
+                          </th>
+                          <th>
+                            <span className="th-line1">Barra</span>
+                            <span className="th-line2">[cm]</span>
+                          </th>
+                          <th>
+                            <span className="th-line1">Numero</span>
+                            <span className="th-line2">[n]</span>
+                          </th>
+                          <th>
+                            <span className="th-line1">Peso</span>
+                            <span className="th-line2">[kg]</span>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -379,18 +466,18 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
               </div>
 
-              {/* Richiesta non evasa */}
+              {/* 10) Richiesta Non Evasa (senza checkbox, aggiornamento totale) */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
                     <h3>Richiesta Non Evasa</h3>
-                    <p>Tagli mancanti per esaurimento giacenza.</p>
+                    <p>Tagli non eseguiti a causa di esaurimento della giacenza.</p>
                   </div>
                   <button
                     className="btn primary small"
                     type="button"
-                    onClick={onUpdateDemand}
-                    disabled={!result.unmet.some(x => x.selected && !x.added)}
+                    onClick={handleTriggerUpdateDemand}
+                    disabled={result.unmet.length === 0}
                   >
                     Aggiorna Richiesta
                   </button>
@@ -401,50 +488,36 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                       <thead>
                         <tr>
                           <th>
-                            <input
-                              className="header-check"
-                              type="checkbox"
-                              checked={unmetAllChecked}
-                              ref={el => {
-                                if (el) el.indeterminate = unmetSomeChecked && !unmetAllChecked;
-                              }}
-                              onChange={e => onToggleAllUnmetSelect(e.target.checked)}
-                              disabled={unmetEligible.length === 0}
-                              aria-label="Seleziona tutti i tagli non evasi"
-                            />
+                            <span className="th-line1">Ø</span>
+                            <span className="th-line2">[mm]</span>
                           </th>
-                          <th>Ø [mm]</th>
-                          <th>Barra [cm]</th>
-                          <th>Numero</th>
-                          <th>Peso [kg]</th>
+                          <th>
+                            <span className="th-line1">Taglio</span>
+                            <span className="th-line2">[cm]</span>
+                          </th>
+                          <th>
+                            <span className="th-line1">Mancanti</span>
+                            <span className="th-line2">[n]</span>
+                          </th>
+                          <th>
+                            <span className="th-line1">Peso</span>
+                            <span className="th-line2">[kg]</span>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {result.unmet.length === 0 ? (
                           <tr>
-                            <td colSpan={5} className="empty">
+                            <td colSpan={4} className="empty">
                               Richiesta completamente evasa.
                             </td>
                           </tr>
                         ) : (
                           result.unmet.map((x, i) => (
-                            <tr key={i} className={x.added ? 'row-applied' : ''}>
-                              <td>
-                                <input
-                                  className="scrap-check"
-                                  type="checkbox"
-                                  checked={!!x.selected}
-                                  disabled={!!x.added}
-                                  onChange={e => onToggleUnmetSelect(i, e.target.checked)}
-                                  aria-label={`Seleziona Ø ${x.diameter}, taglio ${intFmt(x.length)} cm`}
-                                />
-                              </td>
+                            <tr key={i}>
                               <td>{intFmt(x.diameter)}</td>
                               <td>{intFmt(x.length)}</td>
-                              <td>
-                                {intFmt(x.remaining)}
-                                {x.added ? ' ✓' : ''}
-                              </td>
+                              <td>{intFmt(x.remaining)}</td>
                               <td>
                                 {fmt(x.remaining * (x.length / 100) * unitWeight(x.diameter))}
                               </td>
@@ -457,18 +530,18 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
               </div>
 
-              {/* Giacenza residua */}
+              {/* 11 & 12) Giacenza Residua & Sfridi (integrativa, elementi flaggabili persistenti) */}
               <div className="panel result-panel">
                 <div className="panel-head">
                   <div>
                     <h3>Giacenza Residua & Sfridi</h3>
-                    <p>Seleziona i pezzi da registrare a magazzino.</p>
+                    <p>Seleziona i pezzi da aggiungere eventualmente alla Giacenza attuale.</p>
                   </div>
                   <button
                     className="btn primary small"
                     type="button"
-                    onClick={onUpdateStock}
-                    disabled={!!result.stockUpdated || !stockOptions.some(x => x.selected && !x.done)}
+                    onClick={() => handleTriggerUpdateStock(stockOptions)}
+                    disabled={stockOptions.length === 0}
                   >
                     Aggiorna Giacenza
                   </button>
@@ -484,17 +557,29 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                               type="checkbox"
                               checked={stockAllChecked}
                               ref={el => {
-                                if (el) el.indeterminate = stockSomeChecked && !stockAllChecked;
+                                if (el) el.indeterminate = stockSomeChecked;
                               }}
-                              onChange={e => onToggleAllStockOptionsSelect(e.target.checked)}
-                              disabled={result.stockUpdated || stockEligible.length === 0}
-                              aria-label="Seleziona tutte le barre residue e gli sfridi"
+                              onChange={() => handleToggleAllStock(allStockKeys, stockAllChecked)}
+                              disabled={stockOptions.length === 0}
+                              aria-label="Seleziona tutti i pezzi residui"
                             />
                           </th>
-                          <th>Ø [mm]</th>
-                          <th>Nr.</th>
-                          <th>L [cm]</th>
-                          <th>P [kg]</th>
+                          <th>
+                            <span className="th-line1">Ø</span>
+                            <span className="th-line2">[mm]</span>
+                          </th>
+                          <th>
+                            <span className="th-line1">Nr.</span>
+                            <span className="th-line2">[n]</span>
+                          </th>
+                          <th>
+                            <span className="th-line1">L</span>
+                            <span className="th-line2">[cm]</span>
+                          </th>
+                          <th>
+                            <span className="th-line1">P</span>
+                            <span className="th-line2">[kg]</span>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -505,42 +590,71 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                             </td>
                           </tr>
                         ) : (
-                          stockOptions.map((x, i) => (
-                            <tr key={i} className={x.done ? 'row-applied' : ''}>
-                              <td>
-                                <input
-                                  className="scrap-check"
-                                  type="checkbox"
-                                  checked={!!x.selected && !x.done && !result.stockUpdated}
-                                  disabled={x.done || result.stockUpdated}
-                                  onChange={e =>
-                                    onToggleStockOptionSelect(x.source, x.sourceIndex, e.target.checked)
-                                  }
-                                  aria-label={`Seleziona ${x.label.toLowerCase()}, Ø ${intFmt(
-                                    x.diameter
-                                  )}, ${intFmt(x.qty)} pezzi da ${intFmt(x.length)} cm`}
-                                />
-                              </td>
-                              <td>{intFmt(x.diameter)}</td>
-                              <td>
-                                {intFmt(x.qty)}
-                                {x.done ? ' ✓' : ''}
-                              </td>
-                              <td>{intFmt(x.length)}</td>
-                              <td>{fmt(x.weight)}</td>
-                            </tr>
-                          ))
+                          stockOptions.map((x, i) => {
+                            const isChecked = selectedStockKeys.has(
+                              getItemKey(x.source, x.sourceIndex)
+                            );
+                            const w = x.qty * (x.length / 100) * unitWeight(x.diameter);
+                            return (
+                              <tr key={i}>
+                                <td>
+                                  <input
+                                    className="scrap-check"
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => handleToggleStockItem(x.source, x.sourceIndex)}
+                                    aria-label={`Seleziona Ø ${intFmt(x.diameter)}, ${intFmt(
+                                      x.qty
+                                    )} pz da ${intFmt(x.length)} cm`}
+                                  />
+                                </td>
+                                <td>{intFmt(x.diameter)}</td>
+                                <td>{intFmt(x.qty)}</td>
+                                <td>{intFmt(x.length)}</td>
+                                <td>{fmt(w)}</td>
+                              </tr>
+                            );
+                          })
                         )}
                       </tbody>
                     </table>
                   </div>
                   <p className="result-note">
-                    Confermando, la Giacenza esistente viene sostituita per tutti i diametri presenti in
-                    questa tabella, usando soltanto i record selezionati.
+                    I pezzi selezionati verranno integrati nella Giacenza attuale sommando le quantità dei tipi esistenti.
                   </p>
                 </div>
               </div>
             </div>
+
+            {/* Modali di Conferma In-App (eliminano 'gianc79.github.io dice') */}
+            <ConfirmModal
+              isOpen={confirmDemandModalOpen}
+              title="Aggiorna Richiesta"
+              message="I tagli non evasi sostituiranno integralmente l'attuale distinta Richiesta. Continuare?"
+              confirmText="Aggiorna"
+              cancelText="Annulla"
+              onConfirm={handleConfirmDemandUpdate}
+              onCancel={() => setConfirmDemandModalOpen(false)}
+            />
+
+            <ConfirmModal
+              isOpen={confirmStockModalOpen}
+              title="Aggiorna Giacenza"
+              message="I pezzi selezionati verranno integrati nella tabella della Giacenza (aggiungendosi alle barre già registrate). Continuare?"
+              confirmText="Integra Giacenza"
+              cancelText="Annulla"
+              onConfirm={() => handleConfirmStockUpdate(stockOptions)}
+              onCancel={() => setConfirmStockModalOpen(false)}
+            />
+
+            <ConfirmModal
+              isOpen={alertModalMessage !== null}
+              title="Selezione richiesta"
+              message={alertModalMessage || ''}
+              confirmText="OK"
+              showCancel={false}
+              onConfirm={() => setAlertModalMessage(null)}
+            />
           </div>
         );
       })()}

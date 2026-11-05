@@ -3,12 +3,9 @@ import { AppState, MasterRow, SortLevel } from './types';
 import {
   blankMaster,
   inputNumber,
-  intFmt,
-  isBlankMaster,
   n,
   newId,
   validDiameter,
-  validMasterRows,
 } from './utils/math';
 import { normalizeResultRows, runOptimization } from './utils/optimizer';
 import {
@@ -22,10 +19,11 @@ import { exportMasterXls, exportPlanXls, parseMasterXls } from './utils/excel';
 import { TabType, TopBar } from './components/TopBar';
 import { BottomNav } from './components/BottomNav';
 import { MasterTable } from './components/MasterTable';
-import { ResultsView } from './components/ResultsView';
+import { ResultsView, SelectedStockItem } from './components/ResultsView';
 import { HelpView } from './components/HelpView';
 import { SortDialog } from './components/SortDialog';
 import { Toast } from './components/Toast';
+import { ScrollToTop } from './components/ScrollToTop';
 
 const SORT_FIELDS = [
   { value: 'diameter' as const, label: 'Diametro [mm]' },
@@ -35,7 +33,8 @@ const SORT_FIELDS = [
 
 export const App: React.FC = () => {
   const [state, setState] = useState<AppState>(() => loadState());
-  const [activeTab, setActiveTab] = useState<TabType>('results');
+  // 4) Schermata principale dell'app è "Giacenza"
+  const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [sortKind, setSortKind] = useState<'stockDetail' | 'demandDetail' | null>(null);
 
@@ -48,7 +47,7 @@ export const App: React.FC = () => {
     setToastMessage(msg);
     toastTimerRef.current = window.setTimeout(() => {
       setToastMessage(null);
-    }, 3500);
+    }, 4000);
   };
 
   useEffect(() => {
@@ -60,7 +59,7 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Master tables change
+  // Modifica righe Giacenza e Richiesta
   const handleStockChange = (newStock: MasterRow[]) => {
     setState(prev => ({ ...prev, stockDetail: newStock }));
   };
@@ -69,7 +68,7 @@ export const App: React.FC = () => {
     setState(prev => ({ ...prev, demandDetail: newDemand }));
   };
 
-  // Sorting
+  // Ordinamento multi-livello
   const sortRows = (rows: MasterRow[], levels: SortLevel[]): MasterRow[] => {
     return rows
       .map((row, index) => ({ row, index }))
@@ -125,166 +124,143 @@ export const App: React.FC = () => {
     showToast(`Tabella ordinata per ${descriptions.join(' → ')}.`);
   };
 
-  // Optimization
+  // 12) Ottimizzazione con scarico automatico delle barre utilizzate dalla Giacenza
   const handleOptimize = () => {
     try {
       const res = runOptimization(state.stockDetail, state.demandDetail);
       const normalized = normalizeResultRows(res, null);
-      setState(prev => ({ ...prev, result: normalized }));
+
+      if (!normalized) {
+        showToast('Nessun risultato: verifica che i dati di Giacenza e Richiesta siano validi.');
+        return;
+      }
+
+      // Scala automaticamente le barre utilizzate dalla tabella Giacenza
+      const remainingStockDetail = state.stockDetail.map(row => ({ ...row }));
+
+      for (const used of normalized.usedByLength) {
+        let toDeduct = used.qty;
+        for (const row of remainingStockDetail) {
+          if (
+            inputNumber(row.diameter) === used.diameter &&
+            inputNumber(row.length) === used.length
+          ) {
+            const currentQty = inputNumber(row.qty) || 0;
+            if (currentQty <= toDeduct) {
+              toDeduct -= currentQty;
+              row.qty = '0';
+            } else {
+              row.qty = String(currentQty - toDeduct);
+              toDeduct = 0;
+            }
+          }
+          if (toDeduct <= 0) break;
+        }
+      }
+
+      // Rimuove le righe con quantità 0
+      const cleanedStock = remainingStockDetail.filter(r => (inputNumber(r.qty) || 0) > 0);
+      const finalStock = cleanedStock.length > 0 ? cleanedStock : [blankMaster()];
+
+      setState(prev => ({
+        ...prev,
+        stockDetail: finalStock,
+        result: normalized,
+      }));
+
       setActiveTab('results');
-      showToast(
-        normalized?.allFulfilled
-          ? 'Ottimizzazione completata: richiesta evasa.'
-          : 'Ottimizzazione incompleta: alcune richieste non sono state evase.'
-      );
+
+      // 9) Messaggi esatti per ottimizzazione
+      if (normalized.allFulfilled) {
+        showToast(
+          `Ottimizzazione completata: evasi tutti i ${normalized.fulfilledPieces} pezzi su ${normalized.requestedPieces} richiesti.`
+        );
+      } else {
+        const unmetCount = normalized.requestedPieces - normalized.fulfilledPieces;
+        showToast(
+          `Ottimizzazione parziale: evasi ${normalized.fulfilledPieces} pezzi su ${normalized.requestedPieces}. Non evasi ${unmetCount} pezzi a causa di esaurimento della giacenza.`
+        );
+      }
     } catch (e: any) {
-      alert(e.message || 'Errore durante l’ottimizzazione.');
+      showToast(e.message || 'Errore durante l’ottimizzazione.');
     }
   };
 
-  // Update unmet demand
+  // 12) Aggiorna Richiesta: i tagli non evasi sostituiscono integralmente la Richiesta attuale
   const handleUpdateDemand = () => {
     const r = state.result;
-    if (!r) return;
-    const chosen = r.unmet.filter(x => x.selected && !x.added);
-    if (!chosen.length) {
-      alert('Seleziona almeno una riga della Richiesta non evasa.');
-      return;
-    }
+    if (!r || r.unmet.length === 0) return;
 
-    const piecesAdded = chosen.reduce((sum, x) => sum + x.remaining, 0);
-    if (
-      !confirm(
-        `La tabella Richiesta verrà SOSTITUITA integralmente con i ${intFmt(
-          chosen.length
-        )} record selezionati della Richiesta non evasa. Continuare?`
-      )
-    ) {
-      return;
-    }
-
-    const newDemandRows = chosen.map(x => ({
+    const newDemandRows: MasterRow[] = r.unmet.map(x => ({
       id: newId(),
       diameter: String(x.diameter),
       qty: String(x.remaining),
       length: String(x.length),
     }));
 
-    const updatedUnmet = r.unmet.map(x =>
-      x.selected && !x.added ? { ...x, added: true, selected: false } : x
-    );
-
     setState(prev => ({
       ...prev,
       demandDetail: newDemandRows,
-      result: prev.result ? { ...prev.result, unmet: updatedUnmet } : null,
+      result: prev.result ? { ...prev.result, unmet: [] } : null,
     }));
 
-    showToast(`Richiesta sostituita con i tagli non evasi selezionati (${intFmt(piecesAdded)} pezzi).`);
+    showToast(`Richiesta aggiornata con i tagli non evasi.`);
   };
 
-  // Update residual stock
-  const handleUpdateStock = () => {
-    const r = state.result;
-    if (!r) return;
-    if (r.stockUpdated) {
-      alert(
-        'La Giacenza è già stata aggiornata per questa ottimizzazione. Per eseguire una nuova selezione, avvia una nuova ottimizzazione.'
-      );
-      return;
-    }
+  // 12) Aggiorna Giacenza: i pezzi selezionati integrano la Giacenza (sommando o aggiungendo)
+  const handleUpdateStock = (selectedItems: SelectedStockItem[]) => {
+    if (!state.result || selectedItems.length === 0) return;
 
-    const chosenRemaining = r.remainingStock.filter(x => x.selected && !x.applied);
-    const chosenScraps = r.scraps.filter(x => x.selected && !x.added);
+    const newStock = [...state.stockDetail];
 
-    if (!chosenRemaining.length && !chosenScraps.length) {
-      alert('Seleziona almeno un record della Giacenza residua o degli sfridi recuperabili.');
-      return;
-    }
-
-    const selectedOptions = [
-      ...chosenRemaining.map(x => ({
-        source: 'remaining' as const,
-        item: x,
-        diameter: Number(x.diameter),
-        length: Number(x.length),
-        qty: Number(x.qty),
-      })),
-      ...chosenScraps.map(x => ({
-        source: 'scrap' as const,
-        item: x,
-        diameter: Number(x.diameter),
-        length: Number(x.length),
-        qty: Number(x.qty),
-      })),
-    ].filter(
-      x =>
-        validDiameter(x.diameter) &&
-        Number.isInteger(x.length) &&
-        x.length > 0 &&
-        Number.isInteger(x.qty) &&
-        x.qty > 0
-    );
-
-    const allOptions = [...r.remainingStock, ...r.scraps];
-    const affectedDiameters = new Set(allOptions.map(x => Number(x.diameter)).filter(validDiameter));
-
-    if (!selectedOptions.length || !affectedDiameters.size) {
-      alert('I record selezionati non contengono dati validi da aggiungere alla Giacenza.');
-      return;
-    }
-
-    const diameterLabel = Array.from(affectedDiameters)
-      .sort((a, b) => a - b)
-      .join(', ');
-
-    const message = `La Giacenza esistente verrà SOSTITUITA per tutti i diametri presenti nella tabella (${diameterLabel} mm), usando SOLTANTO i record selezionati. I record non selezionati non verranno aggiunti. Dopo l'aggiornamento tutte le caselle saranno disattivate e non sarà possibile modificare ulteriormente questa selezione. Continuare?`;
-    if (!confirm(message)) return;
-
-    // Filter out unaffected diameters
-    let newStock = state.stockDetail.filter(
-      x => !affectedDiameters.has(Number(x.diameter)) && !isBlankMaster(x)
-    );
-
-    for (const option of selectedOptions) {
+    for (const item of selectedItems) {
       const existing = newStock.find(
-        x => Number(x.diameter) === option.diameter && Number(x.length) === option.length && Number(x.qty) > 0
+        r =>
+          inputNumber(r.diameter) === item.diameter &&
+          inputNumber(r.length) === item.length &&
+          (inputNumber(r.qty) || 0) > 0
       );
+
       if (existing) {
-        existing.qty = String((Math.floor(n(existing.qty)) || 0) + option.qty);
+        const curQ = inputNumber(existing.qty) || 0;
+        existing.qty = String(curQ + item.qty);
       } else {
-        const blank = newStock.find(isBlankMaster);
-        if (blank) {
-          Object.assign(blank, {
-            diameter: String(option.diameter),
-            qty: String(option.qty),
-            length: String(option.length),
-          });
+        // Cerca eventuale riga vuota
+        const blankIdx = newStock.findIndex(
+          r => !r.diameter.trim() && !r.qty.trim() && !r.length.trim()
+        );
+        if (blankIdx >= 0) {
+          newStock[blankIdx] = {
+            id: newStock[blankIdx].id,
+            diameter: String(item.diameter),
+            qty: String(item.qty),
+            length: String(item.length),
+          };
         } else {
           newStock.push({
             id: newId(),
-            diameter: String(option.diameter),
-            qty: String(option.qty),
-            length: String(option.length),
+            diameter: String(item.diameter),
+            qty: String(item.qty),
+            length: String(item.length),
           });
         }
       }
     }
 
-    if (!newStock.length) {
-      newStock = [blankMaster()];
-    }
+    // Rimuove i pezzi selezionati dalle liste remainingStock e scraps
+    const remainingSelectedIndices = new Set(
+      selectedItems.filter(s => s.source === 'remaining').map(s => s.sourceIndex)
+    );
+    const scrapSelectedIndices = new Set(
+      selectedItems.filter(s => s.source === 'scrap').map(s => s.sourceIndex)
+    );
 
-    const updatedRemaining = r.remainingStock.map(x => ({
-      ...x,
-      applied: x.selected || x.applied,
-      selected: false,
-    }));
-    const updatedScraps = r.scraps.map(x => ({
-      ...x,
-      added: x.selected || x.added,
-      selected: false,
-    }));
+    const updatedRemaining = state.result.remainingStock.filter(
+      (_, idx) => !remainingSelectedIndices.has(idx)
+    );
+    const updatedScraps = state.result.scraps.filter(
+      (_, idx) => !scrapSelectedIndices.has(idx)
+    );
 
     setState(prev => ({
       ...prev,
@@ -294,75 +270,11 @@ export const App: React.FC = () => {
             ...prev.result,
             remainingStock: updatedRemaining,
             scraps: updatedScraps,
-            stockUpdated: true,
           }
         : null,
     }));
 
-    showToast(`Giacenza sostituita per i diametri ${diameterLabel} mm. Le caselle sono state disattivate.`);
-  };
-
-  // Toggle checkboxes in results
-  const handleToggleUnmetSelect = (index: number, selected: boolean) => {
-    setState(prev => {
-      if (!prev.result) return prev;
-      const updated = [...prev.result.unmet];
-      if (updated[index] && !updated[index].added) {
-        updated[index] = { ...updated[index], selected };
-      }
-      return { ...prev, result: { ...prev.result, unmet: updated } };
-    });
-  };
-
-  const handleToggleAllUnmetSelect = (selected: boolean) => {
-    setState(prev => {
-      if (!prev.result) return prev;
-      const updated = prev.result.unmet.map(x => (!x.added ? { ...x, selected } : x));
-      return { ...prev, result: { ...prev.result, unmet: updated } };
-    });
-  };
-
-  const handleToggleStockOptionSelect = (
-    source: 'remaining' | 'scrap',
-    index: number,
-    selected: boolean
-  ) => {
-    setState(prev => {
-      if (!prev.result || prev.result.stockUpdated) return prev;
-      if (source === 'remaining') {
-        const updated = [...prev.result.remainingStock];
-        if (updated[index] && !updated[index].applied) {
-          updated[index] = { ...updated[index], selected };
-        }
-        return { ...prev, result: { ...prev.result, remainingStock: updated } };
-      } else {
-        const updated = [...prev.result.scraps];
-        if (updated[index] && !updated[index].added) {
-          updated[index] = { ...updated[index], selected };
-        }
-        return { ...prev, result: { ...prev.result, scraps: updated } };
-      }
-    });
-  };
-
-  const handleToggleAllStockOptionsSelect = (selected: boolean) => {
-    setState(prev => {
-      if (!prev.result || prev.result.stockUpdated) return prev;
-      const updatedRemaining = prev.result.remainingStock.map(x =>
-        !x.applied ? { ...x, selected } : x
-      );
-      const updatedScraps = prev.result.scraps.map(x =>
-        !x.added ? { ...x, selected } : x
-      );
-      return {
-        ...prev,
-        result: {
-          ...prev.result,
-          remainingStock: updatedRemaining,
-          scraps: updatedScraps,
-        },
-      };
-    });
+    showToast(`Pezzi integrati con successo nella Giacenza.`);
   };
 
   // JSON Import
@@ -381,7 +293,7 @@ export const App: React.FC = () => {
       setState(newState);
       showToast('File caricato correttamente.');
     } catch (e: any) {
-      alert('Impossibile caricare il file: ' + e.message);
+      showToast('Impossibile caricare il file: ' + e.message);
     }
   };
 
@@ -390,24 +302,12 @@ export const App: React.FC = () => {
     const label = kind === 'stockDetail' ? 'Giacenza' : 'Richiesta';
     try {
       const imported = await parseMasterXls(file);
-      if (
-        !confirm(
-          `L'importazione sostituirà tutti i record della tabella ${label} con i ${intFmt(
-            imported.length
-          )} record presenti nel file Excel. Continuare?`
-        )
-      ) {
-        return;
-      }
       setState(prev => ({ ...prev, [kind]: imported }));
-      showToast(`${label}: importati ${intFmt(imported.length)} record dal file Excel.`);
+      showToast(`${label}: importati ${imported.length} record dal file Excel.`);
     } catch (e: any) {
-      alert(`Impossibile importare il file Excel: ${e.message || 'formato non valido.'}`);
+      showToast(`Impossibile importare il file Excel: ${e.message || 'formato non valido.'}`);
     }
   };
-
-  const validStockCount = validMasterRows(state.stockDetail).length;
-  const validDemandCount = validMasterRows(state.demandDetail).length;
 
   return (
     <div className="app-layout-wrapper">
@@ -425,7 +325,7 @@ export const App: React.FC = () => {
             <MasterTable
               kind="stockDetail"
               title="Giacenza"
-              subtitle="Gestisci le barre disponibili a magazzino o in cantiere."
+              subtitle="Gestisci la giacenza delle barre in cantiere."
               rows={state.stockDetail}
               onChangeRows={handleStockChange}
               onOpenSort={() => setSortKind('stockDetail')}
@@ -439,7 +339,7 @@ export const App: React.FC = () => {
             <MasterTable
               kind="demandDetail"
               title="Richiesta"
-              subtitle="Inserisci la distinta ferri e i tagli di armatura necessari."
+              subtitle="Inserisci la distinta ferri richiesta."
               rows={state.demandDetail}
               onChangeRows={handleDemandChange}
               onOpenSort={() => setSortKind('demandDetail')}
@@ -454,7 +354,7 @@ export const App: React.FC = () => {
             <div className="split-view-container">
               <div className="split-view-banner">
                 <div className="split-banner-info">
-                  <h3>Vista Affiancata: Giacenza & Richiesta</h3>
+                  <h3>Vista Affiancata: Giacenza &amp; Richiesta</h3>
                   <p>
                     Confronta e modifica scorte e distinta di taglio in un unico colpo d'occhio.
                   </p>
@@ -464,7 +364,7 @@ export const App: React.FC = () => {
                   className="btn primary split-optimize-cta"
                   onClick={handleOptimize}
                 >
-                  ▶ Calcola Ottimizzazione
+                  ▶ &gt; Esegui ottimizzazione
                 </button>
               </div>
 
@@ -472,8 +372,8 @@ export const App: React.FC = () => {
                 <div className="split-column">
                   <MasterTable
                     kind="stockDetail"
-                    title="Giacenza Disponibile"
-                    subtitle="Barre pronte per il taglio a magazzino."
+                    title="Giacenza"
+                    subtitle="Gestisci la giacenza delle barre in cantiere."
                     rows={state.stockDetail}
                     onChangeRows={handleStockChange}
                     onOpenSort={() => setSortKind('stockDetail')}
@@ -485,8 +385,8 @@ export const App: React.FC = () => {
                 <div className="split-column">
                   <MasterTable
                     kind="demandDetail"
-                    title="Richiesta Tagli"
-                    subtitle="Distinta dei ferri di armatura di progetto."
+                    title="Richiesta"
+                    subtitle="Inserisci la distinta ferri richiesta."
                     rows={state.demandDetail}
                     onChangeRows={handleDemandChange}
                     onOpenSort={() => setSortKind('demandDetail')}
@@ -506,31 +406,28 @@ export const App: React.FC = () => {
               onExportPlan={() => exportPlanXls(state.result, showToast)}
               onUpdateDemand={handleUpdateDemand}
               onUpdateStock={handleUpdateStock}
-              onToggleUnmetSelect={handleToggleUnmetSelect}
-              onToggleAllUnmetSelect={handleToggleAllUnmetSelect}
-              onToggleStockOptionSelect={handleToggleStockOptionSelect}
-              onToggleAllStockOptionsSelect={handleToggleAllStockOptionsSelect}
             />
           )}
 
           {activeTab === 'help' && <HelpView />}
         </main>
 
+        {/* 3) Frase in fondo alla pagina aggiornata senza "da cantiere" */}
         <div className="footer-note">
-          OTTIMIZZAZIONE BARRE C.A. · v. 1.25 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone da cantiere
+          TAGLIO BARRE C.A. · v. 1.26 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 
-      {/* Mobile Fixed Bottom Navigation Bar */}
+      {/* 5) Freccina flottante "torna in alto" (SpesaSuMisura style) */}
+      <ScrollToTop />
+
+      {/* 1) Barra inferiore flottante con sfondo blu e icone ingrandite senza badge */}
       <BottomNav
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        stockCount={validStockCount}
-        demandCount={validDemandCount}
-        hasResults={!!state.result}
       />
 
-      {/* Multi-Level Sort Dialog */}
+      {/* Finestra Ordina */}
       <SortDialog
         isOpen={sortKind !== null}
         kind={sortKind || 'stockDetail'}
