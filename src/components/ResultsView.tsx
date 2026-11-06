@@ -4,7 +4,8 @@ import { fmt, intFmt, resultKey, unitWeight } from '../utils/math';
 import { buildOperationalPlan } from '../utils/optimizer';
 import { CutDiagramBar } from './CutDiagramBar';
 import { ConfirmModal } from './ConfirmModal';
-import { ExcelExportIcon } from './ExcelIcons';
+import { ExportPlanModal } from './ExportPlanModal';
+import { exportDiagramsAsPng } from '../utils/exportDiagramsImage';
 
 export interface SelectedStockItem {
   source: 'remaining' | 'scrap';
@@ -20,7 +21,50 @@ interface ResultsViewProps {
   onExportPlan: () => void;
   onUpdateDemand: () => void;
   onUpdateStock: (selected: SelectedStockItem[]) => void;
+  onToast?: (msg: string) => void;
 }
+
+/**
+ * Icona Esporta Piano di Taglio in stile SpesaSuMisura (38x38 px con documento e freccia di esportazione).
+ */
+const ExportPlanIcon: React.FC<{ size?: number }> = ({ size = 38 }) => (
+  <svg
+    viewBox="0 0 38 38"
+    width={size}
+    height={size}
+    fill="none"
+    style={{ display: 'block' }}
+  >
+    <rect
+      x="1"
+      y="1"
+      width="36"
+      height="36"
+      rx="9"
+      fill="#ffffff"
+      stroke="#102b46"
+      strokeWidth="1.8"
+    />
+    {/* Foglio / Documento */}
+    <path
+      d="M13 10h8l6 6v12a2 2 0 0 1-2 2H13a2 2 0 0 1-2-2V12a2 2 0 0 1 2-2z"
+      fill="#f1f5f9"
+      stroke="#102b46"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
+    <path d="M21 10v6h6" stroke="#102b46" strokeWidth="1.6" strokeLinejoin="round" />
+    {/* Cerchio blu con freccia di esportazione verso il basso */}
+    <circle cx="26" cy="26" r="6.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1.2" />
+    <path
+      d="M26 22.5v7m0 0l-2.2-2.2M26 29.5l2.2-2.2"
+      stroke="#ffffff"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 export const ResultsView: React.FC<ResultsViewProps> = ({
   result,
@@ -28,6 +72,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   onExportPlan,
   onUpdateDemand,
   onUpdateStock,
+  onToast,
 }) => {
   // Schermata principale e predefinita: Tabella Dati (sx)
   const [displayMode, setDisplayMode] = useState<'table' | 'visual'>('table');
@@ -38,6 +83,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   // Modali in-app di conferma
   const [confirmDemandModalOpen, setConfirmDemandModalOpen] = useState(false);
   const [confirmStockModalOpen, setConfirmStockModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
   const [alertModalMessage, setAlertModalMessage] = useState<string | null>(null);
 
   const totalUsedWeight = (r: OptimizationResult) => {
@@ -124,16 +170,22 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             <span className="optimize-btn-text-v128">▶ Esegui ottimizzazione</span>
           </button>
 
-          {/* 1) Icona Esporta in XLS ufficiale in formato 38x38 tutta a destra */}
+          {/* Nuovo comando Esporta Piano di Taglio (sostituisce Esporta XLS e apre finestra di scelta) */}
           <button
             className="xls-action-icon-btn xls-action-icon-btn-header"
             type="button"
             id="exportPlanBtn"
-            onClick={onExportPlan}
-            title="Esporta Piano di Taglio in Excel (.xlsx)"
-            aria-label="Esporta Piano XLS"
+            onClick={() => {
+              if (!has || !result) {
+                setAlertModalMessage('Esegui prima l’ottimizzazione per poter esportare il Piano di Taglio.');
+                return;
+              }
+              setExportModalOpen(true);
+            }}
+            title="Esporta Piano di Taglio (Excel, PDF, Immagine)"
+            aria-label="Esporta Piano di Taglio"
           >
-            <ExcelExportIcon size={38} />
+            <ExportPlanIcon size={38} />
           </button>
         </div>
       </div>
@@ -180,13 +232,30 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
         const stockSomeChecked =
           allStockKeys.some(k => selectedStockKeys.has(k)) && !stockAllChecked;
 
-        // Calcolo totale peso richiesta non evasa
+        // 1) Riepilogo Barre Utilizzate: Totale Numero e Totale Barra (MATR.SOMMA.PRODOTTO Numero e Barra)
+        const totalUsedBarsPieces = result.usedByLength.reduce((sum, x) => sum + x.qty, 0);
+        const totalUsedBarsMeters = result.usedByLength.reduce(
+          (sum, x) => sum + (x.qty * (x.length / 100)),
+          0
+        );
+
+        // 2) Richiesta Non Evasa: Totale Mancanti e Totale Taglio (MATR.SOMMA.PRODOTTO Mancanti e Taglio)
+        const totalUnmetPieces = result.unmet.reduce((sum, x) => sum + x.remaining, 0);
+        const totalUnmetMeters = result.unmet.reduce(
+          (sum, x) => sum + (x.remaining * (x.length / 100)),
+          0
+        );
         const totalUnmetWeight = result.unmet.reduce(
           (sum, x) => sum + x.remaining * (x.length / 100) * unitWeight(x.diameter),
           0
         );
 
-        // Calcolo totale peso sfridi
+        // 3) Sfridi: Totale Nr. e Totale L (MATR.SOMMA.PRODOTTO Nr. e L)
+        const totalScrapPieces = stockOptions.reduce((sum, x) => sum + x.qty, 0);
+        const totalScrapMeters = stockOptions.reduce(
+          (sum, x) => sum + (x.qty * (x.length / 100)),
+          0
+        );
         const totalScrapWeight = stockOptions.reduce(
           (sum, x) => sum + x.qty * (x.length / 100) * unitWeight(x.diameter),
           0
@@ -265,6 +334,16 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
 
                 <div className="panel-head-actions-v128">
+                  {/* Pulsante rapido Esporta/Stampa nella sezione Piano Operativo di Taglio */}
+                  <button
+                    type="button"
+                    className="btn outline small export-plan-head-btn"
+                    onClick={() => setExportModalOpen(true)}
+                    title="Esporta o Stampa il Piano di Taglio (Excel, PDF, Immagine)"
+                  >
+                    📥 Esporta / Stampa
+                  </button>
+
                   {/* Widget delle schede Tabella Dati / Diagrammi Visivi */}
                   <div className="view-mode-toggle-v128" role="group" aria-label="Visualizzazione piano">
                     <button
@@ -469,8 +548,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                         )}
                         <tr className="total-row">
                           <td className="total-label-cell">Totale</td>
-                          <td>—</td>
-                          <td>—</td>
+                          <td>{intFmt(totalUsedBarsPieces)}</td>
+                          <td>{fmt(totalUsedBarsMeters)}</td>
                           <td>{fmt(usedWeight)}</td>
                         </tr>
                       </tbody>
@@ -532,8 +611,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                         {result.unmet.length > 0 && (
                           <tr className="total-row">
                             <td className="total-label-cell">Totale</td>
-                            <td>—</td>
-                            <td>—</td>
+                            <td>{intFmt(totalUnmetPieces)}</td>
+                            <td>{fmt(totalUnmetMeters)}</td>
                             <td>{fmt(totalUnmetWeight)}</td>
                           </tr>
                         )}
@@ -634,8 +713,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                           <tr className="total-row">
                             <td></td>
                             <td className="total-label-cell">Totale</td>
-                            <td>—</td>
-                            <td>—</td>
+                            <td>{intFmt(totalScrapPieces)}</td>
+                            <td>{fmt(totalScrapMeters)}</td>
                             <td>{fmt(totalScrapWeight)}</td>
                           </tr>
                         )}
@@ -687,6 +766,22 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               confirmText="OK"
               showCancel={false}
               onConfirm={() => setAlertModalMessage(null)}
+            />
+
+            {/* Finestra Modale Esporta Piano di Taglio (Excel, PDF, Immagine) */}
+            <ExportPlanModal
+              isOpen={exportModalOpen}
+              onClose={() => setExportModalOpen(false)}
+              onExportExcel={() => onExportPlan()}
+              onExportPdf={() => {
+                setDisplayMode('visual');
+                setTimeout(() => {
+                  window.print();
+                }, 250);
+              }}
+              onExportPng={() => {
+                exportDiagramsAsPng(operations, result, onToast || (() => {}));
+              }}
             />
           </div>
         );

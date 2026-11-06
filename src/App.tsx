@@ -26,9 +26,9 @@ import { Toast } from './components/Toast';
 import { ScrollToTop } from './components/ScrollToTop';
 
 const SORT_FIELDS = [
-  { value: 'diameter' as const, label: 'Diametro [mm]' },
+  { value: 'diameter' as const, label: 'Diametro' },
   { value: 'qty' as const, label: 'Nr.' },
-  { value: 'length' as const, label: 'Lunghezza [cm]' },
+  { value: 'length' as const, label: 'Lunghezza' },
 ];
 
 export const App: React.FC = () => {
@@ -577,15 +577,16 @@ export const App: React.FC = () => {
               onExportPlan={() => exportPlanXls(state.result, showToast)}
               onUpdateDemand={handleUpdateDemand}
               onUpdateStock={handleUpdateStock}
+              onToast={showToast}
             />
           )}
 
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.34 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.35 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.34 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.35 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 

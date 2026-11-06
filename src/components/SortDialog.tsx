@@ -9,9 +9,9 @@ interface SortDialogProps {
 }
 
 const SORT_FIELDS = [
-  { value: 'diameter' as const, label: 'Diametro [mm]' },
+  { value: 'diameter' as const, label: 'Diametro' },
   { value: 'qty' as const, label: 'Nr.' },
-  { value: 'length' as const, label: 'Lunghezza [cm]' },
+  { value: 'length' as const, label: 'Lunghezza' },
 ];
 
 /**
@@ -53,11 +53,17 @@ export const SortDialog: React.FC<SortDialogProps> = ({
   onClose,
   onApplySort,
 }) => {
-  const [levels, setLevels] = useState<SortLevel[]>([{ field: 'diameter', direction: 'desc' }]);
+  const [levels, setLevels] = useState<SortLevel[]>([
+    { field: 'diameter', direction: 'desc' },
+    { field: 'length', direction: 'desc' },
+  ]);
 
   useEffect(() => {
     if (isOpen) {
-      setLevels([{ field: 'diameter', direction: 'desc' }]);
+      setLevels([
+        { field: 'diameter', direction: 'desc' },
+        { field: 'length', direction: 'desc' },
+      ]);
     }
   }, [isOpen]);
 

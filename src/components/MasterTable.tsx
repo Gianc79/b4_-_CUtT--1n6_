@@ -77,14 +77,10 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   const [deletedRecord, setDeletedRecord] = useState<DeletedRowRecord | null>(null);
   const undoTimerRef = useRef<number | null>(null);
 
-  // Assistente allo scorrimento: assicura che l'input non sia coperto dalla tastiera mobile senza salti
+  // Assistente allo scorrimento: assicura che l'input sia centrato e visibile sopra la tastiera mobile
   const scrollElementIntoWorkArea = (el: HTMLElement) => {
-    const rect = el.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
-    // Scorrimento minimale e morbido solo se l'elemento rischia di finire sotto la tastiera
-    if (rect.bottom > windowHeight * 0.58 || rect.top < 75) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   // Spostamento tabella all'aggiunta di una riga
@@ -133,7 +129,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     onChangeRows(updated);
   };
 
-  // Seleziona tutto il contenuto al clic/focus senza menu contestuale
+  // Seleziona tutto il contenuto al clic/focus e centra nello schermo sopra la tastiera
   const handleCellFocus = (
     e: React.FocusEvent<HTMLInputElement>,
     id: string,
@@ -145,6 +141,10 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     try {
       e.target.select();
     } catch (_) {}
+    const target = e.target;
+    setTimeout(() => {
+      scrollElementIntoWorkArea(target);
+    }, 60);
   };
 
   const handleCellBlur = (id: string, field: 'diameter' | 'qty' | 'length', rawVal: string) => {
@@ -254,7 +254,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   ) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      e.currentTarget.blur();
 
       if (field === 'diameter') {
         const nextInput = document.querySelector<HTMLInputElement>(
@@ -265,7 +264,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
           try {
             nextInput.select();
           } catch (_) {}
-          // Stessa riga: NESSUN scroll per evitare sussulti
         }
       } else if (field === 'qty') {
         const nextInput = document.querySelector<HTMLInputElement>(
@@ -276,10 +274,9 @@ export const MasterTable: React.FC<MasterTableProps> = ({
           try {
             nextInput.select();
           } catch (_) {}
-          // Stessa riga: NESSUN scroll per evitare sussulti
         }
       } else if (field === 'length') {
-        // Riga successiva: controlla visibilità e fa salire la riga se necessario
+        // Riga successiva: controlla visibilità e fa salire la riga centrata
         if (rowIndex < effectiveRows.length - 1) {
           const nextRow = effectiveRows[rowIndex + 1];
           const nextInput = document.querySelector<HTMLInputElement>(
@@ -290,7 +287,9 @@ export const MasterTable: React.FC<MasterTableProps> = ({
             try {
               nextInput.select();
             } catch (_) {}
-            scrollElementIntoWorkArea(nextInput);
+            setTimeout(() => {
+              scrollElementIntoWorkArea(nextInput);
+            }, 60);
           }
         } else {
           // Ultima riga: aggiungi nuova riga e scorri
@@ -645,6 +644,9 @@ export const MasterTable: React.FC<MasterTableProps> = ({
               ＋ Aggiungi Riga
             </button>
           </div>
+
+          {/* Spaziatore inferiore per consentire lo scorrimento completo sopra la tastiera dello smartphone */}
+          <div className="table-keyboard-bottom-spacer" aria-hidden="true" />
         </div>
       </div>
 

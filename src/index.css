@@ -3197,6 +3197,224 @@ body.keyboard-input-open .bottom-nav {
   }
 }
 
+/* v. 1.35 - Modalità Immissione Tastiera Mobile & Scroll Margin */
+.cell-input {
+  scroll-margin-top: 130px;
+  scroll-margin-bottom: 240px;
+}
+
+.table-keyboard-bottom-spacer {
+  height: 240px;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .table-keyboard-bottom-spacer {
+    display: none;
+  }
+}
+
+/* v. 1.35 - Adattamento larghezze colonne e numeri totali tabelle */
+.result-table {
+  width: 100%;
+}
+
+.result-table th,
+.result-table td {
+  white-space: nowrap !important;
+}
+
+.result-table th:nth-child(2),
+.result-table td:nth-child(2),
+.result-table th:nth-child(3),
+.result-table td:nth-child(3),
+.result-table th:nth-child(4),
+.result-table td:nth-child(4) {
+  min-width: 72px;
+}
+
+.result-table .total-row td {
+  padding: 8px 8px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* v. 1.35 - Finestra Modale Esporta Piano di Taglio (Stile SpesaSuMisura) */
+.export-plan-modal-card {
+  max-width: 520px !important;
+}
+
+.export-plan-intro {
+  font-size: 13px;
+  color: #475569;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.export-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.export-option-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  width: 100%;
+}
+
+.export-option-card:hover {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+  transform: translateY(-1px);
+}
+
+.export-option-card.recommended-export {
+  border-color: #fca5a5;
+  background: #fffafa;
+}
+
+.export-option-card.recommended-export:hover {
+  border-color: #dc2626;
+  background: #fef2f2;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.14);
+}
+
+.export-option-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.excel-icon-bg {
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+}
+
+.pdf-icon-bg {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+}
+
+.img-icon-bg {
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+}
+
+.export-option-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.export-option-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.export-option-title {
+  font-weight: 750;
+  font-size: 14px;
+  color: var(--navy);
+}
+
+.export-badge-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.export-badge-pill.xlsx {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.export-badge-pill.pdf {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.export-badge-pill.png {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.export-option-desc {
+  margin: 0;
+  font-size: 11.5px;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.export-plan-head-btn {
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 8px;
+  margin-right: 8px;
+}
+
+/* v. 1.35 - Regole Stampa / PDF A4 nitido ad alta fedeltà */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10pt;
+  }
+
+  .topbar,
+  .floating-bottom-nav,
+  .scroll-to-top-btn,
+  .in-app-toast,
+  .optimization-head-actions-row,
+  .view-mode-toggle-v128,
+  .export-plan-head-btn,
+  .sfridi-footer-actions,
+  .table-bottom-actions,
+  .footer-note,
+  .in-app-modal-backdrop {
+    display: none !important;
+  }
+
+  .shell {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .cut-diagram-card-3d {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    border: 1.5px solid #94a3b8 !important;
+    box-shadow: none !important;
+    margin-bottom: 14px !important;
+  }
+
+  .panel {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}
+
 
 
 
