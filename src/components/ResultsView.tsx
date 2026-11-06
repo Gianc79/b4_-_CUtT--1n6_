@@ -77,7 +77,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
       selectedStockKeys.has(getItemKey(idx))
     );
     if (selected.length === 0) {
-      setAlertModalMessage('Seleziona almeno uno sfrido dalla tabella prima di aggiornare la Giacenza.');
+      setAlertModalMessage('Seleziona almeno uno sfrido dalla tabella.');
       return;
     }
     setConfirmStockModalOpen(true);
@@ -109,7 +109,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
         <div className="optimization-head-text">
           <h2>Ottimizza</h2>
           {/* 5) Frase esplicativa richiesta */}
-          <p>Piano Operativo di Taglio generato dall'ottimizzazione della Giacenza.</p>
+          <p>Piano Operativo di Taglio generato dall'ottimizzazione della Giacenza. Possibilità di esportazione XLS.</p>
         </div>
 
         {/* 1) Icona Esporta XLS ufficiale tutta a destra allineata al pulsante Esegui ottimizzazione */}
@@ -241,7 +241,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               <div className="kpi-card-3d accent-amber-3d">
                 <div className="kpi-label-3d">Sfrido Totale</div>
                 <div className="kpi-value-3d">{fmt(result.scrapMeters)} m</div>
-                <div className="kpi-sub-3d">{fmt(result.scrapPct, 1)}% barre utilizzate</div>
+                <div className="kpi-sub-3d nowrap-sub-3d">{fmt(result.scrapPct, 1)}% delle barre utilizzate</div>
               </div>
 
               <div className="kpi-card-3d">
@@ -431,12 +431,12 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                             <span className="th-line2">[mm]</span>
                           </th>
                           <th>
-                            <span className="th-line1">Barra</span>
-                            <span className="th-line2">[cm]</span>
-                          </th>
-                          <th>
                             <span className="th-line1">Numero</span>
                             <span className="th-line2">[n]</span>
+                          </th>
+                          <th>
+                            <span className="th-line1">Barra</span>
+                            <span className="th-line2">[m]</span>
                           </th>
                           <th>
                             <span className="th-line1">Peso</span>
@@ -446,11 +446,11 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                       </thead>
                       <tbody>
                         {result.usedByLength.length === 0 ? (
-                          <tr>
-                            <td colSpan={4} className="empty">
-                              Nessuna barra utilizzata.
-                            </td>
-                          </tr>
+                           <tr>
+                             <td colSpan={4} className="empty">
+                               Nessuna barra utilizzata.
+                             </td>
+                           </tr>
                         ) : (
                           [...result.usedByLength]
                             .sort(
@@ -461,8 +461,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                             .map((x, idx) => (
                               <tr key={idx}>
                                 <td>{intFmt(x.diameter)}</td>
-                                <td>{intFmt(x.length)}</td>
                                 <td>{intFmt(x.qty)}</td>
+                                <td>{fmt(x.length / 100)}</td>
                                 <td>{fmt(x.weight)}</td>
                               </tr>
                             ))
@@ -497,12 +497,12 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                             <span className="th-line2">[mm]</span>
                           </th>
                           <th>
-                            <span className="th-line1">Taglio</span>
-                            <span className="th-line2">[cm]</span>
-                          </th>
-                          <th>
                             <span className="th-line1">Mancanti</span>
                             <span className="th-line2">[n]</span>
+                          </th>
+                          <th>
+                            <span className="th-line1">Taglio</span>
+                            <span className="th-line2">[m]</span>
                           </th>
                           <th>
                             <span className="th-line1">Peso</span>
@@ -521,8 +521,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                           result.unmet.map((x, i) => (
                             <tr key={i}>
                               <td>{intFmt(x.diameter)}</td>
-                              <td>{intFmt(x.length)}</td>
                               <td>{intFmt(x.remaining)}</td>
+                              <td>{fmt(x.length / 100)}</td>
                               <td>
                                 {fmt(x.remaining * (x.length / 100) * unitWeight(x.diameter))}
                               </td>
@@ -590,7 +590,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                           </th>
                           <th>
                             <span className="th-line1">L</span>
-                            <span className="th-line2">[cm]</span>
+                            <span className="th-line2">[m]</span>
                           </th>
                           <th>
                             <span className="th-line1">P</span>
@@ -619,12 +619,12 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                                     onChange={() => handleToggleStockItem(i)}
                                     aria-label={`Seleziona sfrido Ø ${intFmt(x.diameter)}, ${intFmt(
                                       x.qty
-                                    )} pz da ${intFmt(x.length)} cm`}
+                                    )} pz da ${fmt(x.length / 100)} m`}
                                   />
                                 </td>
                                 <td>{intFmt(x.diameter)}</td>
                                 <td>{intFmt(x.qty)}</td>
-                                <td>{intFmt(x.length)}</td>
+                                <td>{fmt(x.length / 100)}</td>
                                 <td>{fmt(w)}</td>
                               </tr>
                             );
@@ -662,7 +662,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             <ConfirmModal
               isOpen={confirmDemandModalOpen}
               title="Aggiorna Richiesta"
-              message="I tagli non evasi sostituiranno integralmente l'attuale distinta Richiesta. Continuare?"
+              message="I tagli non evasi sostituiranno solo quelli dei relativi diametri presenti nella Richiesta attuale. Continuare?"
               confirmText="Aggiorna"
               cancelText="Annulla"
               onConfirm={handleConfirmDemandUpdate}

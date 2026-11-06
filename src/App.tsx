@@ -41,6 +41,13 @@ export const App: React.FC = () => {
   const [stockFilterDiameter, setStockFilterDiameter] = useState<number | 'all'>('all');
   const [demandFilterDiameter, setDemandFilterDiameter] = useState<number | 'all'>('all');
 
+  // Modalità smartphone orizzontale (Landscape mobile): nascondi le 2 barre con comparsa a scroll
+  const [isLandscapeMobile, setIsLandscapeMobile] = useState<boolean>(false);
+  const [showLandscapeTopBar, setShowLandscapeTopBar] = useState<boolean>(false);
+  const [showLandscapeBottomNav, setShowLandscapeBottomNav] = useState<boolean>(false);
+  const landscapeHideTimerRef = useRef<number | null>(null);
+  const lastScrollYRef = useRef<number>(0);
+
   const toastTimerRef = useRef<number | null>(null);
 
   const showToast = (msg: string) => {
@@ -56,6 +63,82 @@ export const App: React.FC = () => {
   useEffect(() => {
     saveState(state);
   }, [state]);
+
+  // Listener orientamento smartphone
+  useEffect(() => {
+    const checkOrientation = () => {
+      const isLandscape =
+        window.innerWidth > window.innerHeight && window.innerHeight <= 600;
+      setIsLandscapeMobile(isLandscape);
+      if (!isLandscape) {
+        setShowLandscapeTopBar(false);
+        setShowLandscapeBottomNav(false);
+        if (landscapeHideTimerRef.current) {
+          window.clearTimeout(landscapeHideTimerRef.current);
+          landscapeHideTimerRef.current = null;
+        }
+      }
+    };
+
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
+
+  // Gestione scorrimento e ricomparsa/scomparsa automatica/manuale in Landscape
+  useEffect(() => {
+    if (!isLandscapeMobile) return;
+
+    const resetAutoHideTimer = () => {
+      if (landscapeHideTimerRef.current) {
+        window.clearTimeout(landscapeHideTimerRef.current);
+      }
+      landscapeHideTimerRef.current = window.setTimeout(() => {
+        setShowLandscapeTopBar(false);
+        setShowLandscapeBottomNav(false);
+      }, 3500);
+    };
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+      const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollDiff = currentScrollY - lastScrollYRef.current;
+
+      // Utente scrolla in cima (entro 35px dalla vetta)
+      if (currentScrollY <= 35) {
+        setShowLandscapeTopBar(true);
+        setShowLandscapeBottomNav(false);
+        resetAutoHideTimer();
+      }
+      // Utente scrolla al fondo (entro 40px dalla fine)
+      else if (maxScrollY > 0 && currentScrollY >= maxScrollY - 40) {
+        setShowLandscapeBottomNav(true);
+        setShowLandscapeTopBar(false);
+        resetAutoHideTimer();
+      }
+      // Scomparsa manuale: scrollando verso l'interno della pagina
+      else if (scrollDiff > 8 && currentScrollY > 35) {
+        setShowLandscapeTopBar(false);
+      } else if (scrollDiff < -8 && currentScrollY < maxScrollY - 40) {
+        setShowLandscapeBottomNav(false);
+      }
+
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (landscapeHideTimerRef.current) {
+        window.clearTimeout(landscapeHideTimerRef.current);
+      }
+    };
+  }, [isLandscapeMobile]);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -361,6 +444,13 @@ export const App: React.FC = () => {
   return (
     <div className="app-layout-wrapper">
       <TopBar
+        className={
+          isLandscapeMobile
+            ? showLandscapeTopBar
+              ? 'landscape-visible'
+              : 'landscape-hidden'
+            : ''
+        }
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onImportJson={handleImportJson}
@@ -374,7 +464,13 @@ export const App: React.FC = () => {
             <MasterTable
               kind="stockDetail"
               title="Giacenza"
-              subtitle="Gestisci la giacenza delle barre in cantiere."
+              subtitle={
+                <>
+                  Gestisci la giacenza delle barre.
+                  <br />
+                  Possibilità di importazione/esportazione XLS.
+                </>
+              }
               rows={state.stockDetail}
               onChangeRows={handleStockChange}
               onOpenSort={() => setSortKind('stockDetail')}
@@ -390,7 +486,13 @@ export const App: React.FC = () => {
             <MasterTable
               kind="demandDetail"
               title="Richiesta"
-              subtitle="Inserisci la Richiesta/Distinta ferri."
+              subtitle={
+                <>
+                  Gestisci la richiesta/Distinta barre.
+                  <br />
+                  Possibilità di importazione/esportazione XLS.
+                </>
+              }
               rows={state.demandDetail}
               onChangeRows={handleDemandChange}
               onOpenSort={() => setSortKind('demandDetail')}
@@ -426,7 +528,13 @@ export const App: React.FC = () => {
                   <MasterTable
                     kind="stockDetail"
                     title="Giacenza"
-                    subtitle="Gestisci la giacenza delle barre in cantiere."
+                    subtitle={
+                      <>
+                        Gestisci la giacenza delle barre.
+                        <br />
+                        Possibilità di importazione/esportazione XLS.
+                      </>
+                    }
                     rows={state.stockDetail}
                     onChangeRows={handleStockChange}
                     onOpenSort={() => setSortKind('stockDetail')}
@@ -441,7 +549,13 @@ export const App: React.FC = () => {
                   <MasterTable
                     kind="demandDetail"
                     title="Richiesta"
-                    subtitle="Inserisci la Richiesta/Distinta ferri."
+                    subtitle={
+                      <>
+                        Gestisci la richiesta/Distinta barre.
+                        <br />
+                        Possibilità di importazione/esportazione XLS.
+                      </>
+                    }
                     rows={state.demandDetail}
                     onChangeRows={handleDemandChange}
                     onOpenSort={() => setSortKind('demandDetail')}
@@ -469,9 +583,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.33 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.34 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.33 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.34 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 
@@ -480,6 +594,13 @@ export const App: React.FC = () => {
 
       {/* 1) Barra inferiore flottante con sfondo blu e icone ingrandite senza badge */}
       <BottomNav
+        className={
+          isLandscapeMobile
+            ? showLandscapeBottomNav
+              ? 'landscape-visible'
+              : 'landscape-hidden'
+            : ''
+        }
         activeTab={activeTab}
         onTabChange={handleTabChange}
       />

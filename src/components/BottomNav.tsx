@@ -4,14 +4,16 @@ import { TabType } from './TopBar';
 interface BottomNavProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
+  className?: string;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
   activeTab,
   onTabChange,
+  className,
 }) => {
   return (
-    <nav className="floating-bottom-nav" aria-label="Navigazione principale">
+    <nav className={`floating-bottom-nav ${className || ''}`.trim()} aria-label="Navigazione principale">
       {/* 1) Giacenza */}
       <button
         type="button"

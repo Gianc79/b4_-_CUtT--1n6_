@@ -16,7 +16,7 @@ import { ExcelImportIcon, ExcelExportIcon, SortTableIcon } from './ExcelIcons';
 interface MasterTableProps {
   kind: 'stockDetail' | 'demandDetail';
   title: string;
-  subtitle: string;
+  subtitle: React.ReactNode;
   rows: MasterRow[];
   onChangeRows: (rows: MasterRow[]) => void;
   onOpenSort: () => void;
@@ -633,17 +633,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                   );
                 })}
               </tbody>
-              {kind === 'demandDetail' && effectiveRows.length > 0 && (
-                <tfoot>
-                  <tr className="total-row">
-                    <td className="total-label-cell">Totale</td>
-                    <td>—</td>
-                    <td>—</td>
-                    <td>{fmt(statsWeight)}</td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              )}
             </table>
           </div>
 

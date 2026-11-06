@@ -8,6 +8,7 @@ interface TopBarProps {
   onImportJson: (file: File) => void;
   onSave: () => void;
   onSaveAs: () => void;
+  className?: string;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -16,6 +17,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   onImportJson,
   onSave,
   onSaveAs,
+  className,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,8 +52,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   };
 
   return (
-    <header className="topbar">
-      {/* Fascia superiore v1.32: Icona colorata, titolo e sottotitolo su 2 righe a sx, 3 icone a dx con altezza smartphone maggiorata */}
+    <header className={`topbar ${className || ''}`.trim()}>
+      {/* Fascia superiore v1.34: Icona colorata, titolo e sottotitolo su 2 righe a sx, 3 icone a dx con altezza smartphone maggiorata */}
       <div className="brandline-v132">
         <div className="brand-header-content">
           {/* Icona dell'app colorata (2 barre verdi, 2 barre bianche) */}
@@ -71,7 +73,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           <div className="brand-titles-column">
             <div className="brand-title-row">
               <h1 className="brand-app-name">
-                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.33</span>
+                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.34</span>
               </h1>
             </div>
             <p className="brand-subtitle-twolines-v132">

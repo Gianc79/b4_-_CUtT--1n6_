@@ -2492,7 +2492,7 @@ tr.row-applied td {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 12px;
-  padding: 12px 14px 8px;
+  padding: 12px 14px 12px;
   margin-bottom: 14px;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
 }
@@ -2503,15 +2503,21 @@ tr.row-applied td {
   right: 12px;
   background: #102b46;
   color: #ffffff;
-  padding: 3px 10px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 3px 8px rgba(16, 43, 70, 0.25);
   z-index: 5;
+  padding: 0;
 }
 
 .badge-count-num {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 900;
+  line-height: 1;
 }
 
 .cut-diagram-header-v3 {
@@ -2998,12 +3004,11 @@ body.keyboard-input-open .bottom-nav {
   justify-content: space-between;
   min-height: 106px;
   position: relative;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.kpi-card-3d:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1);
+.kpi-card-3d:hover,
+.kpi-card-3d:active {
+  transform: none !important;
 }
 
 .kpi-card-3d.accent-green-3d {
@@ -3132,6 +3137,66 @@ body.keyboard-input-open .bottom-nav {
   color: #0369a1;
   border: 1.5px solid #7dd3fc;
 }
+
+/* v. 1.34 - Single-line KPI sublabel */
+.nowrap-sub-3d {
+  white-space: nowrap !important;
+  font-size: 11px;
+}
+
+/* v. 1.34 - Modalità Landscape Smartphone: Scomparsa barre e ri-apparizione a scorrimento */
+@media (orientation: landscape) and (max-height: 600px) {
+  .topbar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 100;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  }
+
+  .topbar.landscape-hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .topbar.landscape-visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .floating-bottom-nav {
+    display: grid !important;
+    position: fixed !important;
+    bottom: 10px;
+    left: 14px;
+    right: 14px;
+    z-index: 100;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  }
+
+  .floating-bottom-nav.landscape-hidden {
+    transform: translateY(140%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .floating-bottom-nav.landscape-visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Massimo spazio verticale per le tabelle su smartphone orizzontale */
+  .app-shell-content {
+    padding-top: 10px !important;
+    padding-bottom: 20px !important;
+  }
+}
+
 
 
 
