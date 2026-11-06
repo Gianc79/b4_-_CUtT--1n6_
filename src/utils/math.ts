@@ -59,15 +59,19 @@ export function unitWeight(dia: number | string | null): number {
 }
 
 export function fmt(value: number | string | null | undefined, digits: number = 2): string {
-  if (!Number.isFinite(Number(value))) return '—';
-  return new Intl.NumberFormat('it-IT', {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  }).format(Number(value));
+  if (value === null || value === undefined || value === '') return '—';
+  const num = typeof value === 'number' ? value : Number(String(value).trim().replace(',', '.'));
+  if (!Number.isFinite(num)) return '—';
+  const parts = num.toFixed(digits).split('.');
+  const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return digits > 0 ? `${intPart},${parts[1]}` : intPart;
 }
 
-export function intFmt(value: number | null | undefined): string {
-  return new Intl.NumberFormat('it-IT', { maximumFractionDigits: 0 }).format(value || 0);
+export function intFmt(value: number | string | null | undefined): string {
+  if (value === null || value === undefined || value === '') return '0';
+  const num = typeof value === 'number' ? Math.round(value) : Math.round(Number(String(value).trim().replace(',', '.')));
+  if (!Number.isFinite(num)) return '0';
+  return String(num).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
 export function escapeHtml(s: unknown): string {

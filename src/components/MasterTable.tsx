@@ -23,6 +23,8 @@ interface MasterTableProps {
   onImportXls: (file: File) => void;
   onExportXls: () => void;
   onToast: (msg: string) => void;
+  selectedDiameter?: number | 'all';
+  onSelectDiameter?: (dia: number | 'all') => void;
 }
 
 interface DuplicateCandidate {
@@ -46,8 +48,18 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   onImportXls,
   onExportXls,
   onToast,
+  selectedDiameter: propSelectedDiameter,
+  onSelectDiameter: propOnSelectDiameter,
 }) => {
-  const [selectedDiameter, setSelectedDiameter] = useState<number | 'all'>('all');
+  const [internalSelectedDiameter, setInternalSelectedDiameter] = useState<number | 'all'>('all');
+  const selectedDiameter = propSelectedDiameter !== undefined ? propSelectedDiameter : internalSelectedDiameter;
+  const setSelectedDiameter = (dia: number | 'all') => {
+    if (propOnSelectDiameter) {
+      propOnSelectDiameter(dia);
+    } else {
+      setInternalSelectedDiameter(dia);
+    }
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Focus management per immissione con Invio e scorrimento controllato
@@ -426,34 +438,32 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         onSelectDiameter={setSelectedDiameter}
       />
 
-      {/* 2) Re-inseriti widgets SVILUPPO COMPLESSIVO e PESO TOTALE dinamici con separatore migliaia */}
-      <div className="calc-total totals-side-by-side">
-        <div className="summary-box">
-          <div className="s-label">
+      {/* 3) Widgets SVILUPPO COMPLESSIVO e PESO TOTALE con formattazione 3D piacevole e separatore migliaia */}
+      <div className="kpis-modern-3d master-kpis-3d">
+        <div className="kpi-card-3d">
+          <div className="kpi-label-3d">
             {isFiltered
-              ? `SVILUPPO BARRE Ø ${selectedDiameter}`
-              : 'SVILUPPO COMPLESSIVO'}
+              ? `Sviluppo Barre Ø ${selectedDiameter}`
+              : 'Sviluppo Complessivo'}
           </div>
-          <div className="s-value">
-            {fmt(statsMeters)}
-            <span className="s-unit">m</span>
+          <div className="kpi-value-3d">
+            {fmt(statsMeters)} <span className="kpi-unit-inline">m</span>
           </div>
-          <div className="s-sub">
+          <div className="kpi-sub-3d">
             {isFiltered ? `${intFmt(statsPieces)} pezzi` : `${intFmt(statsPieces)} pezzi totali`}
           </div>
         </div>
 
-        <div className="summary-box">
-          <div className="s-label">
+        <div className="kpi-card-3d accent-green-3d">
+          <div className="kpi-label-3d">
             {isFiltered
-              ? `PESO BARRE Ø ${selectedDiameter}`
-              : 'PESO TOTALE'}
+              ? `Peso Barre Ø ${selectedDiameter}`
+              : 'Peso Totale'}
           </div>
-          <div className="s-value">
-            {fmt(statsWeight)}
-            <span className="s-unit">kg</span>
+          <div className="kpi-value-3d">
+            {fmt(statsWeight)} <span className="kpi-unit-inline">kg</span>
           </div>
-          <div className="s-sub">Acciaio B450C</div>
+          <div className="kpi-sub-3d">Acciaio B450C</div>
         </div>
       </div>
 
@@ -623,6 +633,17 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                   );
                 })}
               </tbody>
+              {kind === 'demandDetail' && effectiveRows.length > 0 && (
+                <tfoot>
+                  <tr className="total-row">
+                    <td className="total-label-cell">Totale</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>{fmt(statsWeight)}</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
 

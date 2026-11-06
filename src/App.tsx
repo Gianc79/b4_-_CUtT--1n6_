@@ -37,6 +37,9 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [sortKind, setSortKind] = useState<'stockDetail' | 'demandDetail' | null>(null);
+  // Conservazione persistente dei filtri diametri tra le sessioni e durante l'ottimizzazione
+  const [stockFilterDiameter, setStockFilterDiameter] = useState<number | 'all'>('all');
+  const [demandFilterDiameter, setDemandFilterDiameter] = useState<number | 'all'>('all');
 
   const toastTimerRef = useRef<number | null>(null);
 
@@ -124,10 +127,42 @@ export const App: React.FC = () => {
     showToast(`Tabella ordinata per ${descriptions.join(' → ')}.`);
   };
 
-  // 12) Ottimizzazione con scarico automatico delle barre utilizzate dalla Giacenza
+  // 12) Ottimizzazione con filtro diametri attivo e scarico automatico delle barre utilizzate dalla Giacenza
   const handleOptimize = () => {
     try {
-      const res = runOptimization(state.stockDetail, state.demandDetail);
+      // Determina se è applicato un filtro diametri attivo
+      const activeFilterDia =
+        demandFilterDiameter !== 'all'
+          ? demandFilterDiameter
+          : stockFilterDiameter !== 'all'
+          ? stockFilterDiameter
+          : 'all';
+
+      const effectiveDemand =
+        activeFilterDia !== 'all'
+          ? state.demandDetail.filter(r => inputNumber(r.diameter) === activeFilterDia)
+          : state.demandDetail;
+
+      const effectiveStock =
+        activeFilterDia !== 'all'
+          ? state.stockDetail.filter(r => inputNumber(r.diameter) === activeFilterDia)
+          : state.stockDetail;
+
+      // Verifica presenza di record validi nella richiesta da ottimizzare
+      const hasValidDemand = effectiveDemand.some(
+        r => (inputNumber(r.qty) || 0) > 0 && (inputNumber(r.length) || 0) > 0
+      );
+
+      if (!hasValidDemand) {
+        showToast(
+          activeFilterDia !== 'all'
+            ? `Nessun record per il diametro Ø ${activeFilterDia} mm presente nella Richiesta.`
+            : 'La Richiesta è vuota: inserisci almeno un pezzo da tagliare.'
+        );
+        return;
+      }
+
+      const res = runOptimization(effectiveStock, effectiveDemand);
       const normalized = normalizeResultRows(res, null);
 
       if (!normalized) {
@@ -135,7 +170,7 @@ export const App: React.FC = () => {
         return;
       }
 
-      // Scala automaticamente le barre utilizzate dalla tabella Giacenza
+      // Scala automaticamente le barre utilizzate dalla tabella Giacenza (solo per i diametri ottimizzati)
       const remainingStockDetail = state.stockDetail.map(row => ({ ...row }));
 
       for (const used of normalized.usedByLength) {
@@ -168,6 +203,7 @@ export const App: React.FC = () => {
         result: normalized,
       }));
 
+      // I filtri di Giacenza e Richiesta rimangono esattamente com'erano
       setActiveTab('results');
 
       // 9) Messaggi esatti per ottimizzazione
@@ -186,25 +222,38 @@ export const App: React.FC = () => {
     }
   };
 
-  // 12) Aggiorna Richiesta: i tagli non evasi sostituiscono integralmente la Richiesta attuale
+  // 12) Aggiorna Richiesta: sostituisce SOLO i records dei diametri presenti in Richiesta Non Evasa
   const handleUpdateDemand = () => {
     const r = state.result;
     if (!r || r.unmet.length === 0) return;
 
-    const newDemandRows: MasterRow[] = r.unmet.map(x => ({
+    // Insieme dei diametri che compaiono nei tagli non evasi
+    const unmetDiameters = new Set(r.unmet.map(x => x.diameter));
+
+    // Nuove righe per i soli tagli non evasi
+    const newUnmetRows: MasterRow[] = r.unmet.map(x => ({
       id: newId(),
       diameter: String(x.diameter),
       qty: String(x.remaining),
       length: String(x.length),
     }));
 
+    // Mantieni tutti i record della Richiesta attuale i cui diametri NON sono presenti nella Richiesta Non Evasa
+    const retainedDemandRows = state.demandDetail.filter(row => {
+      const d = inputNumber(row.diameter);
+      return d === null || !unmetDiameters.has(d);
+    });
+
+    const finalDemandRows = [...retainedDemandRows, ...newUnmetRows];
+    const cleanedDemand = finalDemandRows.length > 0 ? finalDemandRows : [blankMaster()];
+
     setState(prev => ({
       ...prev,
-      demandDetail: newDemandRows,
+      demandDetail: cleanedDemand,
       result: prev.result ? { ...prev.result, unmet: [] } : null,
     }));
 
-    showToast(`Richiesta aggiornata con i tagli non evasi.`);
+    showToast(`Richiesta aggiornata con i tagli non evasi per i soli diametri interessati.`);
   };
 
   // 12) Aggiorna Giacenza: i pezzi selezionati integrano la Giacenza (sommando o aggiungendo)
@@ -332,6 +381,8 @@ export const App: React.FC = () => {
               onImportXls={f => handleImportXls(f, 'stockDetail')}
               onExportXls={() => exportMasterXls(state.stockDetail, 'giacenza', showToast)}
               onToast={showToast}
+              selectedDiameter={stockFilterDiameter}
+              onSelectDiameter={setStockFilterDiameter}
             />
           )}
 
@@ -346,6 +397,8 @@ export const App: React.FC = () => {
               onImportXls={f => handleImportXls(f, 'demandDetail')}
               onExportXls={() => exportMasterXls(state.demandDetail, 'richiesta', showToast)}
               onToast={showToast}
+              selectedDiameter={demandFilterDiameter}
+              onSelectDiameter={setDemandFilterDiameter}
             />
           )}
 
@@ -380,6 +433,8 @@ export const App: React.FC = () => {
                     onImportXls={f => handleImportXls(f, 'stockDetail')}
                     onExportXls={() => exportMasterXls(state.stockDetail, 'giacenza', showToast)}
                     onToast={showToast}
+                    selectedDiameter={stockFilterDiameter}
+                    onSelectDiameter={setStockFilterDiameter}
                   />
                 </div>
                 <div className="split-column">
@@ -393,6 +448,8 @@ export const App: React.FC = () => {
                     onImportXls={f => handleImportXls(f, 'demandDetail')}
                     onExportXls={() => exportMasterXls(state.demandDetail, 'richiesta', showToast)}
                     onToast={showToast}
+                    selectedDiameter={demandFilterDiameter}
+                    onSelectDiameter={setDemandFilterDiameter}
                   />
                 </div>
               </div>
@@ -412,9 +469,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.32 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.33 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.32 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.33 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 

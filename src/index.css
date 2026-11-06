@@ -2486,37 +2486,37 @@ tr.row-applied td {
   margin-top: 12px;
 }
 
-/* Cut Diagram 3D, Cards & Vertical upward scissors */
+/* Cut Diagram 3D, Cards & Vertical upward scissors - Compatto in altezza per v1.33 */
 .cut-diagram-card-3d {
   position: relative;
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 20px;
+  padding: 12px 14px 8px;
+  margin-bottom: 14px;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
 }
 
 .diagram-card-barcount-badge {
   position: absolute;
-  top: 12px;
-  right: 14px;
+  top: 10px;
+  right: 12px;
   background: #102b46;
   color: #ffffff;
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 8px;
   box-shadow: 0 3px 8px rgba(16, 43, 70, 0.25);
   z-index: 5;
 }
 
 .badge-count-num {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 900;
 }
 
 .cut-diagram-header-v3 {
-  margin-bottom: 12px;
-  padding-right: 68px;
+  margin-bottom: 8px;
+  padding-right: 64px;
 }
 
 .cut-badges-group-v3 {
@@ -2525,7 +2525,7 @@ tr.row-applied td {
   gap: 6px;
   flex-wrap: nowrap !important;
   white-space: nowrap !important;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   overflow: visible;
 }
 
@@ -2535,7 +2535,7 @@ tr.row-applied td {
   color: #1e293b;
   font-weight: 800;
   font-size: 12px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
   white-space: nowrap;
   flex-shrink: 0;
@@ -2547,7 +2547,7 @@ tr.row-applied td {
   color: #1d4ed8;
   font-weight: 800;
   font-size: 12px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
   white-space: nowrap;
   flex-shrink: 0;
@@ -2576,7 +2576,7 @@ tr.row-applied td {
 .cut-bar-container-3d {
   display: flex;
   width: 100%;
-  height: 38px;
+  height: 32px;
   border-radius: 0;
   overflow: hidden;
   box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.7), inset 0 -2px 4px rgba(0, 0, 0, 0.35), 0 3px 6px rgba(0, 0, 0, 0.15);
@@ -2630,8 +2630,8 @@ tr.row-applied td {
 .cut-markers-track-v3 {
   position: relative;
   width: 100%;
-  height: 48px;
-  margin-top: 2px;
+  height: 34px;
+  margin-top: 1px;
 }
 
 .cut-marker-item-v3 {
@@ -2646,7 +2646,7 @@ tr.row-applied td {
 
 .cut-marker-line-v3 {
   width: 2px;
-  height: 6px;
+  height: 5px;
   background: #334155;
 }
 
@@ -2655,7 +2655,7 @@ tr.row-applied td {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 1px;
+  margin-top: 0px;
 }
 
 .cut-marker-label-v3 {
@@ -2664,10 +2664,22 @@ tr.row-applied td {
   color: #1e293b;
   background: #f1f5f9;
   border: 1px solid #cbd5e1;
-  padding: 1px 4px;
+  padding: 0px 4px;
   border-radius: 4px;
-  margin-top: 2px;
+  margin-top: 1px;
   white-space: nowrap;
+}
+
+/* Master Table 3D KPIs */
+.master-kpis-3d {
+  margin-bottom: 16px;
+}
+
+.kpi-unit-inline {
+  font-size: 14px;
+  font-weight: 750;
+  color: #475569;
+  margin-left: 2px;
 }
 
 /* Sfridi section bottom actions placed on the right */
