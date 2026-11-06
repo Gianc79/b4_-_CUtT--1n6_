@@ -491,10 +491,27 @@ export function buildOperationalPlan(result: OptimizationResult): {
     }))
     .sort((a, b) => Number(b.length) - Number(a.length) || Number(b.diameter) - Number(a.diameter));
 
-  const operations: OperationalRow[] = [];
-  let motherBarIdCounter = 1;
-
+  // 1. Raggruppa i pattern identici aggregando il conteggio barre (come in v1.29)
+  const patternGroups = new Map<string, { pattern: Pattern; count: number }>();
   for (const original of result.patterns || []) {
+    const key = [
+      original.diameter,
+      original.barUnits,
+      original.scrapUnits,
+      ...(original.counts || []),
+    ].join('|');
+    if (!patternGroups.has(key)) {
+      patternGroups.set(key, { pattern: { ...original }, count: Number(original.barCount) || 1 });
+    } else {
+      patternGroups.get(key)!.count += Number(original.barCount) || 1;
+    }
+  }
+
+  // 2. Genera le operazioni per ogni pattern aggregato assegnando un ID madre
+  const operations: OperationalRow[] = [];
+  let tempMotherId = 1;
+
+  for (const { pattern: original, count: totalBarCount } of patternGroups.values()) {
     const steps = cuts
       .map(cut => ({
         cut,
@@ -504,15 +521,16 @@ export function buildOperationalPlan(result: OptimizationResult): {
 
     if (!steps.length) continue;
 
-    const currentBarId = motherBarIdCounter++;
+    const currentMotherId = tempMotherId++;
     let currentLength = Number(original.barUnits);
+
     for (let i = 0; i < steps.length; i++) {
       const { cut, count } = steps[i];
       const afterCut = Math.max(0, currentLength - count * Number(cut.units));
       const hasFurtherCut = i < steps.length - 1;
       const isRecovery = i > 0;
       const operation: OperationalRow = {
-        barId: currentBarId,
+        barId: currentMotherId,
         isRecovery,
         diameter: Number(original.diameter),
         barUnits: currentLength,
@@ -521,37 +539,42 @@ export function buildOperationalPlan(result: OptimizationResult): {
         cutKey: resultKey(cut.diameter, cut.length),
         cutLength: Number(cut.length),
         cutCount: count,
-        barCount: Number(original.barCount) || 1,
+        barCount: totalBarCount,
       };
       operations.push(operation);
       currentLength = afterCut;
     }
   }
 
-  // Raggruppa solo passaggi realmente identici mantenendo barId e tracciamento recupero
-  const grouped = new Map<string, OperationalRow>();
-  for (const op of operations) {
-    const key = [
-      op.barId,
-      op.isRecovery ? '1' : '0',
-      op.diameter,
-      op.barUnits,
-      op.recoveryUnits,
-      op.scrapUnits,
-      op.cutKey,
-      op.cutCount,
-    ].join('|');
-    if (!grouped.has(key)) grouped.set(key, { ...op });
-    else grouped.get(key)!.barCount += op.barCount;
+  // 3. Ordinamento Piano di Taglio: decrescente per lunghezza pezzo (logica cantiere tagliaferri)
+  const rows = operations.sort(
+    (a, b) =>
+      Number(b.cutLength) - Number(a.cutLength) ||
+      Number(b.barUnits) - Number(a.barUnits) ||
+      Number(b.diameter) - Number(a.diameter) ||
+      Number(a.recoveryUnits) - Number(b.recoveryUnits)
+  );
+
+  // 4. Riassegna gli ID in modo che le barre standard (!isRecovery) abbiano numeri progressivi 1, 2, 3...
+  // e le barre da recupero (isRecovery) mantengano esattamente lo stesso ID della barra madre originaria
+  const motherIdMap = new Map<number, number>();
+  let sequentialId = 1;
+
+  for (const r of rows) {
+    if (!r.isRecovery && !motherIdMap.has(r.barId)) {
+      motherIdMap.set(r.barId, sequentialId++);
+    }
   }
 
-  // Ordinamento cronologico per ID barra e passaggi (barra originaria -> recupero)
-  const rows = Array.from(grouped.values()).sort(
-    (a, b) =>
-      a.barId - b.barId ||
-      (a.isRecovery ? 1 : 0) - (b.isRecovery ? 1 : 0) ||
-      Number(b.cutLength) - Number(a.cutLength)
-  );
+  for (const r of rows) {
+    if (motherIdMap.has(r.barId)) {
+      r.barId = motherIdMap.get(r.barId)!;
+    } else {
+      // Nel caso limite di pattern iniziato solo da recupero
+      motherIdMap.set(r.barId, sequentialId++);
+      r.barId = motherIdMap.get(r.barId)!;
+    }
+  }
 
   return { cuts, rows };
 }

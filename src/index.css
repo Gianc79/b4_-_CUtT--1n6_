@@ -1596,11 +1596,10 @@ tr.row-applied td {
 .in-app-modal {
   background: #ffffff;
   border-radius: 16px;
-  width: 100%;
-  max-width: 420px;
+  width: clamp(280px, 67vw, 440px);
   padding: 20px;
   box-shadow: 0 20px 45px rgba(15, 23, 42, 0.3);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #cbd5e1;
   animation: popIn 0.2s ease-out;
 }
 
@@ -2196,7 +2195,7 @@ tr.row-applied td {
 
 .sort-dialog-card-v4 {
   position: relative;
-  width: min(440px, calc(100vw - 24px));
+  width: clamp(280px, 67vw, 440px);
   background: #ffffff;
   border-radius: 16px;
   padding: 22px 24px;
@@ -2671,30 +2670,38 @@ tr.row-applied td {
 }
 
 /* ========================================================
-   TAGLIO BARRE C.A. — v. 1.30 Specific Styles & Enhancements
+   TAGLIO BARRE C.A. — v. 1.31 Specific Styles & Enhancements
    ======================================================== */
 
-/* 1) Fascia superiore a 2 righe su smartphone: zero sovrapposizioni, icone allineate in basso a destra */
-.brandline-v130 {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 100%;
-}
-
-.brand-header-top-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-}
-
-.brand-header-sub-row {
+/* 1) Fascia superiore v1.31: Logo colorato, titolo e sottotitolo su 2 righe a sx, 3 icone a dx */
+.brandline-v131 {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
   width: 100%;
+  gap: 12px;
+}
+
+.brand-header-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.brand-titles-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-subtitle-twolines-v131 {
+  margin: 1px 0 0;
+  font-size: 11px;
+  line-height: 1.25;
+  color: #c7d2fe;
+  white-space: normal;
 }
 
 .brand-version-inline {
@@ -2707,14 +2714,6 @@ tr.row-applied td {
   vertical-align: baseline;
 }
 
-.brand-subtitle-compact {
-  margin: 0;
-  font-size: 11.5px;
-  line-height: 1.25;
-  color: #c7d2fe;
-  flex: 1;
-}
-
 .topbar-circular-actions-bottom {
   display: flex;
   align-items: center;
@@ -2725,7 +2724,7 @@ tr.row-applied td {
   margin-bottom: -2px; /* traslate a ridosso della linea inferiore */
 }
 
-/* 2) Popup & Toast stile SpesaSuMisura con centraggio immediato (NESSUNO SCATTO da dx a centro) */
+/* 2) Popup & Toast stile SpesaSuMisura con centraggio immediato e LARGHEZZA COSTANTE A 2/3 DELLO SCHERMO */
 @keyframes popInToastCenter {
   0% {
     opacity: 0;
@@ -2744,16 +2743,18 @@ tr.row-applied td {
   transform: translateX(-50%);
   background: #1e293b;
   color: #f8fafc;
-  padding: 11px 18px;
+  padding: 12px 16px;
   border-radius: 14px;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 12px;
   z-index: 220;
   border: 2px solid #38bdf8; /* Riquadro ciano vivace stile SpesaSuMisura */
   animation: popInToastCenter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  max-width: min(92vw, 480px);
+  width: clamp(280px, 67vw, 440px); /* 2/3 della larghezza dello schermo */
+  box-sizing: border-box;
 }
 
 .undo-toast-text-spesa {
@@ -2794,7 +2795,15 @@ tr.row-applied td {
   transform: translateY(0);
 }
 
-/* Icone SVG native (Importa da XLS, Esporta in XLS, Ordina Tabella) */
+/* 4) Nascondi la barra inferiore mentre la tastiera dello smartphone è aperta durante l'editing celle */
+body.keyboard-input-open .bottom-nav {
+  transform: translateY(180%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Icone SVG native (Importa da XLS, Esporta in XLS con frecce a 90°, Ordina Tabella AZ) */
 .excel-action-svg-native {
   display: block;
 }
@@ -2809,50 +2818,7 @@ tr.row-applied td {
   padding: 4px;
 }
 
-/* 3) Riga Totale a fondo tabella in Elenco Giacenza ed Elenco Richiesta */
-.master-table-total-row {
-  background: #f1f5f9;
-  border-top: 2.5px solid #cbd5e1;
-}
-
-.master-table-total-row td {
-  padding: 11px 8px;
-  font-size: 13px;
-  font-weight: 850;
-  color: #0f2942;
-}
-
-.master-table-total-row .total-label-cell {
-  text-align: center;
-  font-weight: 900;
-  color: #0f172a;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.master-table-total-row .total-qty-cell {
-  text-align: center;
-  color: #0284c7;
-  font-weight: 850;
-}
-
-.master-table-total-row .total-len-cell {
-  text-align: center;
-  color: #15803d;
-  font-weight: 850;
-}
-
-.master-table-total-row .total-weight-cell {
-  text-align: center;
-  color: #b45309;
-  font-weight: 850;
-}
-
-.master-table-total-row .total-action-cell {
-  text-align: center;
-}
-
-/* 5) Finestra "Ordina Giacenza" / "Ordina Richiesta" v1.30 */
+/* 5) Finestra "Ordina Giacenza" / "Ordina Richiesta" v1.31 */
 .sort-level-item-v4-compact {
   display: flex;
   align-items: center;
@@ -2896,7 +2862,7 @@ tr.row-applied td {
   letter-spacing: -0.01em !important;
 }
 
-/* 2) KPI Cards con formattazione a rilievo (3D) in Pagina Ottimizza */
+/* KPI Cards con formattazione a rilievo (3D) in Pagina Ottimizza */
 .kpis-modern-3d {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2975,7 +2941,7 @@ tr.row-applied td {
   line-height: 1.2;
 }
 
-/* Ottimizza header v1.30 con Esporta XLS ancorato a destra */
+/* Ottimizza header v1.31 con Esporta XLS ancorato a destra */
 .optimization-head-v129 {
   display: flex;
   align-items: flex-start;
@@ -2997,7 +2963,7 @@ tr.row-applied td {
   }
 }
 
-/* Colonna ID e Badge tracciamento barre */
+/* Colonna ID pura in Tabella Dati: verde per standard, azzurro per recupero */
 .plan-id-cell {
   text-align: center !important;
 }
@@ -3006,56 +2972,53 @@ tr.row-applied td {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 3px 8px;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 8px;
   border-radius: 6px;
-  font-size: 12px;
-  font-weight: 850;
-  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .table-id-badge.badge-origin {
-  background: #e0f2fe;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1.5px solid #86efac;
 }
 
 .table-id-badge.badge-recovery {
-  background: #fef3c7;
-  color: #b45309;
-  border: 1px solid #fde68a;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1.5px solid #7dd3fc;
 }
 
-/* Badge ID e raggruppamento in linea nei Diagrammi Visivi */
-.cut-badges-group-v130 {
-  display: flex;
+/* Badge ID nei diagrammi visivi v1.31: identico a v1.29 con ID puro a sx */
+.dia-badge-id-v131 {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  width: 100%;
+  justify-content: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
 }
 
-.id-badge-box-v3 {
-  background: #0f2942;
-  color: #ffffff;
-  font-weight: 850;
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  white-space: nowrap;
-  border: 1px solid #1e3a5f;
+.dia-badge-id-v131.origin {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1.5px solid #86efac;
 }
 
-.barcount-badge-box-v3 {
-  background: #1e3a5f;
-  color: #5eead4;
-  font-weight: 850;
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  white-space: nowrap;
-  margin-left: auto;
-  box-shadow: 0 2px 6px rgba(16, 43, 70, 0.25);
+.dia-badge-id-v131.recovery {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1.5px solid #7dd3fc;
 }
+
 
 
 

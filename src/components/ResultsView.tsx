@@ -368,9 +368,9 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                                 <td className="plan-id-cell">
                                   <span
                                     className={`table-id-badge ${p.isRecovery ? 'badge-recovery' : 'badge-origin'}`}
-                                    title={p.isRecovery ? `Barra recuperata dalla barra #${p.barId}` : `Barra originaria #${p.barId}`}
+                                    title={p.isRecovery ? `Barra da recupero della barra ${p.barId}` : `Barra originaria ${p.barId}`}
                                   >
-                                    #{p.barId}{p.isRecovery ? ' (Rec.)' : ''}
+                                    {p.barId}
                                   </span>
                                 </td>
                                 <td>{intFmt(p.diameter)}</td>

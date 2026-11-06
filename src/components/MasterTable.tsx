@@ -128,6 +128,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     field: 'diameter' | 'qty' | 'length',
     currentVal: string
   ) => {
+    document.body.classList.add('keyboard-input-open');
     cellPreviousValuesRef.current[`${id}_${field}`] = currentVal;
     try {
       e.target.select();
@@ -135,6 +136,12 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   };
 
   const handleCellBlur = (id: string, field: 'diameter' | 'qty' | 'length', rawVal: string) => {
+    setTimeout(() => {
+      if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
+        document.body.classList.remove('keyboard-input-open');
+      }
+    }, 150);
+
     const trimmed = rawVal.trim();
     const prevVal = cellPreviousValuesRef.current[`${id}_${field}`] || '';
 
@@ -419,6 +426,37 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         onSelectDiameter={setSelectedDiameter}
       />
 
+      {/* 2) Re-inseriti widgets SVILUPPO COMPLESSIVO e PESO TOTALE dinamici con separatore migliaia */}
+      <div className="calc-total totals-side-by-side">
+        <div className="summary-box">
+          <div className="s-label">
+            {isFiltered
+              ? `SVILUPPO BARRE Ø ${selectedDiameter}`
+              : 'SVILUPPO COMPLESSIVO'}
+          </div>
+          <div className="s-value">
+            {fmt(statsMeters)}
+            <span className="s-unit">m</span>
+          </div>
+          <div className="s-sub">
+            {isFiltered ? `${intFmt(statsPieces)} pezzi` : `${intFmt(statsPieces)} pezzi totali`}
+          </div>
+        </div>
+
+        <div className="summary-box">
+          <div className="s-label">
+            {isFiltered
+              ? `PESO BARRE Ø ${selectedDiameter}`
+              : 'PESO TOTALE'}
+          </div>
+          <div className="s-value">
+            {fmt(statsWeight)}
+            <span className="s-unit">kg</span>
+          </div>
+          <div className="s-sub">Acciaio B450C</div>
+        </div>
+      </div>
+
       {/* Pannello Principale Tabella */}
       <div className="panel master-table-panel">
         {/* 4) Intestazione: Titolo a sinistra e Tasto Ordina ufficiale allegato tutto a destra */}
@@ -585,15 +623,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                   );
                 })}
               </tbody>
-              <tfoot>
-                <tr className="master-table-total-row">
-                  <td className="total-label-cell">Totale</td>
-                  <td className="total-qty-cell">{intFmt(statsPieces)} pz</td>
-                  <td className="total-len-cell">{fmt(statsMeters)} m</td>
-                  <td className="total-weight-cell">{fmt(statsWeight)} kg</td>
-                  <td className="total-action-cell"></td>
-                </tr>
-              </tfoot>
             </table>
           </div>
 

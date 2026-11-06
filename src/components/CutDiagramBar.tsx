@@ -63,27 +63,33 @@ export const CutDiagramBar: React.FC<CutDiagramBarProps> = ({
 
   return (
     <div className="cut-diagram-card-3d">
-      {/* Header con i 4 riquadri in linea sulla stessa riga: ID, Diametro, Lunghezza e Numero barre */}
+      {/* Numero delle barre posizionato nell'angolo in alto a destra come v1.29 */}
+      <div
+        className="diagram-card-barcount-badge"
+        title={`${barCount} ${barCount === 1 ? 'barra' : 'barre'}`}
+      >
+        <span className="badge-count-num">{intFmt(barCount)}</span>
+      </div>
+
+      {/* Header con ID puro a sx, Diametro e Lunghezza barra (identico a v1.29) */}
       <div className="cut-diagram-header-v3">
-        <div className="cut-badges-group-v3 cut-badges-group-v130">
-          {/* 1) Riquadro ID (a sinistra del diametro) */}
-          <div className="id-badge-box-v3" title={isRecovery ? `Barra recuperata dalla barra #${barId}` : `Barra madre #${barId}`}>
-            ID #{barId ?? 1}{isRecovery ? ' [Recupero]' : ''}
+        <div className="cut-badges-group-v3">
+          {/* ID puro: numero puro verde per standard, azzurro per recupero */}
+          <div
+            className={`dia-badge-id-v131 ${isRecovery ? 'recovery' : 'origin'}`}
+            title={isRecovery ? `Barra da recupero della barra ${barId}` : `Barra originaria ${barId}`}
+          >
+            {barId ?? 1}
           </div>
 
-          {/* 2) Riquadro Diametro */}
+          {/* Riquadro Diametro */}
           <div className="dia-badge-box-v3">
             Ø {diameter} mm
           </div>
 
-          {/* 3) Riquadro Lunghezza barra */}
+          {/* Riquadro Lunghezza barra */}
           <div className="bar-length-badge-box-v3">
             <span>Barra {fmt(barUnits / 100)} m</span>
-          </div>
-
-          {/* 4) Riquadro Numero barre in linea */}
-          <div className="barcount-badge-box-v3" title={`${barCount} ${barCount === 1 ? 'barra' : 'barre'}`}>
-            <span>{intFmt(barCount)} {barCount === 1 ? 'barra' : 'barre'}</span>
           </div>
         </div>
 

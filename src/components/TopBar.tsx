@@ -51,31 +51,37 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <header className="topbar">
-      {/* Fascia superiore v1.30: Layout responsive a 2 righe su smartphone per zero sovrapposizioni */}
-      <div className="brandline-v130">
-        {/* Riga 1: Icona dell'app + Titolo a tutta larghezza con versione inline */}
-        <div className="brand-header-top-row">
+      {/* Fascia superiore v1.31: Icona colorata, titolo e sottotitolo su 2 righe a sx, 3 icone a dx */}
+      <div className="brandline-v131">
+        <div className="brand-header-content">
+          {/* Icona dell'app colorata (2 barre verdi, 2 barre bianche) */}
           <div className="brandmark-app-icon" aria-hidden="true">
-            <svg viewBox="0 0 32 32" fill="none">
-              <rect width="32" height="32" rx="8" fill="#1e3a5f" />
-              <path d="M6 11h20M6 21h20" stroke="#5eead4" strokeWidth="2.8" strokeLinecap="round" />
-              <path d="M11 6v20M21 6v20" stroke="#ffffff" strokeOpacity=".85" strokeWidth="2.2" strokeLinecap="round" />
+            <svg viewBox="0 0 32 32" width="38" height="38" fill="none">
+              <rect width="32" height="32" rx="8" fill="#102b46" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+              {/* 2 barre verdi orizzontali */}
+              <line x1="5" y1="11" x2="27" y2="11" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" />
+              <line x1="5" y1="21" x2="27" y2="21" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" />
+              {/* 2 barre bianche verticali */}
+              <line x1="11" y1="5" x2="11" y2="27" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" />
+              <line x1="21" y1="5" x2="21" y2="27" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" />
             </svg>
           </div>
-          <div className="brand-title-row">
-            <h1 className="brand-app-name">
-              TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.30</span>
-            </h1>
+
+          {/* Gruppo Titolo + Sottotitolo su 2 righe allineato a sx */}
+          <div className="brand-titles-column">
+            <div className="brand-title-row">
+              <h1 className="brand-app-name">
+                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.31</span>
+              </h1>
+            </div>
+            <p className="brand-subtitle-twolines-v131">
+              Gestione ottimizzata<br />del Piano di Taglio.
+            </p>
           </div>
         </div>
 
-        {/* Riga 2: Sottotitolo a sinistra e 3 icone circolari allineate a destra in basso */}
-        <div className="brand-header-sub-row">
-          <p className="brand-subtitle-compact">
-            Gestione ottimizzata del Piano di Taglio.
-          </p>
-
-          <div className="topbar-circular-actions-bottom" role="toolbar" aria-label="Operazioni file">
+        {/* 3 icone circolari allineate a destra in basso */}
+        <div className="topbar-circular-actions-bottom" role="toolbar" aria-label="Operazioni file">
           {/* 1) Salva: Floppy disk */}
           <button
             className="topbar-circular-btn"
@@ -174,7 +180,6 @@ export const TopBar: React.FC<TopBarProps> = ({
             accept="application/json,.json"
             onChange={handleFileChange}
           />
-        </div>
         </div>
       </div>
 
