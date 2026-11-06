@@ -2,6 +2,8 @@ import React from 'react';
 import { fmt, intFmt } from '../utils/math';
 
 interface CutDiagramBarProps {
+  barId?: number;
+  isRecovery?: boolean;
   diameter: number;
   barUnits: number; // in cm
   barCount: number;
@@ -12,6 +14,8 @@ interface CutDiagramBarProps {
 }
 
 export const CutDiagramBar: React.FC<CutDiagramBarProps> = ({
+  barId,
+  isRecovery,
   diameter,
   barUnits,
   barCount,
@@ -59,25 +63,27 @@ export const CutDiagramBar: React.FC<CutDiagramBarProps> = ({
 
   return (
     <div className="cut-diagram-card-3d">
-      {/* 4) Numero delle barre posizionato nell'angolo in alto a destra DEL RIQUADRO GENERICO con font 1.5x */}
-      <div
-        className="diagram-card-barcount-badge"
-        title={`${barCount} ${barCount === 1 ? 'barra' : 'barre'}`}
-      >
-        <span className="badge-count-num">{intFmt(barCount)}</span>
-      </div>
-
-      {/* Header con i riquadri Diametro e Lunghezza barra */}
+      {/* Header con i 4 riquadri in linea sulla stessa riga: ID, Diametro, Lunghezza e Numero barre */}
       <div className="cut-diagram-header-v3">
-        <div className="cut-badges-group-v3">
-          {/* Riquadro Diametro */}
+        <div className="cut-badges-group-v3 cut-badges-group-v130">
+          {/* 1) Riquadro ID (a sinistra del diametro) */}
+          <div className="id-badge-box-v3" title={isRecovery ? `Barra recuperata dalla barra #${barId}` : `Barra madre #${barId}`}>
+            ID #{barId ?? 1}{isRecovery ? ' [Recupero]' : ''}
+          </div>
+
+          {/* 2) Riquadro Diametro */}
           <div className="dia-badge-box-v3">
             Ø {diameter} mm
           </div>
 
-          {/* Riquadro Lunghezza barra */}
+          {/* 3) Riquadro Lunghezza barra */}
           <div className="bar-length-badge-box-v3">
             <span>Barra {fmt(barUnits / 100)} m</span>
+          </div>
+
+          {/* 4) Riquadro Numero barre in linea */}
+          <div className="barcount-badge-box-v3" title={`${barCount} ${barCount === 1 ? 'barra' : 'barre'}`}>
+            <span>{intFmt(barCount)} {barCount === 1 ? 'barra' : 'barre'}</span>
           </div>
         </div>
 

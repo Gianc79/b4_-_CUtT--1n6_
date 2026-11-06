@@ -588,22 +588,22 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .filter-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  min-height: 36px;
-  border: 1px solid #e2e8f0;
+  gap: 7px;
+  padding: 7px 14px;
+  min-height: 40px;
+  border: 1px solid #cbd5e1;
   background: #fff;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #475569;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #334155;
   white-space: nowrap;
   transition: all 0.15s ease;
 }
 
 .filter-chip:hover {
   background: #f1f5f9;
-  border-color: #cbd5e1;
+  border-color: #94a3b8;
 }
 
 .filter-chip.active {
@@ -624,9 +624,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 
 .chip-count {
-  font-size: 10px;
-  font-weight: 800;
-  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 850;
+  padding: 2px 7px;
   border-radius: 999px;
   background: #e2e8f0;
   color: #334155;
@@ -2671,16 +2671,30 @@ tr.row-applied td {
 }
 
 /* ========================================================
-   TAGLIO BARRE C.A. — v. 1.29 Specific Styles & Enhancements
+   TAGLIO BARRE C.A. — v. 1.30 Specific Styles & Enhancements
    ======================================================== */
 
-/* 1) Fascia superiore compatta: versione affiancata al titolo, sottotitolo su una riga sotto, icone abbassate */
-.brandline-v129 {
+/* 1) Fascia superiore a 2 righe su smartphone: zero sovrapposizioni, icone allineate in basso a destra */
+.brandline-v130 {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.brand-header-top-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.brand-header-sub-row {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  width: 100%;
   gap: 12px;
+  width: 100%;
 }
 
 .brand-version-inline {
@@ -2694,17 +2708,11 @@ tr.row-applied td {
 }
 
 .brand-subtitle-compact {
-  margin: 2px 0 0;
-  font-size: 11px;
-  line-height: 1.2;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.25;
   color: #c7d2fe;
-  white-space: nowrap;
-}
-
-@media (max-width: 480px) {
-  .brand-subtitle-compact {
-    white-space: normal;
-  }
+  flex: 1;
 }
 
 .topbar-circular-actions-bottom {
@@ -2717,7 +2725,18 @@ tr.row-applied td {
   margin-bottom: -2px; /* traslate a ridosso della linea inferiore */
 }
 
-/* 2) Popup & Toast stile SpesaSuMisura con riquadro marcato */
+/* 2) Popup & Toast stile SpesaSuMisura con centraggio immediato (NESSUNO SCATTO da dx a centro) */
+@keyframes popInToastCenter {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 16px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
 .undo-delete-toast-spesa {
   position: fixed;
   bottom: 84px;
@@ -2733,7 +2752,7 @@ tr.row-applied td {
   gap: 14px;
   z-index: 220;
   border: 2px solid #38bdf8; /* Riquadro ciano vivace stile SpesaSuMisura */
-  animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: popInToastCenter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   max-width: min(92vw, 480px);
 }
 
@@ -2775,32 +2794,65 @@ tr.row-applied td {
   transform: translateY(0);
 }
 
-/* Icone Immagine XLS e Ordina (Importa da XLS.jpg, Esporta in XLS.jpg, Ordina.jpg) */
-.excel-action-img {
+/* Icone SVG native (Importa da XLS, Esporta in XLS, Ordina Tabella) */
+.excel-action-svg-native {
   display: block;
-  width: 38px;
-  height: 38px;
-  object-fit: contain;
-  border-radius: 8px;
 }
 
-.sort-trigger-img {
+.sort-trigger-svg-native {
   display: block;
-  width: 38px;
-  height: 38px;
-  object-fit: contain;
-  border-radius: 8px;
 }
 
 .xls-action-icon-btn-header {
   width: 44px;
   height: 44px;
-  padding: 2px;
+  padding: 4px;
 }
 
-/* 5) Finestra "Ordina Giacenza" / "Ordina Richiesta" v1.29:
-   - Select box spostato verso sx vicino alla label per far vedere tutto il testo
-   - Pulsanti + Aggiungi livello e - Elimina livello su riga singola con font e altezza ridotti */
+/* 3) Riga Totale a fondo tabella in Elenco Giacenza ed Elenco Richiesta */
+.master-table-total-row {
+  background: #f1f5f9;
+  border-top: 2.5px solid #cbd5e1;
+}
+
+.master-table-total-row td {
+  padding: 11px 8px;
+  font-size: 13px;
+  font-weight: 850;
+  color: #0f2942;
+}
+
+.master-table-total-row .total-label-cell {
+  text-align: center;
+  font-weight: 900;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.master-table-total-row .total-qty-cell {
+  text-align: center;
+  color: #0284c7;
+  font-weight: 850;
+}
+
+.master-table-total-row .total-len-cell {
+  text-align: center;
+  color: #15803d;
+  font-weight: 850;
+}
+
+.master-table-total-row .total-weight-cell {
+  text-align: center;
+  color: #b45309;
+  font-weight: 850;
+}
+
+.master-table-total-row .total-action-cell {
+  text-align: center;
+}
+
+/* 5) Finestra "Ordina Giacenza" / "Ordina Richiesta" v1.30 */
 .sort-level-item-v4-compact {
   display: flex;
   align-items: center;
@@ -2923,7 +2975,7 @@ tr.row-applied td {
   line-height: 1.2;
 }
 
-/* Ottimizza header v1.29 */
+/* Ottimizza header v1.30 con Esporta XLS ancorato a destra */
 .optimization-head-v129 {
   display: flex;
   align-items: flex-start;
@@ -2932,6 +2984,79 @@ tr.row-applied td {
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
+
+@media (max-width: 600px) {
+  .optimization-head-actions-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .optimization-head-actions-row .xls-action-icon-btn-header {
+    margin-left: auto;
+  }
+}
+
+/* Colonna ID e Badge tracciamento barre */
+.plan-id-cell {
+  text-align: center !important;
+}
+
+.table-id-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.table-id-badge.badge-origin {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.table-id-badge.badge-recovery {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+/* Badge ID e raggruppamento in linea nei Diagrammi Visivi */
+.cut-badges-group-v130 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.id-badge-box-v3 {
+  background: #0f2942;
+  color: #ffffff;
+  font-weight: 850;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  border: 1px solid #1e3a5f;
+}
+
+.barcount-badge-box-v3 {
+  background: #1e3a5f;
+  color: #5eead4;
+  font-weight: 850;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  margin-left: auto;
+  box-shadow: 0 2px 6px rgba(16, 43, 70, 0.25);
+}
+
 
 
 

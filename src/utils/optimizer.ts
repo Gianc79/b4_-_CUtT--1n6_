@@ -492,6 +492,8 @@ export function buildOperationalPlan(result: OptimizationResult): {
     .sort((a, b) => Number(b.length) - Number(a.length) || Number(b.diameter) - Number(a.diameter));
 
   const operations: OperationalRow[] = [];
+  let motherBarIdCounter = 1;
+
   for (const original of result.patterns || []) {
     const steps = cuts
       .map(cut => ({
@@ -502,12 +504,16 @@ export function buildOperationalPlan(result: OptimizationResult): {
 
     if (!steps.length) continue;
 
+    const currentBarId = motherBarIdCounter++;
     let currentLength = Number(original.barUnits);
     for (let i = 0; i < steps.length; i++) {
       const { cut, count } = steps[i];
       const afterCut = Math.max(0, currentLength - count * Number(cut.units));
       const hasFurtherCut = i < steps.length - 1;
+      const isRecovery = i > 0;
       const operation: OperationalRow = {
+        barId: currentBarId,
+        isRecovery,
         diameter: Number(original.diameter),
         barUnits: currentLength,
         recoveryUnits: hasFurtherCut ? afterCut : 0,
@@ -522,20 +528,29 @@ export function buildOperationalPlan(result: OptimizationResult): {
     }
   }
 
-  // Raggruppa solo passaggi realmente identici
+  // Raggruppa solo passaggi realmente identici mantenendo barId e tracciamento recupero
   const grouped = new Map<string, OperationalRow>();
   for (const op of operations) {
-    const key = [op.diameter, op.barUnits, op.recoveryUnits, op.scrapUnits, op.cutKey, op.cutCount].join('|');
+    const key = [
+      op.barId,
+      op.isRecovery ? '1' : '0',
+      op.diameter,
+      op.barUnits,
+      op.recoveryUnits,
+      op.scrapUnits,
+      op.cutKey,
+      op.cutCount,
+    ].join('|');
     if (!grouped.has(key)) grouped.set(key, { ...op });
     else grouped.get(key)!.barCount += op.barCount;
   }
 
+  // Ordinamento cronologico per ID barra e passaggi (barra originaria -> recupero)
   const rows = Array.from(grouped.values()).sort(
     (a, b) =>
-      Number(b.cutLength) - Number(a.cutLength) ||
-      Number(b.barUnits) - Number(a.barUnits) ||
-      Number(b.diameter) - Number(a.diameter) ||
-      Number(a.recoveryUnits) - Number(b.recoveryUnits)
+      a.barId - b.barId ||
+      (a.isRecovery ? 1 : 0) - (b.isRecovery ? 1 : 0) ||
+      Number(b.cutLength) - Number(a.cutLength)
   );
 
   return { cuts, rows };

@@ -94,6 +94,8 @@ export interface OperationalCut {
 }
 
 export interface OperationalRow {
+  barId: number;
+  isRecovery?: boolean;
   diameter: number;
   barUnits: number;
   recoveryUnits: number;

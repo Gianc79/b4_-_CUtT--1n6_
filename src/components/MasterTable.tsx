@@ -65,13 +65,13 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   const [deletedRecord, setDeletedRecord] = useState<DeletedRowRecord | null>(null);
   const undoTimerRef = useRef<number | null>(null);
 
-  // Assistente allo scorrimento: assicura che l'input non sia coperto dalla tastiera mobile
+  // Assistente allo scorrimento: assicura che l'input non sia coperto dalla tastiera mobile senza salti
   const scrollElementIntoWorkArea = (el: HTMLElement) => {
     const rect = el.getBoundingClientRect();
     const windowHeight = window.innerHeight;
-    // Se l'elemento è sotto la metà schermo, porta la riga in alto per non finire coperta dalla tastiera
-    if (rect.bottom > windowHeight * 0.52 || rect.top < 70) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Scorrimento minimale e morbido solo se l'elemento rischia di finire sotto la tastiera
+    if (rect.bottom > windowHeight * 0.58 || rect.top < 75) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   };
 
@@ -419,39 +419,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         onSelectDiameter={setSelectedDiameter}
       />
 
-      {/* 2 & 3) Widget Totali dinamici (entrambi dinamici) con separatore migliaia */}
-      <div className="calc-total totals-side-by-side">
-        <div className="summary-box">
-          <div className="s-label">
-            {isFiltered
-              ? `SVILUPPO BARRE Ø ${selectedDiameter}`
-              : 'SVILUPPO COMPLESSIVO'}
-          </div>
-          <div className="s-value">
-            {fmt(statsMeters)}
-            <span className="s-unit">m</span>
-          </div>
-          <div className="s-sub">
-            {isFiltered ? `${intFmt(statsPieces)} pezzi` : `${intFmt(statsPieces)} pezzi totali`}
-          </div>
-        </div>
-
-        <div className="summary-box">
-          <div className="s-label">
-            {/* 2) Titolo PESO dinamico al cambio del filtro */}
-            {isFiltered
-              ? `PESO BARRE Ø ${selectedDiameter}`
-              : 'PESO TOTALE'}
-          </div>
-          <div className="s-value">
-            {/* 3) Formattato con separatore delle migliaia */}
-            {fmt(statsWeight)}
-            <span className="s-unit">kg</span>
-          </div>
-          <div className="s-sub">Acciaio B450C</div>
-        </div>
-      </div>
-
       {/* Pannello Principale Tabella */}
       <div className="panel master-table-panel">
         {/* 4) Intestazione: Titolo a sinistra e Tasto Ordina ufficiale allegato tutto a destra */}
@@ -618,6 +585,15 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                   );
                 })}
               </tbody>
+              <tfoot>
+                <tr className="master-table-total-row">
+                  <td className="total-label-cell">Totale</td>
+                  <td className="total-qty-cell">{intFmt(statsPieces)} pz</td>
+                  <td className="total-len-cell">{fmt(statsMeters)} m</td>
+                  <td className="total-weight-cell">{fmt(statsWeight)} kg</td>
+                  <td className="total-action-cell"></td>
+                </tr>
+              </tfoot>
             </table>
           </div>
 

@@ -241,7 +241,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               <div className="kpi-card-3d accent-amber-3d">
                 <div className="kpi-label-3d">Sfrido Totale</div>
                 <div className="kpi-value-3d">{fmt(result.scrapMeters)} m</div>
-                <div className="kpi-sub-3d">{fmt(result.scrapPct, 1)}% barre consumate</div>
+                <div className="kpi-sub-3d">{fmt(result.scrapPct, 1)}% barre utilizzate</div>
               </div>
 
               <div className="kpi-card-3d">
@@ -295,6 +295,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                       operations.map((p, idx) => (
                         <CutDiagramBar
                           key={idx}
+                          barId={p.barId}
+                          isRecovery={p.isRecovery}
                           diameter={p.diameter}
                           barUnits={p.barUnits}
                           barCount={p.barCount}
@@ -312,6 +314,10 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                     <table className="result-table" id="outputTable">
                       <thead>
                         <tr>
+                          <th>
+                            <span className="th-line1">ID</span>
+                            <span className="th-line2">[n]</span>
+                          </th>
                           <th>
                             <span className="th-line1">Ø</span>
                             <span className="th-line2">[mm]</span>
@@ -347,7 +353,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                       <tbody>
                         {operations.length === 0 ? (
                           <tr>
-                            <td colSpan={cuts.length + 6} className="empty">
+                            <td colSpan={cuts.length + 7} className="empty">
                               Nessuna barra utilizzata.
                             </td>
                           </tr>
@@ -359,6 +365,14 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                               (allocatedCm / 100) * unitWeight(p.diameter) * p.barCount;
                             return (
                               <tr key={idx}>
+                                <td className="plan-id-cell">
+                                  <span
+                                    className={`table-id-badge ${p.isRecovery ? 'badge-recovery' : 'badge-origin'}`}
+                                    title={p.isRecovery ? `Barra recuperata dalla barra #${p.barId}` : `Barra originaria #${p.barId}`}
+                                  >
+                                    #{p.barId}{p.isRecovery ? ' (Rec.)' : ''}
+                                  </span>
+                                </td>
                                 <td>{intFmt(p.diameter)}</td>
                                 <td>{intFmt(p.barCount)}</td>
                                 <td>{fmt(p.barUnits / 100)}</td>
@@ -378,6 +392,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                         )}
                         {operations.length > 0 && (
                           <tr className="total-row">
+                            <td className="total-label-cell">Totale</td>
                             <td>—</td>
                             <td>{intFmt(result.usedBars)}</td>
                             <td>{fmt(result.usedMeters)}</td>

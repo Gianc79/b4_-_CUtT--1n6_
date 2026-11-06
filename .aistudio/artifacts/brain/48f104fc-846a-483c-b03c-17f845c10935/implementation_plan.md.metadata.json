@@ -1,6 +1,6 @@
 {
-  "summary": "Piano di implementazione per la modernizzazione completa dell'interfaccia di OTTIMIZZAZIONE BARRE C.A., con layout responsive a schede / vista affiancata per desktop, ottimizzazione touch per smartphone da cantiere stile lista/schede per diametro, diagrammi grafici interattivi a barre segmentate per il Piano di Taglio e preservazione integrale del motore di calcolo, import/export Excel e backup JSON.",
-  "updatedAt": "2026-11-04T20:35:23.521258886Z",
+  "summary": "Piano di implementazione per la versione v. 1.30 di TAGLIO BARRE C.A.\nInclude:\n- Fascia superiore a due righe su smartphone con 3 icone abbassate a destra\n- Creazione di 3 icone vettoriali SVG native per Importa XLS, Esporta XLS e Ordina\n- Eliminazione widget di sviluppo/peso e introduzione riga Totale a fondo tabella\n- Ingrandimento font pulsanti Filtra Diametri\n- Eliminazione jitter/spostamento laterale del popup di eliminazione con centraggio immediato\n- Ottimizza: Esporta XLS tutto a destra, dicitura 'utilizzate' nello Sfrido Totale, e colonna ID collegata tra barra originaria e barra recuperata in Tabella Dati e Diagrammi Visivi.",
+  "updatedAt": "2026-11-06T08:43:16.875853992Z",
   "requestFeedback": true,
   "userFacing": true
 }

@@ -51,10 +51,10 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <header className="topbar">
-      {/* Fascia superiore compatta v1.29: Titolo con versione a fianco, sottotitolo sotto, 3 icone traslate in basso */}
-      <div className="brandline-v129">
-        <div className="brand-header-left">
-          {/* Icona dell'app */}
+      {/* Fascia superiore v1.30: Layout responsive a 2 righe su smartphone per zero sovrapposizioni */}
+      <div className="brandline-v130">
+        {/* Riga 1: Icona dell'app + Titolo a tutta larghezza con versione inline */}
+        <div className="brand-header-top-row">
           <div className="brandmark-app-icon" aria-hidden="true">
             <svg viewBox="0 0 32 32" fill="none">
               <rect width="32" height="32" rx="8" fill="#1e3a5f" />
@@ -62,22 +62,20 @@ export const TopBar: React.FC<TopBarProps> = ({
               <path d="M11 6v20M21 6v20" stroke="#ffffff" strokeOpacity=".85" strokeWidth="2.2" strokeLinecap="round" />
             </svg>
           </div>
-
-          {/* Titolo e versione di fianco sulla stessa riga, sottotitolo compatto sotto */}
-          <div className="brand-titles-group">
-            <div className="brand-title-row">
-              <h1 className="brand-app-name">
-                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.29</span>
-              </h1>
-            </div>
-            <p className="brand-subtitle-compact">
-              Gestione ottimizzata del Piano di Taglio.
-            </p>
+          <div className="brand-title-row">
+            <h1 className="brand-app-name">
+              TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.30</span>
+            </h1>
           </div>
         </div>
 
-        {/* 3 Icone SpesaSuMisura in cerchi bianchi traslate a ridosso del bordo inferiore */}
-        <div className="topbar-circular-actions-bottom" role="toolbar" aria-label="Operazioni file">
+        {/* Riga 2: Sottotitolo a sinistra e 3 icone circolari allineate a destra in basso */}
+        <div className="brand-header-sub-row">
+          <p className="brand-subtitle-compact">
+            Gestione ottimizzata del Piano di Taglio.
+          </p>
+
+          <div className="topbar-circular-actions-bottom" role="toolbar" aria-label="Operazioni file">
           {/* 1) Salva: Floppy disk */}
           <button
             className="topbar-circular-btn"
@@ -176,6 +174,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             accept="application/json,.json"
             onChange={handleFileChange}
           />
+        </div>
         </div>
       </div>
 
