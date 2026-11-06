@@ -2195,7 +2195,7 @@ tr.row-applied td {
 
 .sort-dialog-card-v4 {
   position: relative;
-  width: clamp(280px, 67vw, 440px);
+  width: min(92vw, 460px);
   background: #ffffff;
   border-radius: 16px;
   padding: 22px 24px;
@@ -2271,8 +2271,9 @@ tr.row-applied td {
 }
 
 .sort-item-bars-btn {
-  width: 58px;
-  height: 42px;
+  width: 40px !important;
+  height: 40px !important;
+  aspect-ratio: 1 / 1 !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2515,14 +2516,17 @@ tr.row-applied td {
 
 .cut-diagram-header-v3 {
   margin-bottom: 12px;
-  padding-right: 70px;
+  padding-right: 68px;
 }
 
 .cut-badges-group-v3 {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+  margin-bottom: 8px;
+  overflow: visible;
 }
 
 .dia-badge-box-v3 {
@@ -2531,8 +2535,10 @@ tr.row-applied td {
   color: #1e293b;
   font-weight: 800;
   font-size: 12px;
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .bar-length-badge-box-v3 {
@@ -2541,8 +2547,10 @@ tr.row-applied td {
   color: #1d4ed8;
   font-weight: 800;
   font-size: 12px;
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cut-diagram-summary-v3 {
@@ -2670,10 +2678,11 @@ tr.row-applied td {
 }
 
 /* ========================================================
-   TAGLIO BARRE C.A. — v. 1.31 Specific Styles & Enhancements
+   TAGLIO BARRE C.A. — v. 1.32 Specific Styles & Enhancements
    ======================================================== */
 
-/* 1) Fascia superiore v1.31: Logo colorato, titolo e sottotitolo su 2 righe a sx, 3 icone a dx */
+/* 1) Fascia superiore: Logo colorato, titolo e sottotitolo a sx, 3 icone a dx con altezza smartphone maggiorata */
+.brandline-v132,
 .brandline-v131 {
   display: flex;
   align-items: flex-end;
@@ -2696,6 +2705,7 @@ tr.row-applied td {
   min-width: 0;
 }
 
+.brand-subtitle-twolines-v132,
 .brand-subtitle-twolines-v131 {
   margin: 1px 0 0;
   font-size: 11px;
@@ -2721,7 +2731,94 @@ tr.row-applied td {
   margin-left: auto;
   flex-shrink: 0;
   align-self: flex-end;
-  margin-bottom: -2px; /* traslate a ridosso della linea inferiore */
+  margin-bottom: -2px;
+}
+
+/* Smartphone specifico (<= 640px): Aumento altezza fascia per evitare qualsiasi interferenza tra titolo e le 3 icone */
+@media (max-width: 640px) {
+  .topbar {
+    padding-top: 12px !important;
+    padding-bottom: 14px !important;
+    min-height: 96px !important;
+    box-sizing: border-box;
+  }
+
+  .brandline-v132,
+  .brandline-v131 {
+    display: grid !important;
+    grid-template-columns: auto 1fr auto !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 10px !important;
+    row-gap: 4px !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  .brand-header-content {
+    display: contents !important;
+  }
+
+  .brandmark-app-icon {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    align-self: center !important;
+  }
+
+  .brand-titles-column {
+    grid-column: 2 / span 2 !important;
+    grid-row: 1 !important;
+    display: block !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .brand-title-row {
+    width: 100% !important;
+    display: flex !important;
+    align-items: baseline !important;
+  }
+
+  .brand-app-name {
+    font-size: 18px !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: baseline !important;
+  }
+
+  .brand-subtitle-twolines-v132,
+  .brand-subtitle-twolines-v131 {
+    grid-column: 1 / span 2 !important;
+    grid-row: 2 !important;
+    margin-top: 2px !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    color: #c7d2fe !important;
+    align-self: end !important;
+    white-space: normal !important;
+  }
+
+  .topbar-circular-actions-bottom {
+    grid-column: 3 !important;
+    grid-row: 2 !important;
+    align-self: end !important;
+    justify-self: end !important;
+    margin-bottom: 0 !important;
+    margin-left: auto !important;
+    gap: 8px !important;
+  }
+
+  .topbar-circular-btn {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .topbar-circular-btn svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
 }
 
 /* 2) Popup & Toast stile SpesaSuMisura con centraggio immediato e LARGHEZZA COSTANTE A 2/3 DELLO SCHERMO */
@@ -2993,26 +3090,31 @@ body.keyboard-input-open .bottom-nav {
   border: 1.5px solid #7dd3fc;
 }
 
-/* Badge ID nei diagrammi visivi v1.31: identico a v1.29 con ID puro a sx */
+/* Badge ID nei diagrammi visivi v1.32 con etichetta "ID n" */
+.dia-badge-id-v132,
 .dia-badge-id-v131 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
+  min-width: 38px;
   height: 26px;
-  padding: 0 8px;
+  padding: 0 7px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
   line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
+.dia-badge-id-v132.origin,
 .dia-badge-id-v131.origin {
   background: #dcfce7;
   color: #15803d;
   border: 1.5px solid #86efac;
 }
 
+.dia-badge-id-v132.recovery,
 .dia-badge-id-v131.recovery {
   background: #e0f2fe;
   color: #0369a1;

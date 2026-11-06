@@ -20,7 +20,7 @@ const SORT_FIELDS = [
  */
 const SortBarsOrderIcon: React.FC<{ isAsc: boolean }> = ({ isAsc }) => {
   return (
-    <svg viewBox="0 0 36 32" width="28" height="25" fill="none">
+    <svg viewBox="0 0 36 32" width="24" height="22" fill="none" style={{ display: 'block' }}>
       <path
         d="M7 4v20m0 0l-4-4.5M7 24l4-4.5"
         stroke="#475569"

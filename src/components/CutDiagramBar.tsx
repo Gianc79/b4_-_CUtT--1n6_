@@ -74,12 +74,12 @@ export const CutDiagramBar: React.FC<CutDiagramBarProps> = ({
       {/* Header con ID puro a sx, Diametro e Lunghezza barra (identico a v1.29) */}
       <div className="cut-diagram-header-v3">
         <div className="cut-badges-group-v3">
-          {/* ID puro: numero puro verde per standard, azzurro per recupero */}
+          {/* ID con prefisso ID n: verde per standard, azzurro per recupero */}
           <div
-            className={`dia-badge-id-v131 ${isRecovery ? 'recovery' : 'origin'}`}
+            className={`dia-badge-id-v132 ${isRecovery ? 'recovery' : 'origin'}`}
             title={isRecovery ? `Barra da recupero della barra ${barId}` : `Barra originaria ${barId}`}
           >
-            {barId ?? 1}
+            ID {barId ?? 1}
           </div>
 
           {/* Riquadro Diametro */}

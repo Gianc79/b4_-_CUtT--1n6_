@@ -51,8 +51,8 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <header className="topbar">
-      {/* Fascia superiore v1.31: Icona colorata, titolo e sottotitolo su 2 righe a sx, 3 icone a dx */}
-      <div className="brandline-v131">
+      {/* Fascia superiore v1.32: Icona colorata, titolo e sottotitolo su 2 righe a sx, 3 icone a dx con altezza smartphone maggiorata */}
+      <div className="brandline-v132">
         <div className="brand-header-content">
           {/* Icona dell'app colorata (2 barre verdi, 2 barre bianche) */}
           <div className="brandmark-app-icon" aria-hidden="true">
@@ -71,10 +71,10 @@ export const TopBar: React.FC<TopBarProps> = ({
           <div className="brand-titles-column">
             <div className="brand-title-row">
               <h1 className="brand-app-name">
-                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.31</span>
+                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.32</span>
               </h1>
             </div>
-            <p className="brand-subtitle-twolines-v131">
+            <p className="brand-subtitle-twolines-v132">
               Gestione ottimizzata<br />del Piano di Taglio.
             </p>
           </div>
