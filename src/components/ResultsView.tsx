@@ -154,11 +154,11 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
       <div className="section-head optimization-head-v129">
         <div className="optimization-head-text">
           <h2>Ottimizza</h2>
-          {/* 5) Frase esplicativa richiesta */}
-          <p>Piano Operativo di Taglio generato dall'ottimizzazione della Giacenza. Possibilità di esportazione XLS.</p>
+          {/* Frase esplicativa v1.36 */}
+          <p>Piano Operativo di Taglio generato dall'ottimizzazione della giacenza. Possibilità di esportarlo in un file Excel.</p>
         </div>
 
-        {/* 1) Icona Esporta XLS ufficiale tutta a destra allineata al pulsante Esegui ottimizzazione */}
+        {/* Pulsante Esegui ottimizzazione */}
         <div className="optimization-head-actions-row">
           <button
             className="btn primary optimize-pulse-btn-v128"
@@ -168,24 +168,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             aria-label="Esegui ottimizzazione"
           >
             <span className="optimize-btn-text-v128">▶ Esegui ottimizzazione</span>
-          </button>
-
-          {/* Nuovo comando Esporta Piano di Taglio (sostituisce Esporta XLS e apre finestra di scelta) */}
-          <button
-            className="xls-action-icon-btn xls-action-icon-btn-header"
-            type="button"
-            id="exportPlanBtn"
-            onClick={() => {
-              if (!has || !result) {
-                setAlertModalMessage('Esegui prima l’ottimizzazione per poter esportare il Piano di Taglio.');
-                return;
-              }
-              setExportModalOpen(true);
-            }}
-            title="Esporta Piano di Taglio (Excel, PDF, Immagine)"
-            aria-label="Esporta Piano di Taglio"
-          >
-            <ExportPlanIcon size={38} />
           </button>
         </div>
       </div>
@@ -334,16 +316,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 </div>
 
                 <div className="panel-head-actions-v128">
-                  {/* Pulsante rapido Esporta/Stampa nella sezione Piano Operativo di Taglio */}
-                  <button
-                    type="button"
-                    className="btn outline small export-plan-head-btn"
-                    onClick={() => setExportModalOpen(true)}
-                    title="Esporta o Stampa il Piano di Taglio (Excel, PDF, Immagine)"
-                  >
-                    📥 Esporta / Stampa
-                  </button>
-
                   {/* Widget delle schede Tabella Dati / Diagrammi Visivi */}
                   <div className="view-mode-toggle-v128" role="group" aria-label="Visualizzazione piano">
                     <button
@@ -361,6 +333,16 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                       ✂ Diagrammi Visivi
                     </button>
                   </div>
+
+                  {/* Pulsante rapido Esporta/Stampa all'estrema destra */}
+                  <button
+                    type="button"
+                    className="btn outline small export-plan-head-btn"
+                    onClick={() => setExportModalOpen(true)}
+                    title="Esporta o Stampa il Piano di Taglio (Excel, PDF, Immagine)"
+                  >
+                    📥 Esporta / Stampa
+                  </button>
                 </div>
               </div>
 

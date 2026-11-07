@@ -60,7 +60,7 @@ export async function exportDiagramsAsPng(
   // Titolo applicazione
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-  ctx.fillText('TAGLIO BARRE C.A. — v. 1.35', 24, 38);
+  ctx.fillText('TAGLIO BARRE C.A. — v. 1.36', 24, 38);
 
   ctx.fillStyle = '#93c5fd';
   ctx.font = '600 13px system-ui, -apple-system, sans-serif';
@@ -78,18 +78,17 @@ export async function exportDiagramsAsPng(
   ctx.font = '12px system-ui, -apple-system, sans-serif';
   ctx.fillText(`Generato il: ${dateStr}`, baseWidth - 220, 38);
 
-  // Barra di riepilogo nell'header
+  // Barra di riepilogo nell'header con elenco barre utilizzate
   ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
   ctx.fillRect(24, 76, baseWidth - 48, 38);
 
   ctx.fillStyle = '#ffffff';
   ctx.font = '600 13px system-ui, -apple-system, sans-serif';
-  const usedWeight = (result.usedByLength || []).reduce(
-    (sum: number, b) => sum + (Number(b.weight) || 0),
-    0
+  const usedBarsList = (result.usedByLength || []).map(
+    b => `n. ${intFmt(b.qty)} Ø ${b.diameter} da ${fmt(b.length / 100)} m`
   );
-  const kpiText = `Barre utilizzate: ${intFmt(result.usedBars)}   |   Sfrido: ${fmt(result.scrapMeters)} m (${fmt(result.scrapPct, 1)}%)   |   Peso Acciaio: ${fmt(usedWeight)} kg`;
-  ctx.fillText(kpiText, 38, 100);
+  const headerSummaryText = `Barre utilizzate: ${usedBarsList.join('   |   ') || 'Nessuna'}`;
+  ctx.fillText(headerSummaryText, 38, 100);
 
   // Render di ciascuna scheda diagramma
   let currentY = headerHeight + 16;
@@ -163,11 +162,55 @@ export async function exportDiagramsAsPng(
     ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
     ctx.fillText(`Barra ${fmt(p.barUnits / 100)} m`, cardX + 162, currentY + 25);
 
-    // Indicatore Taglio sintetico
-    ctx.fillStyle = '#0369a1';
+    // Indicatori sintetici sopra la barra (Taglio, Recupero, Sfrido)
+    let tagX = cardX + 266;
     ctx.font = '600 11px system-ui, -apple-system, sans-serif';
-    const cutSummary = `Taglio: ${p.cutCount > 1 ? `${p.cutCount}× ` : ''}${fmt(p.cutLength / 100)} m`;
-    ctx.fillText(cutSummary, cardX + 266, currentY + 25);
+
+    // 1) Taglio
+    const cutText = `Taglio: ${p.cutCount > 1 ? `${p.cutCount}× ` : ''}${fmt(p.cutLength / 100)} m`;
+    const cutTextWidth = ctx.measureText(cutText).width;
+    ctx.fillStyle = '#e0f2fe';
+    ctx.strokeStyle = '#bae6fd';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(tagX, currentY + 10, cutTextWidth + 14, 22, 6);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#0369a1';
+    ctx.fillText(cutText, tagX + 7, currentY + 25);
+    tagX += cutTextWidth + 20;
+
+    // 2) Recupero (se presente)
+    if (p.recoveryUnits > 0) {
+      const recText = `Recupero: ${fmt(p.recoveryUnits / 100)} m`;
+      const recTextWidth = ctx.measureText(recText).width;
+      ctx.fillStyle = '#f0f9ff';
+      ctx.strokeStyle = '#7dd3fc';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(tagX, currentY + 10, recTextWidth + 14, 22, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#0284c7';
+      ctx.fillText(recText, tagX + 7, currentY + 25);
+      tagX += recTextWidth + 20;
+    }
+
+    // 3) Sfrido (se presente)
+    if (p.scrapUnits > 0) {
+      const scrapText = `Sfrido: ${fmt(p.scrapUnits / 100)} m`;
+      const scrapTextWidth = ctx.measureText(scrapText).width;
+      ctx.fillStyle = '#fef3c7';
+      ctx.strokeStyle = '#fde68a';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(tagX, currentY + 10, scrapTextWidth + 14, 22, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#b45309';
+      ctx.fillText(scrapText, tagX + 7, currentY + 25);
+      tagX += scrapTextWidth + 20;
+    }
 
     // Barra segmentata
     const barTrackX = cardX + 14;
@@ -281,7 +324,7 @@ export async function exportDiagramsAsPng(
       return;
     }
     const buffer = await blob.arrayBuffer();
-    const fileName = 'diagrammi-piano-taglio-v1.35.png';
+    const fileName = 'diagrammi-piano-taglio-v1.36.png';
     const mime = 'image/png';
 
     try {

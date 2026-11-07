@@ -9,6 +9,7 @@ import {
   validMasterRows,
   resultKey,
   fmt,
+  unitWeight,
 } from './math';
 import { buildOperationalPlan } from './optimizer';
 import { download, saveWithPicker } from './storage';
@@ -217,24 +218,29 @@ export async function exportPlanXls(
   try {
     const { cuts, rows: operations } = buildOperationalPlan(result);
     const headers = [
-      'Ø [mm]',
-      'N. barre',
-      'Barra [m]',
-      'Recupero [m]',
-      'Scarto [m]',
+      'ID\n[n]',
+      'Ø\n[mm]',
+      'N. barre\n[n]',
+      'Barra\n[m]',
+      'Recupero\n[m]',
+      'Scarto\n[m]',
       ...cuts.map(d => `Taglio Ø ${d.diameter}\n${fmt(d.length / 100)} m`),
+      'Peso\n[kg]',
     ];
     const rows: (string | number)[][] = [headers];
 
     for (const p of operations) {
+      const allocatedWeight = (p.barUnits / 100) * unitWeight(p.diameter) * p.barCount;
       rows.push(
         [
+          Number(p.barId),
           p.diameter,
           p.barCount,
           round2(p.barUnits / 100),
           round2(p.recoveryUnits / 100),
           round2(p.scrapUnits / 100),
           ...cuts.map(d => (p.cutKey === resultKey(d.diameter, d.length) ? p.cutCount : 0)),
+          round2(allocatedWeight),
         ].map(value => (typeof value === 'number' ? round2(value) : value))
       );
     }
@@ -243,24 +249,79 @@ export async function exportPlanXls(
       throw new Error('Il Piano di taglio non contiene operazioni da esportare.');
     }
 
-    const worksheet = XLSX.utils.aoa_to_sheet(rows);
-    worksheet['!cols'] = [{ wch: 10 }, { wch: 11 }, { wch: 12 }, { wch: 13 }, { wch: 12 }, ...cuts.map(() => ({ wch: 17 }))];
-    worksheet['!rows'] = [{ hpt: 32 }, ...operations.map(() => ({ hpt: 20 }))];
+    // Aggiunta riga di riepilogo Totale
+    const usedWeight = (result.usedByLength || []).reduce(
+      (sum: number, b) => sum + (Number(b.weight) || 0),
+      0
+    );
+    rows.push([
+      'Totale',
+      '',
+      result.usedBars,
+      round2(result.usedMeters),
+      '',
+      round2(result.scrapMeters),
+      ...cuts.map(d => d.fulfilled),
+      round2(usedWeight),
+    ]);
 
-    for (let row = 2; row <= rows.length; row++) {
-      for (const col of ['A', 'B']) {
-        const cell = worksheet[`${col}${row}`];
-        if (cell) cell.z = '0';
-      }
-      for (const col of ['C', 'D', 'E']) {
-        const cell = worksheet[`${col}${row}`];
-        if (cell) cell.z = '0.00';
-      }
-      for (let i = 0; i < cuts.length; i++) {
-        const cell = worksheet[XLSX.utils.encode_cell({ r: row - 1, c: 5 + i })];
-        if (cell) cell.z = '0';
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+
+    // Larghezza uniforme per tutte le colonne con formattazione testo a capo
+    worksheet['!cols'] = headers.map(() => ({ wch: 13 }));
+    worksheet['!rows'] = [
+      { hpt: 32 },
+      ...operations.map(() => ({ hpt: 20 })),
+      { hpt: 22 },
+    ];
+
+    // Formattazione celle (testo a capo per intestazioni e formati numerici)
+    for (let c = 0; c < headers.length; c++) {
+      const headerCell = worksheet[XLSX.utils.encode_cell({ r: 0, c })];
+      if (headerCell) {
+        (headerCell as any).s = {
+          alignment: { wrapText: true, vertical: 'center', horizontal: 'center' },
+          font: { bold: true },
+        };
       }
     }
+
+    const dataRowCount = operations.length;
+    for (let r = 1; r <= dataRowCount; r++) {
+      // ID (col 0), Ø (col 1), N. barre (col 2)
+      for (const c of [0, 1, 2]) {
+        const cell = worksheet[XLSX.utils.encode_cell({ r, c })];
+        if (cell) cell.z = '0';
+      }
+      // Barra (col 3), Recupero (col 4), Scarto (col 5)
+      for (const c of [3, 4, 5]) {
+        const cell = worksheet[XLSX.utils.encode_cell({ r, c })];
+        if (cell) cell.z = '0.00';
+      }
+      // Tagli (col 6 .. 6 + cuts.length - 1)
+      for (let i = 0; i < cuts.length; i++) {
+        const cell = worksheet[XLSX.utils.encode_cell({ r, c: 6 + i })];
+        if (cell) cell.z = '0';
+      }
+      // Peso (col 6 + cuts.length)
+      const pesoCell = worksheet[XLSX.utils.encode_cell({ r, c: 6 + cuts.length })];
+      if (pesoCell) pesoCell.z = '0.00';
+    }
+
+    // Riga totale
+    const totRowIdx = dataRowCount + 1;
+    const totBars = worksheet[XLSX.utils.encode_cell({ r: totRowIdx, c: 2 })];
+    if (totBars) totBars.z = '0';
+    const totMeters = worksheet[XLSX.utils.encode_cell({ r: totRowIdx, c: 3 })];
+    if (totMeters) totMeters.z = '0.00';
+    const totScrap = worksheet[XLSX.utils.encode_cell({ r: totRowIdx, c: 5 })];
+    if (totScrap) totScrap.z = '0.00';
+    for (let i = 0; i < cuts.length; i++) {
+      const cell = worksheet[XLSX.utils.encode_cell({ r: totRowIdx, c: 6 + i })];
+      if (cell) cell.z = '0';
+    }
+    const totPeso = worksheet[XLSX.utils.encode_cell({ r: totRowIdx, c: 6 + cuts.length })];
+    if (totPeso) totPeso.z = '0.00';
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Piano di taglio');
@@ -269,7 +330,7 @@ export async function exportPlanXls(
 
     try {
       const saveRes = await saveWithPicker({
-        name: 'piano-taglio-v1.35.xlsx',
+        name: 'piano-taglio-v1.36.xlsx',
         content,
         type: mime,
         description: 'Piano di taglio Excel',
@@ -285,7 +346,7 @@ export async function exportPlanXls(
       alert('La finestra di salvataggio non è riuscita; il file Excel verrà scaricato con il metodo standard.');
     }
 
-    download('piano-taglio-v1.35.xlsx', content, mime);
+    download('piano-taglio-v1.36.xlsx', content, mime);
     onToast('Piano di taglio Excel scaricato.');
   } catch (e: any) {
     alert(`Impossibile esportare il Piano di taglio: ${e.message || 'errore nella creazione del file Excel.'}`);

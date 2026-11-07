@@ -99,7 +99,7 @@ export const ExportPlanModal: React.FC<ExportPlanModalProps> = ({
                 <span className="export-badge-pill pdf">Consigliato</span>
               </div>
               <p className="export-option-desc">
-                Layout vettoriale nitido, impaginato per fogli A4 da portare direttamente sul banco di taglio o salvare in PDF.
+                Layout vettoriale nitido per fogli A4. Su smartphone tocca "Seleziona stampante" in alto e scegli "Salva in PDF" (o pinch-to-zoom su iPhone).
               </p>
             </div>
           </button>
@@ -129,17 +129,6 @@ export const ExportPlanModal: React.FC<ExportPlanModalProps> = ({
                 Grafica ad alta risoluzione con barre e quote di taglio, ideale per la condivisione rapida su smartphone e WhatsApp.
               </p>
             </div>
-          </button>
-        </div>
-
-        {/* Footer modale */}
-        <div className="in-app-modal-footer">
-          <button
-            type="button"
-            className="in-app-modal-btn in-app-modal-btn-cancel"
-            onClick={onClose}
-          >
-            Annulla
           </button>
         </div>
       </div>

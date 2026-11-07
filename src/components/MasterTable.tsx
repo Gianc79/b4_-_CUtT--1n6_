@@ -77,10 +77,22 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   const [deletedRecord, setDeletedRecord] = useState<DeletedRowRecord | null>(null);
   const undoTimerRef = useRef<number | null>(null);
 
-  // Assistente allo scorrimento: assicura che l'input sia centrato e visibile sopra la tastiera mobile
+  // Assistente allo scorrimento stabile: evita rimbalzi e oscillazioni se la cella è già visibile
   const scrollElementIntoWorkArea = (el: HTMLElement) => {
     if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const rect = el.getBoundingClientRect();
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    // Margine superiore per TopBar e margine inferiore per tastiera virtuale mobile
+    const topSafe = 75;
+    const bottomSafe = vh * 0.42;
+
+    // Se la cella è già visibile e comoda nell'area utile, non forzare scorrimenti
+    if (rect.top >= topSafe && rect.bottom <= (vh - bottomSafe)) {
+      return;
+    }
+
+    // Altrimenti avvicinala con scorrimento dolce e stabile al bordo più vicino
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
 
   // Spostamento tabella all'aggiunta di una riga
@@ -90,11 +102,17 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         `input[data-row-id="${nextFocusRowIdRef.current}"][data-field="diameter"]`
       );
       if (targetInput) {
-        targetInput.focus();
+        try {
+          targetInput.focus({ preventScroll: true });
+        } catch (_) {
+          targetInput.focus();
+        }
         try {
           targetInput.select();
         } catch (_) {}
-        scrollElementIntoWorkArea(targetInput);
+        setTimeout(() => {
+          scrollElementIntoWorkArea(targetInput);
+        }, 50);
       }
       nextFocusRowIdRef.current = null;
     }
@@ -260,7 +278,11 @@ export const MasterTable: React.FC<MasterTableProps> = ({
           `input[data-row-id="${rowId}"][data-field="qty"]`
         );
         if (nextInput) {
-          nextInput.focus();
+          try {
+            nextInput.focus({ preventScroll: true });
+          } catch (_) {
+            nextInput.focus();
+          }
           try {
             nextInput.select();
           } catch (_) {}
@@ -270,26 +292,34 @@ export const MasterTable: React.FC<MasterTableProps> = ({
           `input[data-row-id="${rowId}"][data-field="length"]`
         );
         if (nextInput) {
-          nextInput.focus();
+          try {
+            nextInput.focus({ preventScroll: true });
+          } catch (_) {
+            nextInput.focus();
+          }
           try {
             nextInput.select();
           } catch (_) {}
         }
       } else if (field === 'length') {
-        // Riga successiva: controlla visibilità e fa salire la riga centrata
+        // Riga successiva: controlla visibilità ed evita oscillazioni
         if (rowIndex < effectiveRows.length - 1) {
           const nextRow = effectiveRows[rowIndex + 1];
           const nextInput = document.querySelector<HTMLInputElement>(
             `input[data-row-id="${nextRow.id}"][data-field="diameter"]`
           );
           if (nextInput) {
-            nextInput.focus();
+            try {
+              nextInput.focus({ preventScroll: true });
+            } catch (_) {
+              nextInput.focus();
+            }
             try {
               nextInput.select();
             } catch (_) {}
             setTimeout(() => {
               scrollElementIntoWorkArea(nextInput);
-            }, 60);
+            }, 50);
           }
         } else {
           // Ultima riga: aggiungi nuova riga e scorri

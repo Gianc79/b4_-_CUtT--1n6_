@@ -468,7 +468,7 @@ export const App: React.FC = () => {
                 <>
                   Gestisci la giacenza delle barre.
                   <br />
-                  Possibilità di importazione/esportazione XLS.
+                  Possibilità di importare una giacenza da un file Excel o di esportare quella attuale.
                 </>
               }
               rows={state.stockDetail}
@@ -490,7 +490,7 @@ export const App: React.FC = () => {
                 <>
                   Gestisci la richiesta/Distinta barre.
                   <br />
-                  Possibilità di importazione/esportazione XLS.
+                  Possibilità di importare una richiesta da un file Excel o di esportare quella attuale.
                 </>
               }
               rows={state.demandDetail}
@@ -532,7 +532,7 @@ export const App: React.FC = () => {
                       <>
                         Gestisci la giacenza delle barre.
                         <br />
-                        Possibilità di importazione/esportazione XLS.
+                        Possibilità di importare una giacenza da un file Excel o di esportare quella attuale.
                       </>
                     }
                     rows={state.stockDetail}
@@ -553,7 +553,7 @@ export const App: React.FC = () => {
                       <>
                         Gestisci la richiesta/Distinta barre.
                         <br />
-                        Possibilità di importazione/esportazione XLS.
+                        Possibilità di importare una richiesta da un file Excel o di esportare quella attuale.
                       </>
                     }
                     rows={state.demandDetail}
@@ -584,9 +584,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.35 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.36 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.35 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.36 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 

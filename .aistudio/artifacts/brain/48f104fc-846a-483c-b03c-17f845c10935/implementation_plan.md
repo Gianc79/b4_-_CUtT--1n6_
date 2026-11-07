@@ -1,110 +1,110 @@
-# Implementazione TAGLIO BARRE C.A. — v. 1.30
+# Piano di Implementazione — TAGLIO BARRE C.A. v1.36.0
 
-Piano di sviluppo per il rilascio della versione **v. 1.30**, mirato a perfezionare il layout su dispositivi smartphone, sostituire le immagini esterne con icone SVG native nitide e affidabili, snellire le pagine Giacenza e Richiesta integrando i totali nella tabella, e introdurre il tracciamento univoco dell'ID delle barre madri e recuperate nel Piano Operativo di Taglio.
-
----
-
-### Decisioni Confermate con l'Utente
+Ottimizzazione dell'esperienza utente nelle schermate Giacenza, Richiesta e Ottimizza, stabilizzazione dello scorrimento da tastiera, estensione dell'esportazione Excel con colonna ID e formattazione uniforme a capo, e perfezionamento del rendering grafico e dell'intestazione nei diagrammi visivi esportati.
 
 > [!IMPORTANT]
-> **Scelte confermate in Fase 1:**
-> - **Inserimento dati su mobile:** Cella attiva fissa con scorrimento interno morbido senza salti.
-> - **Fascia superiore su smartphone:** Layout a due righe per dare al titolo tutta la larghezza orizzontale e posizionare le 3 icone circolari allineate in basso a destra sotto al titolo, a fianco del sottotitolo.
+> **Regola Fondamentale di Modifica**: Non verrà creato alcun file o cartella di backup in `versions/` o `docs/versions/`. Le modifiche verranno applicate direttamente e chirurgicamente sui soli file sorgente attivi all'interno di `src/` (e radice di configurazione se necessario), modificando unicamente le funzioni e i blocchi interessati.
 
 ---
 
-## 1. Panoramica delle Modifiche
+## Decisioni di Revisione Utente
+
+> [!IMPORTANT]
+> Le seguenti scelte sono state confermate tramite la consultazione interattiva:
+> - **Formattazione Colonne Excel**: Tutte le colonne avranno una larghezza uniforme calibrata e le intestazioni saranno formattate con testo a capo su due righe (`wrapText: true`), consentendo una lettura pulita e compatta dei campi (es. "Taglio Ø 12" su riga 1 e "8,90 m" su riga 2).
+> - **Intestazione Immagine Diagrammi**: La fascia riassuntiva superiore dell'immagine PNG mostrerà unicamente l'elenco sequenziale di tutte le barre utilizzate nel formato compatto `Barre utilizzate: n. [nr.] Ø [diametro] da [lunghezza] m | [record successivo]`.
+> - **File di Destinazione**: Modifiche dirette ai soli file in `src/`, nessun file o duplicato in `versions/`.
+
+---
+
+## 1. Panoramica & Funzionalità
+
+La versione 1.36.0 introduce una serie di perfezionamenti mirati:
+1. **Chiarezza dei Testi**: Aggiornamento delle frasi descrittive sotto i titoli in tutte le viste (Giacenza, Richiesta, Ottimizza) per esplicitare chiaramente le azioni di importazione ed esportazione.
+2. **Navigazione Tastiera Fluida**: Risoluzione del doppio scatto/oscillazione (scroll giù e risalita) durante la navigazione con tasto `Invio` nelle celle delle tabelle, adottando uno scorrimento condizionale con `block: 'nearest'` ed evitando chiamate ridondanti su elementi già centrati nell'area di lavoro.
+3. **Pulizia Visiva Ottimizza**: Rimozione dell'icona ridondante a fianco del pulsante "Esegui ottimizzazione" e riposizionamento del pulsante "Esporta/Stampa" all'estrema destra dell'intestazione della sezione "Piano Operativo di Taglio".
+4. **Modale Esporta Piano di Taglio**: Rimozione del tasto "Annulla" in calce alla finestra, affidandosi alla "×" in alto a destra o al tocco all'esterno/tasto ESC.
+5. **Esportazione Excel Avanzata**: Inclusione del campo numerico `ID` come prima colonna della tabella del Piano di Taglio, adozione di larghezze di colonna uniformi ed allineamento con testo a capo su due righe per le intestazioni.
+6. **Guida Stampa PDF su Smartphone**: Chiarimento sulle modalità native di salvataggio PDF su Android (selettore in alto "Salva come PDF") e iOS (gesture pinch-to-zoom sull'anteprima di stampa) per consentire la creazione del PDF anche senza stampanti hardware connesse.
+7. **Diagrammi Visivi (Canvas PNG)**: Integrazione delle etichette riassuntive complete sopra la barra (`Taglio`, `Recupero` e `Sfrido`), allineandole a quanto mostrato a schermo, e sostituzione del testo in testata con la stringa concatenata dei record del riepilogo barre utilizzate.
+
+---
+
+## 2. Esperienza Utente & Design Visivo
+
+- **Pagine Giacenza e Richiesta**:
+  - Sottotitolo chiaro su 2 righe:
+    - *Giacenza*: `"Gestisci la giacenza delle barre.\nPossibilità di importare una giacenza da un file Excel o di esportare quella attuale."`
+    - *Richiesta*: `"Gestisci la richiesta/Distinta barre.\nPossibilità di importare una richiesta da un file Excel o di esportare quella attuale."`
+  - Scorrimento fluido: premendo Invio, il focus si sposta orizzontalmente (`Ø` → `Quantità` → `Lunghezza`), e a fine riga passa alla prima cella della riga successiva. La finestra non effettua più rimbalzi verticali bruschi, mantenendo ferma la riga attiva a meno che non esca dal campo visivo sopra la tastiera virtuale.
+- **Pagina Ottimizza**:
+  - Sottotitolo: `"Piano Operativo di Taglio generato dall'ottimizzazione della giacenza. Possibilità di esportarlo in un file Excel."`
+  - Nessuna icona duplicata accanto a `▶ Esegui ottimizzazione`.
+  - Intestazione del Piano Operativo di Taglio riorganizzata: Titolo a sinistra, selettore visualizzazione al centro (`Tabella Dati` / `Diagrammi Visivi`), e pulsante `📥 Esporta / Stampa` collocato all'estrema destra.
+- **Finestra Modale Esporta Piano di Taglio**:
+  - Presenta solo le 3 card di scelta (Excel, PDF/Stampa, Immagine PNG) con la chiusura rapida tramite "×" o tocco all'esterno.
+- **Esportazione Immagine PNG dei Diagrammi**:
+  - Testata superiore con barra elegante in contrasto contenente `Barre utilizzate: n. [nr.] Ø [diametro] da [lunghezza] m | n. ...`.
+  - Ogni barra grafica include sopra di sé tutte le quote pertinenti: `ID [n]`, `Ø [d] mm`, `Barra [l] m`, `Taglio: [k]× [l] m`, e quando presenti `Recupero: [r] m` (in azzurro) e `Sfrido: [s] m` (in arancione).
+
+---
+
+## 3. Decisioni Tecniche & File Coinvolti Direttamente
+
+Le modifiche saranno applicate chirurgicamente ai soli file attivi in `src/`:
+
+1. **`src/App.tsx`**:
+   - Aggiornamento delle proprietà `subtitle` passate a `MasterTable` per `stockDetail` e `demandDetail` (sia in vista standard che in Split View).
+2. **`src/components/MasterTable.tsx`**:
+   - Rielaborazione della funzione di scroll (`scrollElementIntoWorkArea`) e degli eventi di focus/keydown: eliminazione del `block: 'center'` indiscriminato a favore di un controllo dei bounds dell'elemento e di `block: 'nearest'`, prevenendo salti e oscillazioni.
+3. **`src/components/ResultsView.tsx`**:
+   - Aggiornamento della frase esplicativa di Ottimizza.
+   - Rimozione del pulsante/icona `exportPlanBtn` posizionato accanto a `optimizeBtn`.
+   - Riposizionamento del pulsante `Esporta / Stampa` all'estrema destra dell'header della sezione `Piano Operativo di Taglio` (dopo i pulsanti di cambio vista `Tabella Dati` / `Diagrammi Visivi`).
+4. **`src/components/ExportPlanModal.tsx`**:
+   - Rimozione del footer contenente il pulsante "Annulla".
+5. **`src/utils/excel.ts`**:
+   - Aggiunta della colonna `ID` all'inizio dell'esportazione del Piano di Taglio.
+   - Intestazioni multilinea su 2 righe con `\n` per tutti i campi.
+   - Impostazione di larghezza omogenea/uniforme per tutte le colonne in `worksheet['!cols']` e configurazione dello stile `wrapText: true` per preservare il testo a capo in Excel.
+6. **`src/utils/exportDiagramsImage.ts`**:
+   - Composizione del testo dell'header con la concatenazione di tutti i record di `result.usedByLength`.
+   - Calcolo e disegno sul canvas dei badge `Recupero: ... m` e `Sfrido: ... m` in aggiunta a `Taglio: ... m`.
+
+---
+
+## 4. Architettura dei Componenti & Flusso Dati
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                   TAGLIO BARRE C.A. — v. 1.30                          │
-├────────────────────────────────────────────────────────────────────────┤
-│ 1. GENERALE       • Fascia fissa a 2 righe su smartphone (zero collisioni)│
-│                   • Popup cancellazione con centraggio immediato (no jump)│
-│ 2. GIACENZA &     • 3 Icone SVG native (Importa XLS, Esporta XLS, Ordina)│
-│    RICHIESTA      • Rimozione widget Sviluppo/Peso ➔ Riga Totale in tabella│
-│                   • Font aumentato per i filtri diametro               │
-│                   • Editing celle senza scatti o scroll forzati       │
-│ 3. OTTIMIZZA      • Icona Esporta XLS tutta a destra su mobile        │
-│                   • Dicitura "utilizzate" nello Sfrido Totale          │
-│                   • Colonna "ID" barra con tracciamento barre recuperate│
-│                   • Badge ID in linea nei Diagrammi Visivi             │
-└────────────────────────────────────────────────────────────────────────┘
+│                              src/App.tsx                               │
+│  - Gestione stato centrale (stockDetail, demandDetail, optimization)   │
+│  - Sottotitoli aggiornati per Giacenza, Richiesta e Split View         │
+└──────────────────┬───────────────────────────────┬─────────────────────┘
+                   │                               │
+        ┌──────────┴──────────┐         ┌──────────┴──────────┐
+        │   MasterTable.tsx   │         │   ResultsView.tsx   │
+        │ - Giacenza/Richiesta│         │ - Esegui Ottimizza  │
+        │ - Focus stabile     │         │   (senza icona)     │
+        │   senza oscillazioni│         │ - Tasto Esporta/    │
+        │ - preventScroll +   │         │   Stampa a destra   │
+        │   nearest block     │         └──────────┬──────────┘
+        └─────────────────────┘                    │
+                                                   │ Apre
+                                        ┌──────────┴──────────┐
+                                        │ ExportPlanModal.tsx │
+                                        │ - 3 opzioni rapide  │
+                                        │ - Senza tasto       │
+                                        │   "Annulla" in fondo│
+                                        └──────────┬──────────┘
+                                                   │
+                   ┌───────────────────────────────┼───────────────────────────────┐
+                   ▼                               ▼                               ▼
+       ┌──────────────────────┐        ┌──────────────────────┐        ┌──────────────────────┐
+       │   src/utils/excel    │        │  window.print (A4)   │        │ exportDiagramsImage  │
+       │ - Colonna ID numerico│        │ - Layout stampabile  │        │ - Testata con elenco │
+       │ - Intestazioni a     │        │ - Istruzioni mobili  │        │   barre utilizzate   │
+       │   larghezza uniforme │        │   "Salva come PDF"   │        │ - Quote complete con │
+       │   e testo a capo     │        │                      │        │   Recuperi & Sfridi  │
+       └──────────────────────┘        └──────────────────────┘        └──────────────────────┘
 ```
-
----
-
-## 2. Dettaglio Funzionale ed Esperienza Utente
-
-### A. Generale & Fascia Superiore
-1. **Fascia fissa a due righe (Mobile Viewport):**
-   - **Riga 1:** Icona applicazione + Titolo `TAGLIO BARRE C.A.` con versione `v. 1.30` inline, con l'intera larghezza dello schermo a disposizione senza toccare o coprire le icone.
-   - **Riga 2:** Sottotitolo `Gestione ottimizzata del Piano di Taglio.` a sinistra e le 3 icone circolari bianche (Salva, Salva con nome, Apri) allineate a destra lungo il bordo inferiore.
-   - Su schermi tablet/desktop, la fascia mantiene un allineamento armonico a riga singola con le azioni a destra.
-2. **Popup di eliminazione con centraggio stabile:**
-   - Correzione dell'animazione CSS del toast: rimozione del transform disallineato durante il `popIn`. Il popup utilizzerà `left: 0; right: 0; margin-left: auto; margin-right: auto; width: fit-content;` garantendo che compaia direttamente al centro senza prima scattare a destra.
-
-### B. Pagine Giacenza e Richiesta
-1. **Nuove Icone SVG Vettoriali Native (Zero dipendenze esterne):**
-   - **Importa da XLS:** Documento foglio di calcolo verde Excel con icona foglio grigliato, etichetta "XLS" e freccia verde in entrata / importazione.
-   - **Esporta in XLS:** Documento verde Excel con icona foglio, etichetta "XLS" e freccia verde verso il basso.
-   - **Ordina Tabella:** Icona moderna con barre graduate azzurre e freccia verticale, coordinata con lo stile dell'ordinamento.
-   - Tutte le icone saranno integrate come componenti React SVG autonomi, garantendo visualizzazione perfetta su qualsiasi schermo e browser, inclusa la versione standalone esportata.
-2. **Pulsanti Filtra Diametri:**
-   - Incremento del font da 12px a 13.5px con peso 800, padding confortevole per l'interazione touch su mobile.
-3. **Eliminazione Widget e Aggiunta Riga Totale in Tabella:**
-   - Rimozione dei due box grandi `SVILUPPO COMPLESSIVO` e `PESO TOTALE` che occupavano spazio prezioso sullo schermo.
-   - Aggiunta della riga finale `tfoot` nella tabella:
-     - Colonna **Ø [mm]**: `Totale` (in grassetto scuro)
-     - Colonna **Nr.**: conteggio pezzi totali (es. `168 pz`)
-     - Colonna **L [cm]**: sviluppo metrico complessivo (es. `729,20 m`)
-     - Colonna **P [kg]**: peso totale complessivo (es. `647,53 kg`)
-     - Colonna **Azioni**: vuota.
-   - In presenza di un filtro diametro attivo (es. Ø 12), la riga Totale rifletterà dinamicamente solo i record del diametro filtrato.
-4. **Inserimento Valori Smart & Scorrimento:**
-   - Nessun trigger di scroll verticale o riposizionamento durante la navigazione da cella a cella sulla medesima riga.
-   - Nel passaggio a una riga nuova, scorrimento morbido e circoscritto unicamente se la cella si trova nell'area inferiore coperta dalla tastiera.
-
-### C. Pagina Ottimizza
-1. **Esporta in XLS allineato a destra su mobile:**
-   - Separazione flessibile dell'intestazione di Ottimizza: il pulsante `▶ Esegui ottimizzazione` e l'icona `Esporta in XLS` avranno posizionamento chiaro, con l'icona esportazione ancorata all'estrema destra anche su schermi stretti.
-2. **Widget Sfrido Totale:**
-   - Aggiornamento del sottotitolo in: `% barre utilizzate` (invece di `consumate`).
-3. **Colonna ID e Tracciamento Barre Recuperate:**
-   - Nel modello operativo di taglio (`buildOperationalPlan`), ogni barra madre vergine riceverà un numero progressivo progressivo (`ID 1`, `ID 2`, `ID 3`, ...).
-   - Quando una barra genera uno sfrido/recupero che viene successivamente impiegato per ulteriori tagli in una fase successiva del piano, tale record manterrà l'**identificativo della barra originaria** (es. `ID 1 [Recupero]`), collegando visivamente e logicamente il ciclo di vita della barra.
-   - **Tabella Dati:** Prima colonna intitolata `ID` con l'indicatore progressivo.
-   - **Diagrammi Visivi:** Badge in linea a sinistra del diametro barra nel riquadro superiore:
-     `[ID #1] [Ø 12 mm] [L: 1200 cm] [1 barra]` tutto su un'unica riga orizzontale.
-
----
-
-## 3. Architettura dei Componenti
-
-```
-src/
-├── components/
-│   ├── ExcelIcons.tsx       <-- Nuove icone SVG native: ExcelImportIcon, ExcelExportIcon, SortTableIcon
-│   ├── TopBar.tsx           <-- Fascia superiore a 2 righe su smartphone, v. 1.30 inline
-│   ├── MasterTable.tsx      <-- Rimossi widget; aggiunta riga Totale a fondo tabella (L in metri, P in kg)
-│   ├── ResultsView.tsx      <-- Esporta XLS a destra, testo "utilizzate", colonna ID e badge ID
-│   └── CutDiagramBar.tsx    <-- Badge ID in linea con diametro, lunghezza e barre
-├── utils/
-│   └── optimizer.ts         <-- Assegnazione ID barra originaria e propagazione su barre da recupero
-└── index.css                <-- Stili a 2 righe mobile per TopBar, fix centraggio popup, stili tfoot
-```
-
----
-
-## 4. Piano di Verifica e Collaudo
-1. **Verifica Layout Mobile (Smartphone 360px - 414px):**
-   - Testare la fascia superiore: verificare che `TAGLIO BARRE C.A. v. 1.30` non collida con le 3 icone circolari.
-   - Testare le pagine Giacenza e Richiesta: verificare presenza delle 3 icone SVG, ingrandimento testo diametri, presenza della riga Totale a fondo tabella.
-   - Testare il popup di eliminazione riga: verificare che compaia al centro senza spostamento laterale.
-2. **Verifica Piano di Taglio (Ottimizza):**
-   - Eseguire l'ottimizzazione e verificare che la colonna `ID` sia presente nella Tabella Dati e che le barre tagliate da recuperi mantengano l'ID della barra madre originaria.
-   - Verificare che nei Diagrammi Visivi il badge ID compaia in linea con diametro e lunghezza.
-   - Verificare che il widget Sfrido Totale riporti `% barre utilizzate`.
-3. **Build e Lint:**
-   - Esecuzione contemporanea di `compile_applet` e `lint_applet` per confermare 0 errori.
-   - Archiviazione della versione autonoma `versions/TAGLIO_BARRE_CA_v1.30.html` e `docs/versions/TAGLIO_BARRE_CA_v1.30.html`.

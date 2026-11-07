@@ -3365,11 +3365,11 @@ body.keyboard-input-open .bottom-nav {
 }
 
 .export-plan-head-btn {
-  padding: 5px 10px;
-  font-size: 12px;
+  padding: 6px 12px;
+  font-size: 13px;
   font-weight: 700;
   border-radius: 8px;
-  margin-right: 8px;
+  margin-left: 8px;
 }
 
 /* v. 1.35 - Regole Stampa / PDF A4 nitido ad alta fedeltà */

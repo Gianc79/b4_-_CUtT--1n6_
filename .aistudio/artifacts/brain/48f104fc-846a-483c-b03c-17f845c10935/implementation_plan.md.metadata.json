@@ -1,6 +1,6 @@
 {
-  "summary": "Piano di implementazione per la versione v. 1.30 di TAGLIO BARRE C.A.\nInclude:\n- Fascia superiore a due righe su smartphone con 3 icone abbassate a destra\n- Creazione di 3 icone vettoriali SVG native per Importa XLS, Esporta XLS e Ordina\n- Eliminazione widget di sviluppo/peso e introduzione riga Totale a fondo tabella\n- Ingrandimento font pulsanti Filtra Diametri\n- Eliminazione jitter/spostamento laterale del popup di eliminazione con centraggio immediato\n- Ottimizza: Esporta XLS tutto a destra, dicitura 'utilizzate' nello Sfrido Totale, e colonna ID collegata tra barra originaria e barra recuperata in Tabella Dati e Diagrammi Visivi.",
-  "updatedAt": "2026-11-06T08:43:16.875853992Z",
-  "requestFeedback": true,
-  "userFacing": true
+  "summary":  "Piano di implementazione aggiornato per la versione 1.36.0: specifica esplicitamente di non creare cartelle o file di backup in versions/, operando direttamente e chirurgicamente sui soli file attivi all'interno di src/.",
+  "updatedAt":  "2026-11-07T09:25:38.017425112Z",
+  "requestFeedback":  true,
+  "userFacing":  true
 }
