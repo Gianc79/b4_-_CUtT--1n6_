@@ -26,14 +26,17 @@ export const ExportPlanModal: React.FC<ExportPlanModalProps> = ({
       aria-labelledby="exportPlanModalTitle"
     >
       <div
-        className="in-app-modal-card export-plan-modal-card"
+        className="in-app-modal export-plan-modal-card"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header modale in stile SpesaSuMisura */}
-        <div className="in-app-modal-header">
-          <h3 id="exportPlanModalTitle" className="in-app-modal-title">
-            Esporta / Stampa
-          </h3>
+        {/* Header modale con titolo percepibile e 'x' allineata verticalmente all'estrema dx */}
+        <div className="export-plan-modal-header">
+          <div className="export-plan-title-group">
+            <span className="export-plan-header-icon" aria-hidden="true">📥</span>
+            <h3 id="exportPlanModalTitle" className="export-plan-modal-title">
+              Esporta / Stampa
+            </h3>
+          </div>
           <button
             type="button"
             className="in-app-modal-close-btn"

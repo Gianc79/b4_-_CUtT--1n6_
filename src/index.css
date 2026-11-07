@@ -357,73 +357,135 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   flex-wrap: wrap;
 }
 
-/* Buttons */
+/* Buttons in formato 3D (v. 1.38) - Riconoscibilità tattile rispetto ai riquadri grafici */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 12px;
-  border: 1px solid #cbd5e1;
-  background: #fff;
+  padding: 8px 14px;
+  border: 1px solid #94a3b8;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
   color: var(--navy);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 750;
   border-radius: 8px;
   min-height: 36px;
-  transition: all 0.15s ease;
+  box-shadow: 0 3px 0 #cbd5e1, 0 3px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.12s ease;
+  cursor: pointer;
 }
 
 .btn:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
+  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+  border-color: #64748b;
+  box-shadow: 0 4px 0 #cbd5e1, 0 4px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
 }
 
 .btn:active {
-  transform: scale(0.98);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #cbd5e1, 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .btn.primary {
-  background: var(--green);
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
   color: #fff;
-  border-color: var(--green);
+  border: 1px solid #047857;
+  box-shadow: 0 3px 0 #047857, 0 4px 10px rgba(5, 150, 105, 0.35);
 }
 
 .btn.primary:hover {
-  background: var(--green-dark);
-  border-color: var(--green-dark);
+  background: linear-gradient(180deg, #059669 0%, #047857 100%);
+  border-color: #065f46;
+  box-shadow: 0 4px 0 #064e3b, 0 5px 12px rgba(5, 150, 105, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn.primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #047857, 0 2px 4px rgba(5, 150, 105, 0.2);
 }
 
 .btn.neutral {
-  background: #f1f5f9;
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
   color: #334155;
-  border-color: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 3px 0 #94a3b8, 0 3px 6px rgba(0, 0, 0, 0.06);
 }
 
 .btn.neutral:hover {
-  background: #e2e8f0;
+  background: linear-gradient(180deg, #f1f5f9 0%, #cbd5e1 100%);
+  border-color: #94a3b8;
+  box-shadow: 0 4px 0 #94a3b8, 0 4px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.btn.neutral:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #94a3b8;
 }
 
 .btn.sort {
-  background: #ecfdf5;
-  color: #065f46;
-  border-color: #a7f3d0;
+  background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
+  color: #166534;
+  border: 1px solid #86efac;
+  box-shadow: 0 3px 0 #4ade80, 0 3px 6px rgba(22, 101, 52, 0.12);
 }
 
 .btn.sort:hover {
-  background: #d1fae5;
+  background: linear-gradient(180deg, #dcfce7 0%, #bbf7d0 100%);
+  border-color: #4ade80;
+  box-shadow: 0 4px 0 #22c55e, 0 4px 8px rgba(22, 101, 52, 0.18);
+  transform: translateY(-1px);
+}
+
+.btn.sort:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #4ade80;
+}
+
+.btn.outline {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+  color: #0369a1;
+  border: 1.5px solid #0284c7;
+  box-shadow: 0 3px 0 #0284c7, 0 3px 8px rgba(2, 132, 199, 0.18);
+}
+
+.btn.outline:hover {
+  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-color: #0369a1;
+  box-shadow: 0 4px 0 #0369a1, 0 5px 12px rgba(2, 132, 199, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn.outline:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #0284c7;
 }
 
 .btn.small {
   min-height: 30px;
-  padding: 5px 9px;
+  padding: 5px 10px;
   font-size: 11px;
   border-radius: 7px;
+  box-shadow: 0 2px 0 #cbd5e1, 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.btn.small.primary {
+  box-shadow: 0 2px 0 #047857, 0 2px 5px rgba(5, 150, 105, 0.3);
+}
+
+.btn.small:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #cbd5e1;
 }
 
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .icon-btn {
@@ -431,13 +493,28 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   height: 28px;
   padding: 0;
   border: 1px solid #fecaca;
-  background: #fff;
+  background: linear-gradient(180deg, #ffffff 0%, #fef2f2 100%);
   color: var(--danger);
   border-radius: 6px;
   font-size: 16px;
   line-height: 1;
   display: inline-grid;
   place-items: center;
+  box-shadow: 0 2px 0 #fca5a5;
+  transition: all 0.12s ease;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #f87171;
+}
+
+.icon-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #fca5a5;
 }
 
 .text-danger {
@@ -1521,15 +1598,24 @@ tr.row-applied td {
   font-size: 13px;
   font-weight: 750;
   border-radius: 8px;
-  background: #e2f2d9;
+  background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
   color: #166534;
-  border: 1px solid #bbf7d0;
-  transition: all 0.15s ease;
+  border: 1px solid #86efac;
+  box-shadow: 0 3px 0 #4ade80, 0 3px 6px rgba(22, 101, 52, 0.12);
+  transition: all 0.12s ease;
+  cursor: pointer;
 }
 
 .btn-sort-wide:hover {
-  background: #d3eac7;
-  border-color: #86efac;
+  background: linear-gradient(180deg, #dcfce7 0%, #bbf7d0 100%);
+  border-color: #4ade80;
+  box-shadow: 0 4px 0 #22c55e, 0 4px 8px rgba(22, 101, 52, 0.18);
+  transform: translateY(-1px);
+}
+
+.btn-sort-wide:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #4ade80;
 }
 
 /* Undo Toast per cancellazione riga */
@@ -2028,30 +2114,32 @@ tr.row-applied td {
   flex-shrink: 0;
 }
 
-/* 3 Icone SpesaSuMisura in cerchi bianchi ingrandite 1.5x */
+/* 3 Icone SpesaSuMisura in cerchi bianchi con formato 3D */
 .topbar-circular-btn {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: #ffffff;
-  border: none;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1px solid #cbd5e1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 4px 8px rgba(0, 0, 0, 0.25);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
   padding: 0;
   flex-shrink: 0;
 }
 
 .topbar-circular-btn:hover {
-  transform: scale(1.08);
-  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.35);
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4), 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .topbar-circular-btn:active {
-  transform: scale(0.96);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
 /* PAGINA Giacenza & Richiesta: Testata con 2 icone XLS a destra */
@@ -2077,8 +2165,8 @@ tr.row-applied td {
 }
 
 .xls-action-icon-btn {
-  background: #ffffff;
-  border: 1.5px solid #cbd5e1;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #94a3b8;
   border-radius: 10px;
   width: 44px;
   height: 44px;
@@ -2086,21 +2174,22 @@ tr.row-applied td {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: all 0.15s ease;
+  box-shadow: 0 3px 0 #cbd5e1, 0 3px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.12s ease;
   padding: 2px;
   flex-shrink: 0;
 }
 
 .xls-action-icon-btn:hover {
-  background: #f0fdf4;
+  background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
   border-color: #107c41;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 124, 65, 0.2);
+  box-shadow: 0 4px 0 #107c41, 0 4px 10px rgba(16, 124, 65, 0.2);
 }
 
 .xls-action-icon-btn:active {
-  transform: translateY(0);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #107c41;
 }
 
 .excel-action-svg {
@@ -2143,8 +2232,8 @@ tr.row-applied td {
 }
 
 .btn-sort-icon-trigger {
-  background: #ffffff;
-  border: 1.5px solid #cbd5e1;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #94a3b8;
   border-radius: 10px;
   width: 44px;
   height: 44px;
@@ -2152,21 +2241,22 @@ tr.row-applied td {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: all 0.15s ease;
+  box-shadow: 0 3px 0 #cbd5e1, 0 3px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.12s ease;
   flex-shrink: 0;
   padding: 0;
 }
 
 .btn-sort-icon-trigger:hover {
-  background: #f8fafc;
+  background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
   border-color: #2563eb;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 0 #2563eb, 0 4px 10px rgba(37, 99, 235, 0.2);
 }
 
 .btn-sort-icon-trigger:active {
-  transform: translateY(0);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #2563eb;
 }
 
 .sort-trigger-svg {
@@ -2279,16 +2369,24 @@ tr.row-applied td {
   justify-content: center;
   border: 1.5px solid #cbd5e1;
   border-radius: 8px;
-  background: #f8fafc;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  box-shadow: 0 2px 0 #cbd5e1;
+  transition: all 0.12s ease;
   padding: 0;
 }
 
 .sort-item-bars-btn:hover {
   background: #f1f5f9;
   border-color: #94a3b8;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #94a3b8;
+}
+
+.sort-item-bars-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #cbd5e1;
 }
 
 .sort-level-actions-group-v4 {
@@ -2349,7 +2447,7 @@ tr.row-applied td {
   margin-top: 2px;
 }
 
-/* Pulsante allargato per non strabordare */
+/* Pulsante allargato per non strabordare in formato 3D */
 .optimize-pulse-btn-v128 {
   width: auto !important;
   min-width: 210px;
@@ -2358,12 +2456,12 @@ tr.row-applied td {
   font-size: 14px !important;
   font-weight: 850 !important;
   border-radius: 10px;
-  background: #059669;
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
   color: #ffffff;
-  border: 1px solid #047857;
+  border: 1.5px solid #047857;
   white-space: nowrap !important;
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
-  transition: all 0.15s ease;
+  box-shadow: 0 4px 0 #064e3b, 0 6px 14px rgba(5, 150, 105, 0.35);
+  transition: all 0.12s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2371,9 +2469,14 @@ tr.row-applied td {
 }
 
 .optimize-pulse-btn-v128:hover {
-  background: #047857;
+  background: linear-gradient(180deg, #059669 0%, #047857 100%);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.45);
+  box-shadow: 0 5px 0 #064e3b, 0 8px 18px rgba(5, 150, 105, 0.45);
+}
+
+.optimize-pulse-btn-v128:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #064e3b, 0 2px 4px rgba(5, 150, 105, 0.2);
 }
 
 .optimize-btn-text-v128 {
@@ -3262,32 +3365,45 @@ body.keyboard-input-open .bottom-nav {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   border: 1.5px solid #cbd5e1;
   border-radius: 12px;
   padding: 12px 14px;
   text-align: left;
   cursor: pointer;
-  transition: all 0.16s ease;
+  box-shadow: 0 4px 0 #cbd5e1, 0 4px 10px rgba(0, 0, 0, 0.06);
+  transition: all 0.12s ease;
   width: 100%;
 }
 
 .export-option-card:hover {
   border-color: #0284c7;
-  background: #f0f9ff;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
-  transform: translateY(-1px);
+  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+  box-shadow: 0 5px 0 #0284c7, 0 6px 14px rgba(2, 132, 199, 0.18);
+  transform: translateY(-2px);
+}
+
+.export-option-card:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #0284c7;
 }
 
 .export-option-card.recommended-export {
   border-color: #fca5a5;
-  background: #fffafa;
+  background: linear-gradient(180deg, #ffffff 0%, #fffafa 100%);
+  box-shadow: 0 4px 0 #fca5a5, 0 4px 10px rgba(220, 38, 38, 0.08);
 }
 
 .export-option-card.recommended-export:hover {
   border-color: #dc2626;
-  background: #fef2f2;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.14);
+  background: linear-gradient(180deg, #fffafa 0%, #fee2e2 100%);
+  box-shadow: 0 5px 0 #dc2626, 0 6px 14px rgba(220, 38, 38, 0.2);
+  transform: translateY(-2px);
+}
+
+.export-option-card.recommended-export:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #dc2626;
 }
 
 .export-option-icon-box {
@@ -3371,9 +3487,11 @@ body.keyboard-input-open .bottom-nav {
   border-radius: 8px;
   white-space: nowrap;
   flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: -2px; /* Allineamento verticale esatto con la prima riga del titolo */
 }
 
-/* v1.37 - Intestazione Piano Operativo di Taglio con pulsante Esporta/Stampa all'estrema destra del titolo */
+/* v1.38 - Intestazione Piano Operativo di Taglio con pulsante Esporta/Stampa allineato alla prima riga del titolo */
 .plan-head-v137 {
   display: flex;
   flex-direction: column;
@@ -3383,7 +3501,7 @@ body.keyboard-input-open .bottom-nav {
 
 .plan-title-row-v137 {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   width: 100%;
@@ -3394,6 +3512,7 @@ body.keyboard-input-open .bottom-nav {
   font-size: 17px;
   font-weight: 850;
   color: #0f172a;
+  line-height: 1.25;
 }
 
 .plan-subtitle-v137 {
@@ -3410,7 +3529,71 @@ body.keyboard-input-open .bottom-nav {
   margin-top: 4px;
 }
 
-/* v. 1.37 - Regole Stampa / PDF A4 nitido ad alta fedeltà a colori pieni */
+/* v. 1.38 - Finestra Modale Esporta/Stampa con titolo colorato e "x" a dx allineata */
+.export-plan-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+
+.export-plan-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-plan-header-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.export-plan-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 850;
+  color: #0369a1; /* Titolo azzurro/ottanio brillante ad alta visibilità */
+  letter-spacing: -0.01em;
+}
+
+.in-app-modal-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  color: #475569;
+  font-size: 20px;
+  font-weight: 750;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #cbd5e1;
+  transition: all 0.12s ease;
+  line-height: 1;
+  padding: 0;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.in-app-modal-close-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+  box-shadow: 0 2px 0 #f87171;
+  transform: translateY(-1px);
+}
+
+.in-app-modal-close-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 0 0 #cbd5e1;
+}
+
+/* v. 1.38 - Regole Stampa / PDF A4 nitido ad alta fedeltà a colori pieni */
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;

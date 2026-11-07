@@ -283,10 +283,10 @@ export async function exportDiagramsAsPng(
   ctx.fillStyle = gradHeader;
   ctx.fillRect(0, 0, baseWidth, headerHeight);
 
-  // Titolo applicazione v1.37
+  // Titolo applicazione v1.38
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-  ctx.fillText('TAGLIO BARRE C.A. — v. 1.37', 24, 38);
+  ctx.fillText('TAGLIO BARRE C.A. — v. 1.38', 24, 38);
 
   ctx.fillStyle = '#93c5fd';
   ctx.font = '600 13px system-ui, -apple-system, sans-serif';
@@ -337,7 +337,7 @@ export async function exportDiagramsAsPng(
       return;
     }
     const buffer = await blob.arrayBuffer();
-    const fileName = 'diagrammi-piano-taglio-v1.37.png';
+    const fileName = 'diagrammi-piano-taglio-v1.38.png';
     const mime = 'image/png';
 
     try {
@@ -426,6 +426,8 @@ export async function exportDiagramsAsPdf(
     format: 'a4',
   });
 
+  const pageImages: string[] = [];
+
   for (let pIdx = 0; pIdx < totalPages; pIdx++) {
     const pageOps = pages[pIdx];
     const isFirstPage = pIdx === 0;
@@ -451,10 +453,10 @@ export async function exportDiagramsAsPdf(
     ctx.fillRect(0, 0, baseWidth, currentHeaderHeight);
 
     if (isFirstPage) {
-      // Titolo completo applicazione v1.37
+      // Titolo completo applicazione v1.38
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-      ctx.fillText('TAGLIO BARRE C.A. — v. 1.37', 24, 38);
+      ctx.fillText('TAGLIO BARRE C.A. — v. 1.38', 24, 38);
 
       ctx.fillStyle = '#93c5fd';
       ctx.font = '600 13px system-ui, -apple-system, sans-serif';
@@ -502,32 +504,114 @@ export async function exportDiagramsAsPdf(
 
     // Converti canvas in immagine PNG e inserisci nella pagina PDF (adattamento esatto 210x297 mm)
     const imgData = pageCanvas.toDataURL('image/png');
+    pageImages.push(imgData);
     if (pIdx > 0) {
       doc.addPage();
     }
     doc.addImage(imgData, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
   }
 
-  // Generazione arraybuffer PDF e download/salvataggio
-  const pdfBytes = doc.output('arraybuffer');
-  const fileName = 'diagrammi-piano-taglio-v1.37.pdf';
-  const mime = 'application/pdf';
+  // Apertura della finestra di stampa (l'utente decide se stampare su stampante o salvare come PDF)
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.setAttribute('title', 'Stampa Piano Operativo di Taglio');
+  document.body.appendChild(iframe);
 
-  try {
-    const saveRes = await saveWithPicker({
-      name: fileName,
-      content: new Uint8Array(pdfBytes),
-      type: mime,
-      description: 'Diagrammi Visivi Piano di Taglio PDF',
-      extension: '.pdf',
-    });
-    if (saveRes.cancelled) return;
-    if (saveRes.supported) {
-      onToast('Diagrammi Visivi esportati in PDF.');
-      return;
+  const iframeDoc = iframe.contentWindow?.document;
+  if (!iframeDoc) {
+    window.print();
+    onToast('Finestra di stampa aperta.');
+    return;
+  }
+
+  iframeDoc.open();
+  iframeDoc.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Piano Operativo di Taglio — v. 1.38</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
     }
-  } catch (_) {}
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+    }
+    .print-page {
+      width: 100%;
+      height: 100vh;
+      page-break-after: always;
+      break-after: page;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .print-page:last-child {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  ${pageImages.map((src, i) => `<div class="print-page"><img src="${src}" alt="Pagina ${i + 1}" /></div>`).join('')}
+</body>
+</html>`);
+  iframeDoc.close();
 
-  download(fileName, new Uint8Array(pdfBytes), mime);
-  onToast('Diagrammi Visivi esportati in PDF.');
+  const images = iframeDoc.getElementsByTagName('img');
+  let loaded = 0;
+  const triggerPrint = () => {
+    try {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      onToast('Finestra di stampa aperta. Scegli se stampare o salvare come PDF.');
+    } catch (_) {
+      window.print();
+    } finally {
+      setTimeout(() => {
+        if (iframe.parentNode) {
+          document.body.removeChild(iframe);
+        }
+      }, 45000);
+    }
+  };
+
+  if (images.length === 0) {
+    triggerPrint();
+  } else {
+    for (let i = 0; i < images.length; i++) {
+      if (images[i].complete) {
+        loaded++;
+        if (loaded === images.length) triggerPrint();
+      } else {
+        images[i].onload = () => {
+          loaded++;
+          if (loaded === images.length) triggerPrint();
+        };
+        images[i].onerror = () => {
+          loaded++;
+          if (loaded === images.length) triggerPrint();
+        };
+      }
+    }
+  }
 }

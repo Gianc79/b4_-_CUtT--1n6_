@@ -63,3 +63,20 @@ test('runOptimization and buildOperationalPlan work end-to-end', () => {
   assert.equal(plan.rows[0].barCount, 1);
   assert.equal(plan.rows[0].cutCount, 4);
 });
+
+test('operational plan exported records contain only actual data rows without Totale', () => {
+  const stock = [
+    { id: 's1', diameter: '14', qty: '5', length: '1200' },
+  ];
+  const demand = [
+    { id: 'd1', diameter: '14', qty: '2', length: '500' },
+  ];
+  const result = runOptimization(stock, demand);
+  const plan = buildOperationalPlan(result);
+  
+  // Every row must be a valid bar operation with a numeric barId
+  for (const row of plan.rows) {
+    assert.equal(typeof row.barId, 'number');
+    assert.notEqual(String(row.diameter), 'Totale');
+  }
+});
