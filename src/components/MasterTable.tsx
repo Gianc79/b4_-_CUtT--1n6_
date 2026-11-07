@@ -64,6 +64,8 @@ export const MasterTable: React.FC<MasterTableProps> = ({
 
   // Focus management per immissione con Invio e scorrimento controllato
   const nextFocusRowIdRef = useRef<string | null>(null);
+  // Timestamp per prevenire salti multipli e cascate di celle su tastiere virtuali smartphone
+  const lastEnterTimestampRef = useRef<number>(0);
 
   // Memorizzazione valore precedente per ripristino in caso di diametro errato
   const cellPreviousValuesRef = useRef<Record<string, string>>({});
@@ -77,25 +79,25 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   const [deletedRecord, setDeletedRecord] = useState<DeletedRowRecord | null>(null);
   const undoTimerRef = useRef<number | null>(null);
 
-  // Assistente allo scorrimento stabile: evita rimbalzi e oscillazioni se la cella è già visibile
+  // Assistente allo scorrimento stabile: interviene SOLO se la cella è realmente fuori dall'area visibile
   const scrollElementIntoWorkArea = (el: HTMLElement) => {
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const vh = window.innerHeight || document.documentElement.clientHeight;
-    // Margine superiore per TopBar e margine inferiore per tastiera virtuale mobile
-    const topSafe = 75;
-    const bottomSafe = vh * 0.42;
+    // Margine superiore per TopBar (65px) e margine inferiore per tastiera smartphone (35% vh)
+    const topSafe = 65;
+    const bottomSafe = vh * 0.38;
 
-    // Se la cella è già visibile e comoda nell'area utile, non forzare scorrimenti
+    // Se la cella è già comodamente visibile nell'area utile, NON effettuare alcuno scroll
     if (rect.top >= topSafe && rect.bottom <= (vh - bottomSafe)) {
       return;
     }
 
-    // Altrimenti avvicinala con scorrimento dolce e stabile al bordo più vicino
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Altrimenti avvicinala con scorrimento dolce e stabile al bordo più vicino senza oscillazioni
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
   };
 
-  // Spostamento tabella all'aggiunta di una riga
+  // Spostamento tabella all'aggiunta di una nuova riga
   useEffect(() => {
     if (nextFocusRowIdRef.current) {
       const targetInput = document.querySelector<HTMLInputElement>(
@@ -112,7 +114,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         } catch (_) {}
         setTimeout(() => {
           scrollElementIntoWorkArea(targetInput);
-        }, 50);
+        }, 30);
       }
       nextFocusRowIdRef.current = null;
     }
@@ -147,7 +149,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     onChangeRows(updated);
   };
 
-  // Seleziona tutto il contenuto al clic/focus e centra nello schermo sopra la tastiera
+  // Seleziona tutto il contenuto al clic/focus senza forzare scorrimenti bruschi
   const handleCellFocus = (
     e: React.FocusEvent<HTMLInputElement>,
     id: string,
@@ -159,10 +161,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     try {
       e.target.select();
     } catch (_) {}
-    const target = e.target;
-    setTimeout(() => {
-      scrollElementIntoWorkArea(target);
-    }, 60);
   };
 
   const handleCellBlur = (id: string, field: 'diameter' | 'qty' | 'length', rawVal: string) => {
@@ -263,7 +261,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     setDuplicateCandidate(null);
   };
 
-  // 6) Navigazione tastiera (Invio): stabile, senza scorrimenti indesiderati tra campi della stessa riga
+  // 6) Navigazione tastiera (Invio): stabile, con debounce contro cascata ed evitando scorrimenti tra celle della stessa riga
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     rowIndex: number,
@@ -272,34 +270,46 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   ) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      e.stopPropagation();
+
+      // Debounce contro invii multipli/a raffica tipici delle tastiere software smartphone
+      const now = Date.now();
+      if (now - lastEnterTimestampRef.current < 200) {
+        return;
+      }
+      lastEnterTimestampRef.current = now;
 
       if (field === 'diameter') {
         const nextInput = document.querySelector<HTMLInputElement>(
           `input[data-row-id="${rowId}"][data-field="qty"]`
         );
         if (nextInput) {
-          try {
-            nextInput.focus({ preventScroll: true });
-          } catch (_) {
-            nextInput.focus();
-          }
-          try {
-            nextInput.select();
-          } catch (_) {}
+          setTimeout(() => {
+            try {
+              nextInput.focus({ preventScroll: true });
+            } catch (_) {
+              nextInput.focus();
+            }
+            try {
+              nextInput.select();
+            } catch (_) {}
+          }, 30);
         }
       } else if (field === 'qty') {
         const nextInput = document.querySelector<HTMLInputElement>(
           `input[data-row-id="${rowId}"][data-field="length"]`
         );
         if (nextInput) {
-          try {
-            nextInput.focus({ preventScroll: true });
-          } catch (_) {
-            nextInput.focus();
-          }
-          try {
-            nextInput.select();
-          } catch (_) {}
+          setTimeout(() => {
+            try {
+              nextInput.focus({ preventScroll: true });
+            } catch (_) {
+              nextInput.focus();
+            }
+            try {
+              nextInput.select();
+            } catch (_) {}
+          }, 30);
         }
       } else if (field === 'length') {
         // Riga successiva: controlla visibilità ed evita oscillazioni
@@ -309,20 +319,20 @@ export const MasterTable: React.FC<MasterTableProps> = ({
             `input[data-row-id="${nextRow.id}"][data-field="diameter"]`
           );
           if (nextInput) {
-            try {
-              nextInput.focus({ preventScroll: true });
-            } catch (_) {
-              nextInput.focus();
-            }
-            try {
-              nextInput.select();
-            } catch (_) {}
             setTimeout(() => {
+              try {
+                nextInput.focus({ preventScroll: true });
+              } catch (_) {
+                nextInput.focus();
+              }
+              try {
+                nextInput.select();
+              } catch (_) {}
               scrollElementIntoWorkArea(nextInput);
-            }, 50);
+            }, 30);
           }
         } else {
-          // Ultima riga: aggiungi nuova riga e scorri
+          // Ultima riga: aggiungi nuova riga e passa il focus
           const newRow = blankMaster();
           if (isFiltered) {
             newRow.diameter = String(selectedDiameter);

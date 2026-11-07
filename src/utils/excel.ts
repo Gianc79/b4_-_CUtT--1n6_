@@ -249,14 +249,14 @@ export async function exportPlanXls(
       throw new Error('Il Piano di taglio non contiene operazioni da esportare.');
     }
 
-    // Aggiunta riga di riepilogo Totale
+    // Aggiunta riga di riepilogo Totale: colonna ID vuota, etichetta 'Totale' sotto Ø [mm]
     const usedWeight = (result.usedByLength || []).reduce(
       (sum: number, b) => sum + (Number(b.weight) || 0),
       0
     );
     rows.push([
-      'Totale',
       '',
+      'Totale',
       result.usedBars,
       round2(result.usedMeters),
       '',
@@ -330,7 +330,7 @@ export async function exportPlanXls(
 
     try {
       const saveRes = await saveWithPicker({
-        name: 'piano-taglio-v1.36.xlsx',
+        name: 'piano-taglio-v1.37.xlsx',
         content,
         type: mime,
         description: 'Piano di taglio Excel',
@@ -346,7 +346,7 @@ export async function exportPlanXls(
       alert('La finestra di salvataggio non è riuscita; il file Excel verrà scaricato con il metodo standard.');
     }
 
-    download('piano-taglio-v1.36.xlsx', content, mime);
+    download('piano-taglio-v1.37.xlsx', content, mime);
     onToast('Piano di taglio Excel scaricato.');
   } catch (e: any) {
     alert(`Impossibile esportare il Piano di taglio: ${e.message || 'errore nella creazione del file Excel.'}`);

@@ -3365,39 +3365,105 @@ body.keyboard-input-open .bottom-nav {
 }
 
 .export-plan-head-btn {
-  padding: 6px 12px;
+  padding: 6px 14px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 750;
   border-radius: 8px;
-  margin-left: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* v. 1.35 - Regole Stampa / PDF A4 nitido ad alta fedeltà */
+/* v1.37 - Intestazione Piano Operativo di Taglio con pulsante Esporta/Stampa all'estrema destra del titolo */
+.plan-head-v137 {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.plan-title-row-v137 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.plan-title-row-v137 h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 850;
+  color: #0f172a;
+}
+
+.plan-subtitle-v137 {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.plan-toggle-row-v137 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 4px;
+}
+
+/* v. 1.37 - Regole Stampa / PDF A4 nitido ad alta fedeltà a colori pieni */
 @media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   body {
     background: #ffffff !important;
     color: #0f172a !important;
     font-size: 10pt;
   }
 
+  /* Nascondi tutto eccetto i Diagrammi Visivi */
   .topbar,
   .floating-bottom-nav,
   .scroll-to-top-btn,
   .in-app-toast,
+  .section-head,
+  .message-banner,
+  .kpis-modern-3d,
+  .plan-head-v137,
+  .plan-head-v128,
   .optimization-head-actions-row,
   .view-mode-toggle-v128,
   .export-plan-head-btn,
+  .table-wrap,
+  .result-grid,
+  .result-panel,
   .sfridi-footer-actions,
   .table-bottom-actions,
   .footer-note,
-  .in-app-modal-backdrop {
+  .in-app-modal-backdrop,
+  #page-stock,
+  #page-demand,
+  #page-help {
     display: none !important;
   }
 
-  .shell {
+  .shell,
+  .app-shell-content,
+  #page-results,
+  #resultsContent,
+  .cutting-plan-panel,
+  .panel-body,
+  .visual-cutting-plan {
+    display: block !important;
+    width: 100% !important;
     max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
   }
 
   .cut-diagram-card-3d {

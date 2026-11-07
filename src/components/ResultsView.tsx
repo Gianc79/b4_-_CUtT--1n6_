@@ -5,7 +5,7 @@ import { buildOperationalPlan } from '../utils/optimizer';
 import { CutDiagramBar } from './CutDiagramBar';
 import { ConfirmModal } from './ConfirmModal';
 import { ExportPlanModal } from './ExportPlanModal';
-import { exportDiagramsAsPng } from '../utils/exportDiagramsImage';
+import { exportDiagramsAsPng, exportDiagramsAsPdf } from '../utils/exportDiagramsImage';
 
 export interface SelectedStockItem {
   source: 'remaining' | 'scrap';
@@ -304,18 +304,25 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
             {/* 3) Piano Operativo di Taglio */}
             <div className="panel cutting-plan-panel">
-              <div className="panel-head plan-head-v128">
-                <div className="panel-title-with-subtitle">
-                  {/* 3) Titolo aggiornato in "Piano Operativo di Taglio" */}
+              <div className="panel-head plan-head-v137">
+                <div className="plan-title-row-v137">
                   <h3>Piano Operativo di Taglio</h3>
-                  {/* 3) Frase esplicativa esatta richiesta */}
-                  <p>
-                    Sequenza cronologica dei pezzi da tagliare, con l'indicazione delle barre da
-                    utilizzare, dei tagli da recuperare e degli scarti/sfridi (da recuperare su richiesta).
-                  </p>
+                  <button
+                    type="button"
+                    className="btn outline small export-plan-head-btn"
+                    onClick={() => setExportModalOpen(true)}
+                    title="Esporta o Stampa il Piano di Taglio (PDF, Immagine, Excel)"
+                  >
+                    📥 Esporta / Stampa
+                  </button>
                 </div>
 
-                <div className="panel-head-actions-v128">
+                <p className="plan-subtitle-v137">
+                  Sequenza cronologica dei pezzi da tagliare, con l'indicazione delle barre da
+                  utilizzare, dei tagli da recuperare e degli scarti/sfridi (da recuperare su richiesta).
+                </p>
+
+                <div className="plan-toggle-row-v137">
                   {/* Widget delle schede Tabella Dati / Diagrammi Visivi */}
                   <div className="view-mode-toggle-v128" role="group" aria-label="Visualizzazione piano">
                     <button
@@ -333,16 +340,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                       ✂ Diagrammi Visivi
                     </button>
                   </div>
-
-                  {/* Pulsante rapido Esporta/Stampa all'estrema destra */}
-                  <button
-                    type="button"
-                    className="btn outline small export-plan-head-btn"
-                    onClick={() => setExportModalOpen(true)}
-                    title="Esporta o Stampa il Piano di Taglio (Excel, PDF, Immagine)"
-                  >
-                    📥 Esporta / Stampa
-                  </button>
                 </div>
               </div>
 
@@ -453,8 +450,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                         )}
                         {operations.length > 0 && (
                           <tr className="total-row">
+                            <td></td>
                             <td className="total-label-cell">Totale</td>
-                            <td>—</td>
                             <td>{intFmt(result.usedBars)}</td>
                             <td>{fmt(result.usedMeters)}</td>
                             <td>—</td>
@@ -750,16 +747,13 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               onConfirm={() => setAlertModalMessage(null)}
             />
 
-            {/* Finestra Modale Esporta Piano di Taglio (Excel, PDF, Immagine) */}
+            {/* Finestra Modale Esporta Piano di Taglio (PDF, Immagine, Excel) */}
             <ExportPlanModal
               isOpen={exportModalOpen}
               onClose={() => setExportModalOpen(false)}
               onExportExcel={() => onExportPlan()}
               onExportPdf={() => {
-                setDisplayMode('visual');
-                setTimeout(() => {
-                  window.print();
-                }, 250);
+                exportDiagramsAsPdf(operations, result, onToast || (() => {}));
               }}
               onExportPng={() => {
                 exportDiagramsAsPng(operations, result, onToast || (() => {}));

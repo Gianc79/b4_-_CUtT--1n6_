@@ -1,15 +1,16 @@
 {
   "name": "ottimizzazione-barre-ca",
   "private": true,
-  "version": "1.36.0",
+  "version": "1.37.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3000",
-    "build": "tsc && vite build && cp -r dist/* docs/ && mkdir -p docs/versions && cp -r versions/* docs/versions/",
+    "build": "tsc && vite build && cp -r dist/* docs/",
     "preview": "vite preview --port 3000",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "jspdf": "^4.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "xlsx": "^0.18.5"
