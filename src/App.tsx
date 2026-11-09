@@ -24,6 +24,7 @@ import { HelpView } from './components/HelpView';
 import { SortDialog } from './components/SortDialog';
 import { Toast } from './components/Toast';
 import { ScrollToTop } from './components/ScrollToTop';
+import { ConfirmModal } from './components/ConfirmModal';
 
 const SORT_FIELDS = [
   { value: 'diameter' as const, label: 'Diametro' },
@@ -36,6 +37,7 @@ export const App: React.FC = () => {
   // 4) Schermata principale dell'app è "Giacenza"
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [importErrorModal, setImportErrorModal] = useState<{ title: string; message: string } | null>(null);
   const [sortKind, setSortKind] = useState<'stockDetail' | 'demandDetail' | null>(null);
   // Conservazione persistente dei filtri diametri tra le sessioni e durante l'ottimizzazione
   const [stockFilterDiameter, setStockFilterDiameter] = useState<number | 'all'>('all');
@@ -429,7 +431,7 @@ export const App: React.FC = () => {
     }
   };
 
-  // XLS Import
+  // XLS Import (in caso di successo toast, in caso di errore finestra modale con OK - v. 1.39)
   const handleImportXls = async (file: File, kind: 'stockDetail' | 'demandDetail') => {
     const label = kind === 'stockDetail' ? 'Giacenza' : 'Richiesta';
     try {
@@ -437,7 +439,10 @@ export const App: React.FC = () => {
       setState(prev => ({ ...prev, [kind]: imported }));
       showToast(`${label}: importati ${imported.length} record dal file Excel.`);
     } catch (e: any) {
-      showToast(`Impossibile importare il file Excel: ${e.message || 'formato non valido.'}`);
+      setImportErrorModal({
+        title: `Errore importazione file Excel (${label})`,
+        message: e.message || 'Formato del file Excel non valido o dati non corretti.',
+      });
     }
   };
 
@@ -584,9 +589,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.38 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.39 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.38 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.39 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 
@@ -612,6 +617,17 @@ export const App: React.FC = () => {
         kind={sortKind || 'stockDetail'}
         onClose={() => setSortKind(null)}
         onApplySort={handleApplySort}
+      />
+
+      {/* Finestra di errore importazione file Excel con titolo, messaggio e tasto OK (v. 1.39) */}
+      <ConfirmModal
+        isOpen={importErrorModal !== null}
+        title={importErrorModal?.title || 'Errore importazione file Excel'}
+        message={importErrorModal?.message || ''}
+        confirmText="OK"
+        showCancel={false}
+        onConfirm={() => setImportErrorModal(null)}
+        onCancel={() => setImportErrorModal(null)}
       />
 
       <Toast message={toastMessage} />

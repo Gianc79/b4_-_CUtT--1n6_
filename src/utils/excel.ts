@@ -249,7 +249,7 @@ export async function exportPlanXls(
       throw new Error('Il Piano di taglio non contiene operazioni da esportare.');
     }
 
-    // Esporta unicamente i records senza riga dei totali (richiesta v. 1.38)
+    // Esporta unicamente i records senza riga dei totali (richiesta v. 1.38/1.39)
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
 
     // Larghezza uniforme per tutte le colonne con formattazione testo a capo
@@ -299,7 +299,7 @@ export async function exportPlanXls(
 
     try {
       const saveRes = await saveWithPicker({
-        name: 'piano-taglio-v1.38.xlsx',
+        name: 'piano-taglio-v1.39.xlsx',
         content,
         type: mime,
         description: 'Piano di taglio Excel',
@@ -315,7 +315,7 @@ export async function exportPlanXls(
       alert('La finestra di salvataggio non è riuscita; il file Excel verrà scaricato con il metodo standard.');
     }
 
-    download('piano-taglio-v1.38.xlsx', content, mime);
+    download('piano-taglio-v1.39.xlsx', content, mime);
     onToast('Piano di taglio Excel scaricato.');
   } catch (e: any) {
     alert(`Impossibile esportare il Piano di taglio: ${e.message || 'errore nella creazione del file Excel.'}`);

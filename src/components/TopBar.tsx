@@ -73,7 +73,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           <div className="brand-titles-column">
             <div className="brand-title-row">
               <h1 className="brand-app-name">
-                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.38</span>
+                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.39</span>
               </h1>
             </div>
             <p className="brand-subtitle-twolines-v132">

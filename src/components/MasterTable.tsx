@@ -63,7 +63,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Focus management per immissione con Invio e scorrimento controllato
-  const nextFocusRowIdRef = useRef<string | null>(null);
+  const nextFocusTargetRef = useRef<{ rowId: string; field: 'diameter' | 'qty' } | null>(null);
   // Timestamp per prevenire salti multipli e cascate di celle su tastiere virtuali smartphone
   const lastEnterTimestampRef = useRef<number>(0);
 
@@ -97,11 +97,12 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
   };
 
-  // Spostamento tabella all'aggiunta di una nuova riga
+  // Spostamento tabella all'aggiunta di una nuova riga (con focus alla cella successiva 'qty' se filtro diametro attivo)
   useEffect(() => {
-    if (nextFocusRowIdRef.current) {
+    if (nextFocusTargetRef.current) {
+      const { rowId, field } = nextFocusTargetRef.current;
       const targetInput = document.querySelector<HTMLInputElement>(
-        `input[data-row-id="${nextFocusRowIdRef.current}"][data-field="diameter"]`
+        `input[data-row-id="${rowId}"][data-field="${field}"]`
       );
       if (targetInput) {
         try {
@@ -116,7 +117,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
           scrollElementIntoWorkArea(targetInput);
         }, 30);
       }
-      nextFocusRowIdRef.current = null;
+      nextFocusTargetRef.current = null;
     }
   }, [rows]);
 
@@ -332,25 +333,31 @@ export const MasterTable: React.FC<MasterTableProps> = ({
             }, 30);
           }
         } else {
-          // Ultima riga: aggiungi nuova riga e passa il focus
+          // Ultima riga: aggiungi nuova riga e passa il focus alla cella successiva (qty) se c'è un filtro attivo
           const newRow = blankMaster();
           if (isFiltered) {
             newRow.diameter = String(selectedDiameter);
           }
-          nextFocusRowIdRef.current = newRow.id;
+          nextFocusTargetRef.current = {
+            rowId: newRow.id,
+            field: isFiltered ? 'qty' : 'diameter',
+          };
           onChangeRows([...rows, newRow]);
         }
       }
     }
   };
 
-  // Aggiungi riga manuale
+  // Aggiungi riga manuale: precompila Ø con il filtro attivo e porta il cursore alla cella successiva (qty)
   const handleAddRow = () => {
     const newRow = blankMaster();
     if (isFiltered) {
       newRow.diameter = String(selectedDiameter);
     }
-    nextFocusRowIdRef.current = newRow.id;
+    nextFocusTargetRef.current = {
+      rowId: newRow.id,
+      field: isFiltered ? 'qty' : 'diameter',
+    };
     onChangeRows([...rows, newRow]);
   };
 

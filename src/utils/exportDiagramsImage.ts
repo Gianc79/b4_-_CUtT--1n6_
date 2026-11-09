@@ -283,10 +283,10 @@ export async function exportDiagramsAsPng(
   ctx.fillStyle = gradHeader;
   ctx.fillRect(0, 0, baseWidth, headerHeight);
 
-  // Titolo applicazione v1.38
+  // Titolo applicazione v1.39
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-  ctx.fillText('TAGLIO BARRE C.A. — v. 1.38', 24, 38);
+  ctx.fillText('TAGLIO BARRE C.A. — v. 1.39', 24, 38);
 
   ctx.fillStyle = '#93c5fd';
   ctx.font = '600 13px system-ui, -apple-system, sans-serif';
@@ -337,7 +337,7 @@ export async function exportDiagramsAsPng(
       return;
     }
     const buffer = await blob.arrayBuffer();
-    const fileName = 'diagrammi-piano-taglio-v1.38.png';
+    const fileName = 'diagrammi-piano-taglio-v1.39.png';
     const mime = 'image/png';
 
     try {
@@ -453,10 +453,10 @@ export async function exportDiagramsAsPdf(
     ctx.fillRect(0, 0, baseWidth, currentHeaderHeight);
 
     if (isFirstPage) {
-      // Titolo completo applicazione v1.38
+      // Titolo completo applicazione v1.39
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-      ctx.fillText('TAGLIO BARRE C.A. — v. 1.38', 24, 38);
+      ctx.fillText('TAGLIO BARRE C.A. — v. 1.39', 24, 38);
 
       ctx.fillStyle = '#93c5fd';
       ctx.font = '600 13px system-ui, -apple-system, sans-serif';
@@ -525,7 +525,6 @@ export async function exportDiagramsAsPdf(
   const iframeDoc = iframe.contentWindow?.document;
   if (!iframeDoc) {
     window.print();
-    onToast('Finestra di stampa aperta.');
     return;
   }
 
@@ -534,7 +533,7 @@ export async function exportDiagramsAsPdf(
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Piano Operativo di Taglio — v. 1.38</title>
+  <title>Piano Operativo di Taglio — v. 1.39</title>
   <style>
     @page {
       size: A4 portrait;
@@ -573,6 +572,18 @@ export async function exportDiagramsAsPdf(
 </head>
 <body>
   ${pageImages.map((src, i) => `<div class="print-page"><img src="${src}" alt="Pagina ${i + 1}" /></div>`).join('')}
+  <script>
+    window.addEventListener('afterprint', function() {
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'print-completed' }, '*');
+        }
+      } catch (e) {}
+      try {
+        window.close();
+      } catch (e) {}
+    });
+  </script>
 </body>
 </html>`);
   iframeDoc.close();
@@ -580,18 +591,55 @@ export async function exportDiagramsAsPdf(
   const images = iframeDoc.getElementsByTagName('img');
   let loaded = 0;
   const triggerPrint = () => {
+    let isCleanedUp = false;
+    const cleanup = () => {
+      if (isCleanedUp) return;
+      isCleanedUp = true;
+      try {
+        window.removeEventListener('message', onMessage);
+        window.removeEventListener('focus', onParentFocus);
+        window.removeEventListener('afterprint', cleanup);
+      } catch (_) {}
+      try {
+        iframe.contentWindow?.close();
+      } catch (_) {}
+      if (iframe.parentNode) {
+        iframe.parentNode.removeChild(iframe);
+      }
+      try {
+        window.focus();
+      } catch (_) {}
+    };
+
+    const onMessage = (ev: MessageEvent) => {
+      if (ev.data?.type === 'print-completed') {
+        cleanup();
+      }
+    };
+
+    const onParentFocus = () => {
+      // Quando la finestra di stampa / salva PDF si chiude e l'app principale riprende il focus
+      setTimeout(cleanup, 250);
+    };
+
+    window.addEventListener('message', onMessage);
+    window.addEventListener('afterprint', cleanup, { once: true });
+    window.addEventListener('focus', onParentFocus, { once: true });
+
+    if (iframe.contentWindow) {
+      try {
+        iframe.contentWindow.onafterprint = cleanup;
+        iframe.contentWindow.addEventListener('afterprint', cleanup);
+      } catch (_) {}
+    }
+
     try {
       iframe.contentWindow?.focus();
       iframe.contentWindow?.print();
-      onToast('Finestra di stampa aperta. Scegli se stampare o salvare come PDF.');
     } catch (_) {
       window.print();
     } finally {
-      setTimeout(() => {
-        if (iframe.parentNode) {
-          document.body.removeChild(iframe);
-        }
-      }, 45000);
+      setTimeout(cleanup, 45000);
     }
   };
 
