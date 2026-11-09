@@ -18,8 +18,10 @@ export interface SelectedStockItem {
 interface ResultsViewProps {
   result: OptimizationResult | null;
   onOptimize: () => void;
+  onUndoOptimize?: () => void;
+  canUndoOptimize?: boolean;
   onExportPlan: () => void;
-  onUpdateDemand: () => void;
+  onUpdateDemand?: () => void;
   onUpdateStock: (selected: SelectedStockItem[]) => void;
   onToast?: (msg: string) => void;
 }
@@ -69,6 +71,8 @@ const ExportPlanIcon: React.FC<{ size?: number }> = ({ size = 38 }) => (
 export const ResultsView: React.FC<ResultsViewProps> = ({
   result,
   onOptimize,
+  onUndoOptimize,
+  canUndoOptimize = false,
   onExportPlan,
   onUpdateDemand,
   onUpdateStock,
@@ -81,7 +85,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   const [selectedStockKeys, setSelectedStockKeys] = useState<Set<string>>(new Set());
 
   // Modali in-app di conferma
-  const [confirmDemandModalOpen, setConfirmDemandModalOpen] = useState(false);
   const [confirmStockModalOpen, setConfirmStockModalOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [alertModalMessage, setAlertModalMessage] = useState<string | null>(null);
@@ -138,16 +141,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
     setConfirmStockModalOpen(false);
   };
 
-  const handleTriggerUpdateDemand = () => {
-    if (!result || result.unmet.length === 0) return;
-    setConfirmDemandModalOpen(true);
-  };
-
-  const handleConfirmDemandUpdate = () => {
-    onUpdateDemand();
-    setConfirmDemandModalOpen(false);
-  };
-
   return (
     <section className="page active" id="page-results">
       {/* 5) Intestazione Ottimizza: Frase esplicativa aggiornata; Tasto Ottimizza ed Icona Esporta XLS a dx */}
@@ -158,7 +151,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
           <p>Piano Operativo di Taglio generato dall'ottimizzazione della giacenza. Possibilità di esportarlo in un file Excel.</p>
         </div>
 
-        {/* Pulsante Esegui ottimizzazione */}
+        {/* Pulsante Esegui ottimizzazione e Icona quadrata Annulla */}
         <div className="optimization-head-actions-row">
           <button
             className="btn primary optimize-pulse-btn-v128"
@@ -168,6 +161,29 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             aria-label="Esegui ottimizzazione"
           >
             <span className="optimize-btn-text-v128">▶ Esegui ottimizzazione</span>
+          </button>
+          <button
+            type="button"
+            className="btn-undo-optimization-square"
+            onClick={onUndoOptimize}
+            disabled={!canUndoOptimize}
+            title={canUndoOptimize ? 'Annulla ultima ottimizzazione' : 'Nessuna ottimizzazione da annullare'}
+            aria-label="Annulla ultima ottimizzazione"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ display: 'block' }}
+            >
+              <path d="M9 14L4 9l5-5" />
+              <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11" />
+            </svg>
           </button>
         </div>
       </div>
@@ -598,17 +614,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                       </tbody>
                     </table>
                   </div>
-
-                  <div className="sfridi-footer-actions">
-                    <button
-                      className="btn primary small"
-                      type="button"
-                      onClick={handleTriggerUpdateDemand}
-                      disabled={result.unmet.length === 0}
-                    >
-                      Aggiorna Richiesta
-                    </button>
-                  </div>
                 </div>
               </div>
 
@@ -717,17 +722,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             </div>
 
             {/* Modali di Conferma In-App */}
-            <ConfirmModal
-              isOpen={confirmDemandModalOpen}
-              title="Aggiorna Richiesta"
-              message="I tagli non evasi sostituiranno solo quelli dei relativi diametri presenti nella Richiesta attuale. Continuare?"
-              confirmText="Aggiorna"
-              cancelText="Annulla"
-              onConfirm={handleConfirmDemandUpdate}
-              onCancel={() => setConfirmDemandModalOpen(false)}
-            />
-
-            {/* 4) Frase esplicativa esatta: "Gli sfridi selezionati verranno integrati nella Giacenza. Continuare?" */}
+            {/* Frase esplicativa esatta: "Gli sfridi selezionati verranno integrati nella Giacenza. Continuare?" */}
             <ConfirmModal
               isOpen={confirmStockModalOpen}
               title="Aggiorna Giacenza"

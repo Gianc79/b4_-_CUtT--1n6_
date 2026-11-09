@@ -38,6 +38,12 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [importErrorModal, setImportErrorModal] = useState<{ title: string; message: string } | null>(null);
+  const [optimizationOutcomeModal, setOptimizationOutcomeModal] = useState<{ title: string; message: string } | null>(null);
+  const [lastOptimizationSnapshot, setLastOptimizationSnapshot] = useState<{
+    stockDetail: MasterRow[];
+    demandDetail: MasterRow[];
+    result: any;
+  } | null>(null);
   const [sortKind, setSortKind] = useState<'stockDetail' | 'demandDetail' | null>(null);
   // Conservazione persistente dei filtri diametri tra le sessioni e durante l'ottimizzazione
   const [stockFilterDiameter, setStockFilterDiameter] = useState<number | 'all'>('all');
@@ -239,11 +245,13 @@ export const App: React.FC = () => {
       );
 
       if (!hasValidDemand) {
-        showToast(
-          activeFilterDia !== 'all'
-            ? `Nessun record per il diametro Ø ${activeFilterDia} mm presente nella Richiesta.`
-            : 'La Richiesta è vuota: inserisci almeno un pezzo da tagliare.'
-        );
+        setOptimizationOutcomeModal({
+          title: 'Ottimizzazione non eseguita',
+          message:
+            activeFilterDia !== 'all'
+              ? `Nessun record per il diametro Ø ${activeFilterDia} mm presente nella Richiesta.`
+              : 'La Richiesta è vuota: inserisci almeno un pezzo da tagliare.',
+        });
         return;
       }
 
@@ -251,9 +259,19 @@ export const App: React.FC = () => {
       const normalized = normalizeResultRows(res, null);
 
       if (!normalized) {
-        showToast('Nessun risultato: verifica che i dati di Giacenza e Richiesta siano validi.');
+        setOptimizationOutcomeModal({
+          title: 'Ottimizzazione non eseguita',
+          message: 'Nessun risultato: verifica che i dati di Giacenza e Richiesta siano validi.',
+        });
         return;
       }
+
+      // Salva snapshot prima di scalare la giacenza per consentire l'annullamento dell'ultima ottimizzazione
+      setLastOptimizationSnapshot({
+        stockDetail: state.stockDetail.map(r => ({ ...r })),
+        demandDetail: state.demandDetail.map(r => ({ ...r })),
+        result: state.result ? JSON.parse(JSON.stringify(state.result)) : null,
+      });
 
       // Scala automaticamente le barre utilizzate dalla tabella Giacenza (solo per i diametri ottimizzati)
       const remainingStockDetail = state.stockDetail.map(row => ({ ...row }));
@@ -291,20 +309,38 @@ export const App: React.FC = () => {
       // I filtri di Giacenza e Richiesta rimangono esattamente com'erano
       setActiveTab('results');
 
-      // 9) Messaggi esatti per ottimizzazione
+      // Finestra esito con pulsante OK e senza "x" di chiusura (v. 1.40)
       if (normalized.allFulfilled) {
-        showToast(
-          `Ottimizzazione completata: evasi tutti i ${normalized.fulfilledPieces} pezzi su ${normalized.requestedPieces} richiesti.`
-        );
+        setOptimizationOutcomeModal({
+          title: 'Ottimizzazione completata',
+          message: `Ottimizzazione completata: evasi tutti i ${normalized.fulfilledPieces} pezzi su ${normalized.requestedPieces} richiesti.`,
+        });
       } else {
         const unmetCount = normalized.requestedPieces - normalized.fulfilledPieces;
-        showToast(
-          `Ottimizzazione parziale: evasi ${normalized.fulfilledPieces} pezzi su ${normalized.requestedPieces}. Non evasi ${unmetCount} pezzi a causa di esaurimento della giacenza.`
-        );
+        setOptimizationOutcomeModal({
+          title: 'Ottimizzazione parziale',
+          message: `Ottimizzazione parziale: evasi ${normalized.fulfilledPieces} pezzi su ${normalized.requestedPieces}. Non evasi ${unmetCount} pezzi a causa di esaurimento della giacenza.`,
+        });
       }
     } catch (e: any) {
-      showToast(e.message || 'Errore durante l’ottimizzazione.');
+      setOptimizationOutcomeModal({
+        title: 'Errore ottimizzazione',
+        message: e.message || 'Errore durante l’ottimizzazione.',
+      });
     }
+  };
+
+  // Annulla l'ultima Ottimizzazione eseguita e ripristina la situazione precedente
+  const handleUndoOptimization = () => {
+    if (!lastOptimizationSnapshot) return;
+    setState(prev => ({
+      ...prev,
+      stockDetail: lastOptimizationSnapshot.stockDetail,
+      demandDetail: lastOptimizationSnapshot.demandDetail,
+      result: lastOptimizationSnapshot.result,
+    }));
+    setLastOptimizationSnapshot(null);
+    showToast('Ultima ottimizzazione annullata: ripristinata la situazione precedente.');
   };
 
   // 12) Aggiorna Richiesta: sostituisce SOLO i records dei diametri presenti in Richiesta Non Evasa
@@ -431,7 +467,7 @@ export const App: React.FC = () => {
     }
   };
 
-  // XLS Import (in caso di successo toast, in caso di errore finestra modale con OK - v. 1.39)
+  // XLS Import (in caso di successo toast, in caso di errore finestra modale con OK - v. 1.40)
   const handleImportXls = async (file: File, kind: 'stockDetail' | 'demandDetail') => {
     const label = kind === 'stockDetail' ? 'Giacenza' : 'Richiesta';
     try {
@@ -440,7 +476,7 @@ export const App: React.FC = () => {
       showToast(`${label}: importati ${imported.length} record dal file Excel.`);
     } catch (e: any) {
       setImportErrorModal({
-        title: `Errore importazione file Excel (${label})`,
+        title: 'Errore importazione file Excel',
         message: e.message || 'Formato del file Excel non valido o dati non corretti.',
       });
     }
@@ -579,6 +615,8 @@ export const App: React.FC = () => {
             <ResultsView
               result={state.result}
               onOptimize={handleOptimize}
+              onUndoOptimize={handleUndoOptimization}
+              canUndoOptimize={lastOptimizationSnapshot !== null}
               onExportPlan={() => exportPlanXls(state.result, showToast)}
               onUpdateDemand={handleUpdateDemand}
               onUpdateStock={handleUpdateStock}
@@ -589,9 +627,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.39 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.40 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.39 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.40 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 
@@ -619,15 +657,26 @@ export const App: React.FC = () => {
         onApplySort={handleApplySort}
       />
 
-      {/* Finestra di errore importazione file Excel con titolo, messaggio e tasto OK (v. 1.39) */}
+      {/* Finestra di errore importazione file Excel con titolo, messaggio e tasto OK (v. 1.40) */}
       <ConfirmModal
         isOpen={importErrorModal !== null}
         title={importErrorModal?.title || 'Errore importazione file Excel'}
         message={importErrorModal?.message || ''}
         confirmText="OK"
         showCancel={false}
+        showCloseButton={false}
         onConfirm={() => setImportErrorModal(null)}
-        onCancel={() => setImportErrorModal(null)}
+      />
+
+      {/* Finestra esito Ottimizzazione con pulsante OK e senza "x" di chiusura (v. 1.40) */}
+      <ConfirmModal
+        isOpen={optimizationOutcomeModal !== null}
+        title={optimizationOutcomeModal?.title || 'Esito Ottimizzazione'}
+        message={optimizationOutcomeModal?.message || ''}
+        confirmText="OK"
+        showCancel={false}
+        showCloseButton={false}
+        onConfirm={() => setOptimizationOutcomeModal(null)}
       />
 
       <Toast message={toastMessage} />

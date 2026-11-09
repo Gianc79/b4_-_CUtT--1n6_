@@ -73,6 +73,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   // Modali in-app
   const [invalidDiaModalOpen, setInvalidDiaModalOpen] = useState(false);
   const [clearTableModalOpen, setClearTableModalOpen] = useState(false);
+  const [emptyTableModalOpen, setEmptyTableModalOpen] = useState(false);
   const [duplicateCandidate, setDuplicateCandidate] = useState<DuplicateCandidate | null>(null);
 
   // Undo eliminazione riga
@@ -411,6 +412,20 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     }
   };
 
+  const handleHeaderClearClick = () => {
+    const isTableEmpty =
+      effectiveRows.length === 0 ||
+      effectiveRows.every(
+        r => !r.diameter.trim() && !r.qty.trim() && !r.length.trim()
+      );
+
+    if (isTableEmpty) {
+      setEmptyTableModalOpen(true);
+      return;
+    }
+    setClearTableModalOpen(true);
+  };
+
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
@@ -558,7 +573,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                     <button
                       className="header-clear"
                       type="button"
-                      onClick={() => setClearTableModalOpen(true)}
+                      onClick={handleHeaderClearClick}
                       aria-label="Svuota tabella"
                       title={
                         isFiltered
@@ -723,6 +738,17 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         confirmText="OK"
         showCancel={false}
         onConfirm={() => setInvalidDiaModalOpen(false)}
+      />
+
+      {/* Modale Tabella Già Vuota */}
+      <ConfirmModal
+        isOpen={emptyTableModalOpen}
+        title="Tabella vuota"
+        message="La tabella è già vuota."
+        confirmText="OK"
+        showCancel={false}
+        showCloseButton={false}
+        onConfirm={() => setEmptyTableModalOpen(false)}
       />
 
       {/* Modale Svuota Tabella */}

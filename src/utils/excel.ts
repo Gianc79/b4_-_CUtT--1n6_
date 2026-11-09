@@ -126,6 +126,8 @@ export async function parseMasterXls(file: File): Promise<MasterRow[]> {
 
   const activeMap = map;
   const output: MasterRow[] = [];
+  const groupedIndexByKey = new Map<string, number>();
+
   for (let i = start; i < rows.length; i++) {
     const cells = rows[i];
     if ([cells[activeMap.diameter], cells[activeMap.qty], cells[activeMap.length]].every(value => String(value ?? '').trim() === '')) {
@@ -137,17 +139,22 @@ export async function parseMasterXls(file: File): Promise<MasterRow[]> {
 
     if (!validDiameter(d) || !Number.isInteger(q) || q! < 1 || q! > 10000 || !Number.isInteger(l) || l! < 1 || l! > 1200) {
       const excelRow = baseRow + i + 1;
-      const rawLabel = (value: unknown) => String(value ?? '').trim() || 'vuoto';
-      const parsedLabel = (value: unknown) => (value === null ? 'non riconosciuto' : String(value));
       throw new Error(
-        `Riga Excel ${excelRow}: controlla diametro (numero pari da 6 a 40), quantità (intero da 1 a 10.000) e lunghezza (intero da 1 a 1.200 cm). Valori letti: Diametro="${rawLabel(
-          cells[activeMap.diameter]
-        )}" → ${parsedLabel(d)}, Nr.="${rawLabel(cells[activeMap.qty])}" → ${parsedLabel(q)}, L [cm]="${rawLabel(
-          cells[activeMap.length]
-        )}" → ${parsedLabel(l)}.`
+        `E' stato riscontrato un errore nella riga ${excelRow}: il [Diametro] deve essere un numero pari compreso tra 6 e 40, la [Quantità] un numero intero da 1 a 10.000 e la [Lunghezza] un numero intero da 1 a 1.200. Non sono ammessi valori vuoti né uguali a zero.`
       );
     }
-    output.push({ id: newId(), diameter: String(d), qty: String(q), length: String(l) });
+
+    // Raggruppa i records con lo stesso diametro e la stessa lunghezza sommando le relative quantità
+    const key = `${d}_${l}`;
+    const existingIndex = groupedIndexByKey.get(key);
+    if (existingIndex !== undefined) {
+      const existing = output[existingIndex];
+      const newQty = (inputNumber(existing.qty) || 0) + q!;
+      existing.qty = String(newQty);
+    } else {
+      groupedIndexByKey.set(key, output.length);
+      output.push({ id: newId(), diameter: String(d), qty: String(q), length: String(l) });
+    }
   }
 
   if (!output.length) throw new Error('Il foglio Excel non contiene record validi da importare.');
@@ -299,7 +306,7 @@ export async function exportPlanXls(
 
     try {
       const saveRes = await saveWithPicker({
-        name: 'piano-taglio-v1.39.xlsx',
+        name: 'piano-taglio-v1.40.xlsx',
         content,
         type: mime,
         description: 'Piano di taglio Excel',
@@ -315,7 +322,7 @@ export async function exportPlanXls(
       alert('La finestra di salvataggio non è riuscita; il file Excel verrà scaricato con il metodo standard.');
     }
 
-    download('piano-taglio-v1.39.xlsx', content, mime);
+    download('piano-taglio-v1.40.xlsx', content, mime);
     onToast('Piano di taglio Excel scaricato.');
   } catch (e: any) {
     alert(`Impossibile esportare il Piano di taglio: ${e.message || 'errore nella creazione del file Excel.'}`);

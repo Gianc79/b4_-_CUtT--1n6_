@@ -80,3 +80,55 @@ test('operational plan exported records contain only actual data rows without To
     assert.notEqual(String(row.diameter), 'Totale');
   }
 });
+
+test('parseMasterXls merges duplicate records and reports exact error message', async () => {
+  const XLSX = await import('xlsx');
+  const { parseMasterXls } = await import('./excel');
+
+  // Test 1: Duplicates merging
+  const validData = [
+    ['Diametro [mm]', 'Nr.', 'L [cm]'],
+    [12, 10, 600],
+    [14, 5, 1200],
+    [12, 20, 600], // duplicate of row 1: Ø12, L600
+  ];
+  const ws1 = XLSX.utils.aoa_to_sheet(validData);
+  const wb1 = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb1, ws1, 'Sheet1');
+  const buf1 = XLSX.write(wb1, { bookType: 'xlsx', type: 'array' });
+  const file1 = new File([buf1], 'test_merge.xlsx');
+
+  const rows = await parseMasterXls(file1);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].diameter, '12');
+  assert.equal(rows[0].length, '600');
+  assert.equal(rows[0].qty, '30'); // 10 + 20
+  assert.equal(rows[1].diameter, '14');
+  assert.equal(rows[1].length, '1200');
+  assert.equal(rows[1].qty, '5');
+
+  // Test 2: Error message on invalid row
+  const invalidData = [
+    ['Diametro [mm]', 'Nr.', 'L [cm]'],
+    [12, 10, 600],
+    [13, 5, 1200], // odd diameter in row 3 (excel row 3)
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(invalidData);
+  const wb2 = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb2, ws2, 'Sheet1');
+  const buf2 = XLSX.write(wb2, { bookType: 'xlsx', type: 'array' });
+  const file2 = new File([buf2], 'test_error.xlsx');
+
+  await assert.rejects(
+    async () => {
+      await parseMasterXls(file2);
+    },
+    (err: any) => {
+      assert.equal(
+        err.message,
+        "E' stato riscontrato un errore nella riga 3: il [Diametro] deve essere un numero pari compreso tra 6 e 40, la [Quantità] un numero intero da 1 a 10.000 e la [Lunghezza] un numero intero da 1 a 1.200. Non sono ammessi valori vuoti né uguali a zero."
+      );
+      return true;
+    }
+  );
+});

@@ -8,6 +8,7 @@ export interface ConfirmModalProps {
   cancelText?: string;
   confirmStyle?: 'danger' | 'primary';
   showCancel?: boolean;
+  showCloseButton?: boolean;
   onConfirm: () => void;
   onCancel?: () => void;
   isDuplicatePrompt?: boolean;
@@ -21,14 +22,23 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   cancelText = 'Annulla',
   confirmStyle = 'primary',
   showCancel = true,
+  showCloseButton = true,
   onConfirm,
   onCancel,
   isDuplicatePrompt = false,
 }) => {
   if (!isOpen) return null;
 
+  const handleBackdropClick = () => {
+    if (showCancel && showCloseButton && onCancel) {
+      onCancel();
+    }
+  };
+
+  const shouldRenderCloseButton = showCloseButton && !!onCancel;
+
   return (
-    <div className="in-app-modal-backdrop" onClick={onCancel}>
+    <div className="in-app-modal-backdrop" onClick={handleBackdropClick}>
       <div
         className="in-app-modal"
         role="dialog"
@@ -38,7 +48,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       >
         <div className="in-app-modal-head">
           <h3 id="modal-title">{title}</h3>
-          {onCancel && (
+          {shouldRenderCloseButton && (
             <button
               type="button"
               className="in-app-modal-close"

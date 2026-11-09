@@ -2492,6 +2492,49 @@ tr.row-applied td {
   letter-spacing: 0.01em;
 }
 
+/* Icona quadrata Annulla ultima ottimizzazione (v. 1.40) */
+.btn-undo-optimization-square {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1.5px solid #0284c7;
+  color: #0284c7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #0369a1, 0 6px 14px rgba(2, 132, 199, 0.25);
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.btn-undo-optimization-square:hover:not(:disabled) {
+  background: #f0f9ff;
+  border-color: #0369a1;
+  color: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 #075985, 0 8px 18px rgba(2, 132, 199, 0.35);
+}
+
+.btn-undo-optimization-square:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #075985, 0 2px 4px rgba(2, 132, 199, 0.2);
+}
+
+.btn-undo-optimization-square:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+  box-shadow: none;
+}
+
 /* 2) KPI Cards con allineamento verticale uniforme */
 .kpis-modern-v128 {
   display: grid;
