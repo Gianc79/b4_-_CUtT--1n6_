@@ -73,7 +73,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   // Modali in-app
   const [invalidDiaModalOpen, setInvalidDiaModalOpen] = useState(false);
   const [clearTableModalOpen, setClearTableModalOpen] = useState(false);
-  const [emptyTableModalOpen, setEmptyTableModalOpen] = useState(false);
   const [duplicateCandidate, setDuplicateCandidate] = useState<DuplicateCandidate | null>(null);
 
   // Undo eliminazione riga
@@ -362,19 +361,20 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     onChangeRows([...rows, newRow]);
   };
 
-  // Eliminazione riga con Undo Toast
+  // Eliminazione riga con Undo Toast (v. 1.41: nessun popup se mancano sia Nr. che L)
   const handleDeleteRow = (id: string, index: number) => {
     const targetRow = rows.find(r => r.id === id);
     if (!targetRow) return;
 
-    const isEmptyRow =
-      !targetRow.diameter.trim() && !targetRow.qty.trim() && !targetRow.length.trim();
+    // Se non ha valori nei campi [Nr.] e [L], non mostrare il popup dell'elemento rimosso (v. 1.41)
+    const hasMeaningfulValues =
+      targetRow.qty.trim() !== '' || targetRow.length.trim() !== '';
 
     const updated = rows.filter(r => r.id !== id);
     const finalRows = updated.length > 0 ? updated : [blankMaster()];
     onChangeRows(finalRows);
 
-    if (!isEmptyRow) {
+    if (hasMeaningfulValues) {
       if (undoTimerRef.current) {
         window.clearTimeout(undoTimerRef.current);
       }
@@ -397,6 +397,11 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     onToast('Riga ripristinata con successo.');
   };
 
+  // Verifica se la tabella è vuota (nessuna riga o righe prive di valori nei campi Nr. e L)
+  const isTableEmpty =
+    effectiveRows.length === 0 ||
+    effectiveRows.every(r => !r.qty.trim() && !r.length.trim());
+
   // Svuota tabella con filtro attivo o generale
   const handleConfirmClearTable = () => {
     if (selectedDiameter === 'all') {
@@ -413,14 +418,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   };
 
   const handleHeaderClearClick = () => {
-    const isTableEmpty =
-      effectiveRows.length === 0 ||
-      effectiveRows.every(
-        r => !r.diameter.trim() && !r.qty.trim() && !r.length.trim()
-      );
-
     if (isTableEmpty) {
-      setEmptyTableModalOpen(true);
       return;
     }
     setClearTableModalOpen(true);
@@ -574,9 +572,12 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                       className="header-clear"
                       type="button"
                       onClick={handleHeaderClearClick}
+                      disabled={isTableEmpty}
                       aria-label="Svuota tabella"
                       title={
-                        isFiltered
+                        isTableEmpty
+                          ? 'Tabella già vuota'
+                          : isFiltered
                           ? `Elimina elementi Ø ${selectedDiameter} mm`
                           : 'Svuota tabella'
                       }
@@ -738,17 +739,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         confirmText="OK"
         showCancel={false}
         onConfirm={() => setInvalidDiaModalOpen(false)}
-      />
-
-      {/* Modale Tabella Già Vuota */}
-      <ConfirmModal
-        isOpen={emptyTableModalOpen}
-        title="Tabella vuota"
-        message="La tabella è già vuota."
-        confirmText="OK"
-        showCancel={false}
-        showCloseButton={false}
-        onConfirm={() => setEmptyTableModalOpen(false)}
       />
 
       {/* Modale Svuota Tabella */}

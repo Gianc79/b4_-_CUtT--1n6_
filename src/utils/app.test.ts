@@ -132,3 +132,30 @@ test('parseMasterXls merges duplicate records and reports exact error message', 
     }
   );
 });
+
+test('v1.41 row deletion popup condition: only meaningful if qty or length is filled', () => {
+  const isRowMeaningful = (row: { diameter: string; qty: string; length: string }) =>
+    row.qty.trim() !== '' || row.length.trim() !== '';
+
+  // Only diameter filled: should not trigger popup
+  assert.equal(isRowMeaningful({ diameter: '12', qty: '', length: '' }), false);
+  // Completely empty: should not trigger popup
+  assert.equal(isRowMeaningful({ diameter: '', qty: '', length: '' }), false);
+  // Qty filled: triggers popup
+  assert.equal(isRowMeaningful({ diameter: '12', qty: '5', length: '' }), true);
+  // Length filled: triggers popup
+  assert.equal(isRowMeaningful({ diameter: '12', qty: '', length: '600' }), true);
+  // Both filled: triggers popup
+  assert.equal(isRowMeaningful({ diameter: '12', qty: '5', length: '600' }), true);
+});
+
+test('v1.41 optimization unfulfilled demand automatic update', () => {
+  const stock = [{ id: 's1', diameter: '12', qty: '2', length: '1200' }];
+  const demand = [{ id: 'd1', diameter: '12', qty: '10', length: '600' }]; // needs 5 bars, only 2 available
+
+  const res = runOptimization(stock, demand);
+  assert.equal(res.allFulfilled, false);
+  assert.equal(res.unmet.length, 1);
+  assert.equal(res.unmet[0].diameter, 12);
+  assert.equal(res.unmet[0].remaining, 6); // 10 requested - 4 fulfilled = 6 unmet
+});

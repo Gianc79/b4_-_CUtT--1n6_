@@ -1027,6 +1027,14 @@ tbody tr:hover td {
   line-height: 1;
 }
 
+.header-clear:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  background: #f8fafc;
+}
+
 .table-bottom-actions {
   display: flex;
   justify-content: flex-end;

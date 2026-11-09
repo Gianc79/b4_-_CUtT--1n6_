@@ -300,9 +300,31 @@ export const App: React.FC = () => {
       const cleanedStock = remainingStockDetail.filter(r => (inputNumber(r.qty) || 0) > 0);
       const finalStock = cleanedStock.length > 0 ? cleanedStock : [blankMaster()];
 
+      // Aggiornamento automatico della distinta Richiesta per i soli diametri presenti in Richiesta Non Evasa (v. 1.41)
+      let finalDemand = state.demandDetail;
+      if (normalized.unmet && normalized.unmet.length > 0) {
+        const unmetDiameters = new Set(normalized.unmet.map(x => x.diameter));
+
+        const newUnmetRows: MasterRow[] = normalized.unmet.map(x => ({
+          id: newId(),
+          diameter: String(x.diameter),
+          qty: String(x.remaining),
+          length: String(x.length),
+        }));
+
+        const retainedDemandRows = state.demandDetail.filter(row => {
+          const d = inputNumber(row.diameter);
+          return d === null || !unmetDiameters.has(d);
+        });
+
+        const finalDemandRows = [...retainedDemandRows, ...newUnmetRows];
+        finalDemand = finalDemandRows.length > 0 ? finalDemandRows : [blankMaster()];
+      }
+
       setState(prev => ({
         ...prev,
         stockDetail: finalStock,
+        demandDetail: finalDemand,
         result: normalized,
       }));
 
@@ -627,9 +649,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.40 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.41 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.40 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.41 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 

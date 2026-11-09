@@ -65,8 +65,7 @@ export const HelpView: React.FC = () => {
             <p>
               La pagina “Ottimizza” mostra il Piano di Taglio Operativo, il Riepilogo Barre
               Utilizzate, la Richiesta Non Evasa e la Giacenza Residua & Sfridi.
-              All'esecuzione dell'ottimizzazione, le barre consumate vengono <strong>automaticamente scalate dalla tabella Giacenza</strong>.
-              Nel riquadro “Richiesta Non Evasa”, premendo “Aggiorna Richiesta” tutti i tagli non evasi sostituiscono integralmente la distinta Richiesta.
+              All'esecuzione dell'ottimizzazione, le barre consumate vengono <strong>automaticamente scalate dalla tabella Giacenza</strong> e gli eventuali tagli non evasi (Richiesta Non Evasa) aggiornano <strong>automaticamente la distinta Richiesta</strong> per i soli diametri interessati.
               Nel riquadro “Giacenza Residua & Sfridi”, puoi selezionare i pezzi da recuperare: premendo “Aggiorna Giacenza”, i pezzi selezionati vengono <strong>integrati</strong> nella Giacenza attuale (sommandosi alle quantità esistenti o aggiungendo nuove righe), mentre i pezzi non selezionati rimangono disponibili per eventuali aggiornamenti futuri.
             </p>
           </div>
