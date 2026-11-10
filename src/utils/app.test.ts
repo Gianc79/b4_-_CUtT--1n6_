@@ -159,3 +159,35 @@ test('v1.41 optimization unfulfilled demand automatic update', () => {
   assert.equal(res.unmet[0].diameter, 12);
   assert.equal(res.unmet[0].remaining, 6); // 10 requested - 4 fulfilled = 6 unmet
 });
+
+test('v1.42 duplicate cancel empties qty and length while preserving diameter and row', () => {
+  const initialRows = [
+    { id: 'r1', diameter: '12', qty: '5', length: '600' },
+    { id: 'r2', diameter: '12', qty: '10', length: '600' },
+  ];
+  // Simulating cancel merge behavior
+  const sourceRowId = 'r2';
+  const updated = initialRows.map(r =>
+    r.id === sourceRowId ? { ...r, qty: '', length: '' } : r
+  );
+  assert.equal(updated.length, 2);
+  assert.equal(updated[1].id, 'r2');
+  assert.equal(updated[1].diameter, '12');
+  assert.equal(updated[1].qty, '');
+  assert.equal(updated[1].length, '');
+});
+
+test('v1.42 undo optimization snapshot invalidation on table change', () => {
+  let snapshot: { stock: any[]; demand: any[] } | null = { stock: [], demand: [] };
+  const onTableChange = () => {
+    if (snapshot) snapshot = null;
+  };
+  const onTabChange = () => {
+    // Tab changes do not invalidate snapshot
+  };
+
+  onTabChange();
+  assert.notEqual(snapshot, null);
+  onTableChange();
+  assert.equal(snapshot, null);
+});

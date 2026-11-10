@@ -146,6 +146,8 @@ export const MasterTable: React.FC<MasterTableProps> = ({
 
   // Gestione modifiche cella
   const handleCellChange = (id: string, field: 'diameter' | 'qty' | 'length', val: string) => {
+    // Se c'è un filtro diametri attivo, il diametro è bloccato e non può essere sovrascritto (v. 1.42)
+    if (field === 'diameter' && isFiltered) return;
     const updated = rows.map(r => (r.id === id ? { ...r, [field]: val } : r));
     onChangeRows(updated);
   };
@@ -259,6 +261,16 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   };
 
   const handleCancelMergeDuplicate = () => {
+    if (!duplicateCandidate) return;
+    const { sourceRowId } = duplicateCandidate;
+    // Se l'utente preme Annulla, viene svuotata la riga (tranne il diametro), ma non eliminata (v. 1.42)
+    const updated = rows.map(r => {
+      if (r.id === sourceRowId) {
+        return { ...r, qty: '', length: '' };
+      }
+      return r;
+    });
+    onChangeRows(updated);
     setDuplicateCandidate(null);
   };
 
@@ -607,7 +619,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                     <tr key={r.id}>
                       <td>
                         <input
-                          className="cell-input"
+                          className={`cell-input ${isFiltered ? 'cell-input-readonly' : ''}`.trim()}
                           type="number"
                           min="6"
                           max="40"
@@ -622,8 +634,14 @@ export const MasterTable: React.FC<MasterTableProps> = ({
                           autoCorrect="off"
                           autoCapitalize="none"
                           spellCheck={false}
+                          readOnly={isFiltered}
+                          tabIndex={isFiltered ? -1 : 0}
+                          title={isFiltered ? `Diametro bloccato sul filtro Ø ${selectedDiameter} mm (non modificabile)` : undefined}
                           onContextMenu={e => e.preventDefault()}
-                          onFocus={e => handleCellFocus(e, r.id, 'diameter', e.target.value)}
+                          onFocus={e => {
+                            if (isFiltered) return;
+                            handleCellFocus(e, r.id, 'diameter', e.target.value);
+                          }}
                           onChange={e => handleCellChange(r.id, 'diameter', e.target.value)}
                           onBlur={e => handleCellBlur(r.id, 'diameter', e.target.value)}
                           onKeyDown={e => handleKeyDown(e, i, 'diameter', r.id)}
@@ -753,12 +771,16 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         onCancel={() => setClearTableModalOpen(false)}
       />
 
-      {/* Modale Duplicato */}
+      {/* Modale Duplicato (v. 1.42) */}
       <ConfirmModal
         isOpen={duplicateCandidate !== null}
         title="Elemento già presente in tabella"
-        message="Elemento già presente in tabella: aggiungere alla quantità esistente?"
-        isDuplicatePrompt={true}
+        message="La stessa lunghezza è già presente in tabella e la quantità verrà quindi sommata."
+        confirmText="OK"
+        cancelText="Annulla"
+        showCancel={true}
+        showCloseButton={false}
+        closeOnBackdrop={false}
         onConfirm={handleConfirmMergeDuplicate}
         onCancel={handleCancelMergeDuplicate}
       />

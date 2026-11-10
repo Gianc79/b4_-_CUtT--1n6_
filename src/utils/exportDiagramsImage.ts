@@ -283,10 +283,10 @@ export async function exportDiagramsAsPng(
   ctx.fillStyle = gradHeader;
   ctx.fillRect(0, 0, baseWidth, headerHeight);
 
-  // Titolo applicazione v1.41
+  // Titolo applicazione v1.42
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-  ctx.fillText('TAGLIO BARRE C.A. — v. 1.41', 24, 38);
+  ctx.fillText('TAGLIO BARRE C.A. — v. 1.42', 24, 38);
 
   ctx.fillStyle = '#93c5fd';
   ctx.font = '600 13px system-ui, -apple-system, sans-serif';
@@ -337,7 +337,7 @@ export async function exportDiagramsAsPng(
       return;
     }
     const buffer = await blob.arrayBuffer();
-    const fileName = 'diagrammi-piano-taglio-v1.41.png';
+    const fileName = 'diagrammi-piano-taglio-v1.42.png';
     const mime = 'image/png';
 
     try {
@@ -453,10 +453,10 @@ export async function exportDiagramsAsPdf(
     ctx.fillRect(0, 0, baseWidth, currentHeaderHeight);
 
     if (isFirstPage) {
-      // Titolo completo applicazione v1.41
+      // Titolo completo applicazione v1.42
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-      ctx.fillText('TAGLIO BARRE C.A. — v. 1.41', 24, 38);
+      ctx.fillText('TAGLIO BARRE C.A. — v. 1.42', 24, 38);
 
       ctx.fillStyle = '#93c5fd';
       ctx.font = '600 13px system-ui, -apple-system, sans-serif';
@@ -533,7 +533,7 @@ export async function exportDiagramsAsPdf(
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Piano Operativo di Taglio — v. 1.41</title>
+  <title>Piano Operativo di Taglio — v. 1.42</title>
   <style>
     @page {
       size: A4 portrait;

@@ -1001,6 +1001,21 @@ tbody tr:hover td {
   border-color: var(--teal);
 }
 
+.cell-input-readonly,
+.cell-input[readonly] {
+  background-color: #f1f5f9;
+  color: #475569;
+  cursor: not-allowed;
+  user-select: none;
+  border-color: #e2e8f0;
+}
+
+.cell-input-readonly:focus,
+.cell-input[readonly]:focus {
+  border-color: #cbd5e1;
+  outline: none;
+}
+
 .master-table {
   table-layout: fixed;
   min-width: 0;

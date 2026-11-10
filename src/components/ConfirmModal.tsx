@@ -9,6 +9,7 @@ export interface ConfirmModalProps {
   confirmStyle?: 'danger' | 'primary';
   showCancel?: boolean;
   showCloseButton?: boolean;
+  closeOnBackdrop?: boolean;
   onConfirm: () => void;
   onCancel?: () => void;
   isDuplicatePrompt?: boolean;
@@ -23,6 +24,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   confirmStyle = 'primary',
   showCancel = true,
   showCloseButton = true,
+  closeOnBackdrop = true,
   onConfirm,
   onCancel,
   isDuplicatePrompt = false,
@@ -30,7 +32,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   if (!isOpen) return null;
 
   const handleBackdropClick = () => {
-    if (showCancel && showCloseButton && onCancel) {
+    if (!closeOnBackdrop || !showCloseButton) return;
+    if (showCancel && onCancel) {
       onCancel();
     }
   };
@@ -65,47 +68,22 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         </div>
 
         <div className="in-app-modal-actions">
-          {isDuplicatePrompt ? (
-            <>
-              {/* NO a sinistra */}
-              <button
-                type="button"
-                className="btn neutral modal-btn-half"
-                onClick={onCancel}
-              >
-                NO
-              </button>
-              {/* SI a destra */}
-              <button
-                type="button"
-                className="btn primary modal-btn-half"
-                onClick={onConfirm}
-              >
-                SI
-              </button>
-            </>
-          ) : (
-            <>
-              {/* Annulla a sinistra: colore standard grigino (btn neutral), non verde */}
-              {showCancel && onCancel && (
-                <button
-                  type="button"
-                  className="btn neutral modal-btn-half"
-                  onClick={onCancel}
-                >
-                  {cancelText}
-                </button>
-              )}
-              {/* Conferma (es. Elimina tutti) a destra */}
-              <button
-                type="button"
-                className={`btn ${confirmStyle === 'danger' ? 'btn-danger-bg' : 'primary'} modal-btn-half`}
-                onClick={onConfirm}
-              >
-                {confirmText}
-              </button>
-            </>
+          {showCancel && onCancel && (
+            <button
+              type="button"
+              className="btn neutral modal-btn-half"
+              onClick={onCancel}
+            >
+              {cancelText}
+            </button>
           )}
+          <button
+            type="button"
+            className={`btn ${confirmStyle === 'danger' ? 'btn-danger-bg' : 'primary'} ${showCancel ? 'modal-btn-half' : ''}`}
+            onClick={onConfirm}
+          >
+            {confirmText}
+          </button>
         </div>
       </div>
     </div>

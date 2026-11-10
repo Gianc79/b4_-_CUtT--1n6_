@@ -746,11 +746,16 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             <ExportPlanModal
               isOpen={exportModalOpen}
               onClose={() => setExportModalOpen(false)}
-              onExportExcel={() => onExportPlan()}
+              onExportExcel={() => {
+                setExportModalOpen(false);
+                onExportPlan();
+              }}
               onExportPdf={() => {
+                setExportModalOpen(false);
                 exportDiagramsAsPdf(operations, result, onToast || (() => {}));
               }}
               onExportPng={() => {
+                setExportModalOpen(false);
                 exportDiagramsAsPng(operations, result, onToast || (() => {}));
               }}
             />

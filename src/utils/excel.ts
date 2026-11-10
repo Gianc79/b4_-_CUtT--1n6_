@@ -306,7 +306,7 @@ export async function exportPlanXls(
 
     try {
       const saveRes = await saveWithPicker({
-        name: 'piano-taglio-v1.41.xlsx',
+        name: 'piano-taglio-v1.42.xlsx',
         content,
         type: mime,
         description: 'Piano di taglio Excel',
@@ -322,7 +322,7 @@ export async function exportPlanXls(
       alert('La finestra di salvataggio non è riuscita; il file Excel verrà scaricato con il metodo standard.');
     }
 
-    download('piano-taglio-v1.41.xlsx', content, mime);
+    download('piano-taglio-v1.42.xlsx', content, mime);
     onToast('Piano di taglio Excel scaricato.');
   } catch (e: any) {
     alert(`Impossibile esportare il Piano di taglio: ${e.message || 'errore nella creazione del file Excel.'}`);

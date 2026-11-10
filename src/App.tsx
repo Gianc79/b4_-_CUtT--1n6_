@@ -39,6 +39,11 @@ export const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [importErrorModal, setImportErrorModal] = useState<{ title: string; message: string } | null>(null);
   const [optimizationOutcomeModal, setOptimizationOutcomeModal] = useState<{ title: string; message: string } | null>(null);
+  const [pendingXlsImport, setPendingXlsImport] = useState<{
+    kind: 'stockDetail' | 'demandDetail';
+    rows: MasterRow[];
+    label: string;
+  } | null>(null);
   const [lastOptimizationSnapshot, setLastOptimizationSnapshot] = useState<{
     stockDetail: MasterRow[];
     demandDetail: MasterRow[];
@@ -156,10 +161,16 @@ export const App: React.FC = () => {
   // Modifica righe Giacenza e Richiesta
   const handleStockChange = (newStock: MasterRow[]) => {
     setState(prev => ({ ...prev, stockDetail: newStock }));
+    if (lastOptimizationSnapshot) {
+      setLastOptimizationSnapshot(null);
+    }
   };
 
   const handleDemandChange = (newDemand: MasterRow[]) => {
     setState(prev => ({ ...prev, demandDetail: newDemand }));
+    if (lastOptimizationSnapshot) {
+      setLastOptimizationSnapshot(null);
+    }
   };
 
   // Ordinamento multi-livello
@@ -209,6 +220,9 @@ export const App: React.FC = () => {
     const currentRows = state[sortKind];
     const sorted = sortRows(currentRows, levels);
     setState(prev => ({ ...prev, [sortKind]: sorted }));
+    if (lastOptimizationSnapshot) {
+      setLastOptimizationSnapshot(null);
+    }
     const descriptions = levels.map(
       l =>
         `${SORT_FIELDS.find(f => f.value === l.field)?.label || l.field} ${
@@ -395,6 +409,9 @@ export const App: React.FC = () => {
       demandDetail: cleanedDemand,
       result: prev.result ? { ...prev.result, unmet: [] } : null,
     }));
+    if (lastOptimizationSnapshot) {
+      setLastOptimizationSnapshot(null);
+    }
 
     showToast(`Richiesta aggiornata con i tagli non evasi per i soli diametri interessati.`);
   };
@@ -465,6 +482,9 @@ export const App: React.FC = () => {
           }
         : null,
     }));
+    if (lastOptimizationSnapshot) {
+      setLastOptimizationSnapshot(null);
+    }
 
     showToast(`Pezzi integrati con successo nella Giacenza.`);
   };
@@ -483,25 +503,42 @@ export const App: React.FC = () => {
       }
       const newState = normalizeNewState(d);
       setState(newState);
+      if (lastOptimizationSnapshot) {
+        setLastOptimizationSnapshot(null);
+      }
       showToast('File caricato correttamente.');
     } catch (e: any) {
       showToast('Impossibile caricare il file: ' + e.message);
     }
   };
 
-  // XLS Import (in caso di successo toast, in caso di errore finestra modale con OK - v. 1.40)
+  // XLS Import (in caso di successo finestra di conferma sostituzione v. 1.42, in caso di errore finestra modale con OK)
   const handleImportXls = async (file: File, kind: 'stockDetail' | 'demandDetail') => {
     const label = kind === 'stockDetail' ? 'Giacenza' : 'Richiesta';
     try {
       const imported = await parseMasterXls(file);
-      setState(prev => ({ ...prev, [kind]: imported }));
-      showToast(`${label}: importati ${imported.length} record dal file Excel.`);
+      setPendingXlsImport({ kind, rows: imported, label });
     } catch (e: any) {
       setImportErrorModal({
         title: 'Errore importazione file Excel',
         message: e.message || 'Formato del file Excel non valido o dati non corretti.',
       });
     }
+  };
+
+  const handleConfirmXlsImport = () => {
+    if (!pendingXlsImport) return;
+    const { kind, rows, label } = pendingXlsImport;
+    setState(prev => ({ ...prev, [kind]: rows }));
+    if (lastOptimizationSnapshot) {
+      setLastOptimizationSnapshot(null);
+    }
+    showToast(`${label}: importati ${rows.length} record dal file Excel.`);
+    setPendingXlsImport(null);
+  };
+
+  const handleCancelXlsImport = () => {
+    setPendingXlsImport(null);
   };
 
   return (
@@ -649,9 +686,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.41 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.42 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.41 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.42 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 
@@ -677,6 +714,20 @@ export const App: React.FC = () => {
         kind={sortKind || 'stockDetail'}
         onClose={() => setSortKind(null)}
         onApplySort={handleApplySort}
+      />
+
+      {/* Finestra conferma sostituzione dati importazione file Excel (v. 1.42) */}
+      <ConfirmModal
+        isOpen={pendingXlsImport !== null}
+        title="Importa da Excel"
+        message="I dati attuali stanno per essere sostituiti. Continuare?"
+        confirmText="OK"
+        cancelText="Annulla"
+        showCancel={true}
+        showCloseButton={false}
+        closeOnBackdrop={false}
+        onConfirm={handleConfirmXlsImport}
+        onCancel={handleCancelXlsImport}
       />
 
       {/* Finestra di errore importazione file Excel con titolo, messaggio e tasto OK (v. 1.40) */}

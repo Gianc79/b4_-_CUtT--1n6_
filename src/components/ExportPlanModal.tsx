@@ -55,7 +55,9 @@ export const ExportPlanModal: React.FC<ExportPlanModalProps> = ({
             className="export-option-card recommended-export"
             onClick={() => {
               onClose();
-              onExportPdf();
+              setTimeout(() => {
+                onExportPdf();
+              }, 100);
             }}
           >
             <div className="export-option-icon-box pdf-icon-bg" aria-hidden="true">
@@ -82,7 +84,9 @@ export const ExportPlanModal: React.FC<ExportPlanModalProps> = ({
             className="export-option-card"
             onClick={() => {
               onClose();
-              onExportPng();
+              setTimeout(() => {
+                onExportPng();
+              }, 100);
             }}
           >
             <div className="export-option-icon-box img-icon-bg" aria-hidden="true">
@@ -109,7 +113,9 @@ export const ExportPlanModal: React.FC<ExportPlanModalProps> = ({
             className="export-option-card"
             onClick={() => {
               onClose();
-              onExportExcel();
+              setTimeout(() => {
+                onExportExcel();
+              }, 100);
             }}
           >
             <div className="export-option-icon-box excel-icon-bg" aria-hidden="true">
