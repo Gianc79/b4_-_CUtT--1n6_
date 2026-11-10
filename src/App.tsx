@@ -44,6 +44,7 @@ export const App: React.FC = () => {
     rows: MasterRow[];
     label: string;
   } | null>(null);
+  const [pendingJsonImport, setPendingJsonImport] = useState<AppState | null>(null);
   const [lastOptimizationSnapshot, setLastOptimizationSnapshot] = useState<{
     stockDetail: MasterRow[];
     demandDetail: MasterRow[];
@@ -489,7 +490,7 @@ export const App: React.FC = () => {
     showToast(`Pezzi integrati con successo nella Giacenza.`);
   };
 
-  // JSON Import
+  // JSON Import (richiede conferma prima di caricare i nuovi dati se valido v. 1.43)
   const handleImportJson = async (file: File) => {
     try {
       const text = await file.text();
@@ -502,14 +503,24 @@ export const App: React.FC = () => {
         throw new Error('Formato file non riconosciuto: selezionare un file dati JSON dell’applicazione.');
       }
       const newState = normalizeNewState(d);
-      setState(newState);
-      if (lastOptimizationSnapshot) {
-        setLastOptimizationSnapshot(null);
-      }
-      showToast('File caricato correttamente.');
+      setPendingJsonImport(newState);
     } catch (e: any) {
       showToast('Impossibile caricare il file: ' + e.message);
     }
+  };
+
+  const handleConfirmJsonImport = () => {
+    if (!pendingJsonImport) return;
+    setState(pendingJsonImport);
+    if (lastOptimizationSnapshot) {
+      setLastOptimizationSnapshot(null);
+    }
+    showToast('File caricato correttamente.');
+    setPendingJsonImport(null);
+  };
+
+  const handleCancelJsonImport = () => {
+    setPendingJsonImport(null);
   };
 
   // XLS Import (in caso di successo finestra di conferma sostituzione v. 1.42, in caso di errore finestra modale con OK)
@@ -686,9 +697,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.42 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.43 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.42 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.43 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 
@@ -728,6 +739,20 @@ export const App: React.FC = () => {
         closeOnBackdrop={false}
         onConfirm={handleConfirmXlsImport}
         onCancel={handleCancelXlsImport}
+      />
+
+      {/* Finestra conferma sostituzione dati caricamento file JSON di backup (v. 1.43) */}
+      <ConfirmModal
+        isOpen={pendingJsonImport !== null}
+        title="Carica backup"
+        message="I dati attuali stanno per essere sostituiti. Continuare?"
+        confirmText="OK"
+        cancelText="Annulla"
+        showCancel={true}
+        showCloseButton={false}
+        closeOnBackdrop={false}
+        onConfirm={handleConfirmJsonImport}
+        onCancel={handleCancelJsonImport}
       />
 
       {/* Finestra di errore importazione file Excel con titolo, messaggio e tasto OK (v. 1.40) */}

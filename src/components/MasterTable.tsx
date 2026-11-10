@@ -546,7 +546,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
             <h3>{kind === 'stockDetail' ? 'Elenco Giacenza' : 'Elenco Richiesta'}</h3>
             {isFiltered && (
               <span className="active-filter-badge">
-                Ø {selectedDiameter} mm ({effectiveRows.length})
+                Filtro attivo: Ø {selectedDiameter} mm ({effectiveRows.length})
               </span>
             )}
           </div>
