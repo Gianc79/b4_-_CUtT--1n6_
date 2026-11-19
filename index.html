@@ -3,14 +3,23 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
     <meta name="theme-color" content="#102b46" />
     <meta name="description" content="TAGLIO BARRE C.A. — Gestione ottimizzata del Piano di Taglio." />
-    <meta property="og:title" content="TAGLIO BARRE C.A. — v. 1.43" />
+    <meta property="og:title" content="TAGLIO BARRE C.A. — v. 1.44" />
     <meta property="og:description" content="TAGLIO BARRE C.A. — Gestione ottimizzata del Piano di Taglio." />
-    <title>TAGLIO BARRE C.A. — v. 1.43</title>
+    <title>TAGLIO BARRE C.A. — v. 1.44</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>

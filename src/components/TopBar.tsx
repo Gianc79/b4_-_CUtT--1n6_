@@ -8,6 +8,7 @@ interface TopBarProps {
   onImportJson: (file: File) => void;
   onSave: () => void;
   onSaveAs: () => void;
+  onRequestExit: () => void;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   onImportJson,
   onSave,
   onSaveAs,
+  onRequestExit,
   className,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,7 +75,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           <div className="brand-titles-column">
             <div className="brand-title-row">
               <h1 className="brand-app-name">
-                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.43</span>
+                TAGLIO BARRE C.A. <span className="brand-version-inline">v. 1.44</span>
               </h1>
             </div>
             <p className="brand-subtitle-twolines-v132">
@@ -182,6 +184,43 @@ export const TopBar: React.FC<TopBarProps> = ({
             accept="application/json,.json"
             onChange={handleFileChange}
           />
+        </div>
+
+        {/* Icona Esci in alto a destra allineata con la prima riga del titolo (v. 1.44) */}
+        <div className="topbar-exit-action">
+          <button
+            className="topbar-circular-btn topbar-exit-btn"
+            type="button"
+            onClick={onRequestExit}
+            title="Esci dall'app"
+            aria-label="Esci dall'app"
+          >
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+              <path
+                d="M11 4H6.5A2.5 2.5 0 0 0 4 6.5v11A2.5 2.5 0 0 0 6.5 20H11"
+                stroke="#DC2626"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M15.5 7.5L20 12l-4.5 4.5"
+                stroke="#DC2626"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <line
+                x1="9.5"
+                y1="12"
+                x2="19.5"
+                y2="12"
+                stroke="#DC2626"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 

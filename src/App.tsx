@@ -25,6 +25,7 @@ import { SortDialog } from './components/SortDialog';
 import { Toast } from './components/Toast';
 import { ScrollToTop } from './components/ScrollToTop';
 import { ConfirmModal } from './components/ConfirmModal';
+import { ExitConfirmModal } from './components/ExitConfirmModal';
 
 const SORT_FIELDS = [
   { value: 'diameter' as const, label: 'Diametro' },
@@ -51,6 +52,7 @@ export const App: React.FC = () => {
     result: any;
   } | null>(null);
   const [sortKind, setSortKind] = useState<'stockDetail' | 'demandDetail' | null>(null);
+  const [showExitModal, setShowExitModal] = useState<boolean>(false);
   // Conservazione persistente dei filtri diametri tra le sessioni e durante l'ottimizzazione
   const [stockFilterDiameter, setStockFilterDiameter] = useState<number | 'all'>('all');
   const [demandFilterDiameter, setDemandFilterDiameter] = useState<number | 'all'>('all');
@@ -552,6 +554,15 @@ export const App: React.FC = () => {
     setPendingXlsImport(null);
   };
 
+  const handleConfirmExit = () => {
+    saveState(state);
+    window.close();
+    if (typeof (navigator as any).app?.exitApp === 'function') {
+      (navigator as any).app.exitApp();
+    }
+    setShowExitModal(false);
+  };
+
   return (
     <div className="app-layout-wrapper">
       <TopBar
@@ -567,6 +578,7 @@ export const App: React.FC = () => {
         onImportJson={handleImportJson}
         onSave={() => saveCurrentFile(state, showToast)}
         onSaveAs={() => saveAsAppFile(state, showToast)}
+        onRequestExit={() => setShowExitModal(true)}
       />
 
       <div className="shell app-shell-content">
@@ -697,9 +709,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.43 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.44 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.43 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.44 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 
@@ -775,6 +787,13 @@ export const App: React.FC = () => {
         showCancel={false}
         showCloseButton={false}
         onConfirm={() => setOptimizationOutcomeModal(null)}
+      />
+
+      {/* Finestra conferma uscita dall'app (v. 1.44) */}
+      <ExitConfirmModal
+        isOpen={showExitModal}
+        onCancel={() => setShowExitModal(false)}
+        onConfirm={handleConfirmExit}
       />
 
       <Toast message={toastMessage} />

@@ -1,6 +1,0 @@
-{
-  "summary":  "Piano di implementazione aggiornato per la versione 1.36.0: specifica esplicitamente di non creare cartelle o file di backup in versions/, operando direttamente e chirurgicamente sui soli file attivi all'interno di src/.",
-  "updatedAt":  "2026-11-07T09:25:38.017425112Z",
-  "requestFeedback":  true,
-  "userFacing":  true
-}
