@@ -6,6 +6,7 @@ import { CutDiagramBar } from './CutDiagramBar';
 import { ConfirmModal } from './ConfirmModal';
 import { ExportPlanModal } from './ExportPlanModal';
 import { exportDiagramsAsPng, exportDiagramsAsPdf } from '../utils/exportDiagramsImage';
+import { InfoTooltip } from './InfoTooltip';
 
 export interface SelectedStockItem {
   source: 'remaining' | 'scrap';
@@ -143,15 +144,25 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   return (
     <section className="page active" id="page-results">
-      {/* 5) Intestazione Ottimizza: Frase esplicativa aggiornata; Tasto Ottimizza ed Icona Esporta XLS a dx */}
+      {/* Intestazione Ottimizza con icona info gialla e icona Annulla circolare (v. 1.46) */}
       <div className="section-head optimization-head-v129">
         <div className="optimization-head-text">
-          <h2>Ottimizza</h2>
-          {/* Frase esplicativa v1.36 */}
-          <p>Piano Operativo di Taglio generato dall'ottimizzazione della giacenza. Possibilità di esportarlo in un file Excel.</p>
+          <div className="section-title-with-info">
+            <h2>Ottimizza</h2>
+            <InfoTooltip
+              content={
+                <>
+                  Piano Operativo di Taglio generato dall&apos;ottimizzazione della Giacenza.
+                  <br />
+                  E&apos; possibile esportare il formato tabellare in Excel e i Diagrammi Visivi in PNG o PDF.
+                </>
+              }
+              label="Informazioni su Ottimizza"
+            />
+          </div>
         </div>
 
-        {/* Pulsante Esegui ottimizzazione e Icona quadrata Annulla */}
+        {/* Pulsante Esegui ottimizzazione e Icona quadrata Annulla circolare */}
         <div className="optimization-head-actions-row">
           <button
             className="btn primary optimize-pulse-btn-v128"
@@ -176,13 +187,13 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               height="22"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2.2"
+              strokeWidth="2.3"
               strokeLinecap="round"
               strokeLinejoin="round"
               style={{ display: 'block' }}
             >
-              <path d="M9 14L4 9l5-5" />
-              <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11" />
+              <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+              <path d="M3 3v5h5" />
             </svg>
           </button>
         </div>
@@ -284,45 +295,56 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               </div>
             </div>
 
-            {/* 2) KPI Cards in formato 3D / Rilievo con allineamento verticale coerente */}
-            <div className="kpis-modern-3d">
-              <div className="kpi-card-3d">
-                <div className="kpi-label-3d">Pezzi Richiesti</div>
-                <div className="kpi-value-3d">{intFmt(result.requestedPieces)}</div>
-                <div className="kpi-sub-3d">totale distinta</div>
-              </div>
-
-              <div className="kpi-card-3d accent-green-3d">
-                <div className="kpi-label-3d">Pezzi Evasi</div>
-                <div className="kpi-value-3d">{intFmt(result.fulfilledPieces)}</div>
-                <div className="kpi-sub-3d">
-                  {result.allFulfilled
-                    ? '100% evaso'
-                    : `${fmt(
-                        (result.fulfilledPieces / Math.max(1, result.requestedPieces)) * 100,
-                        1
-                      )}% evasione`}
+            {/* 3) I 4 KPI racchiusi in un widget/riquadro dedicato (v. 1.46) */}
+            <div className="widget-card kpis-widget-card">
+              <div className="kpis-modern-3d">
+                <div className="kpi-card-3d">
+                  <div className="kpi-label-3d">Pezzi Richiesti</div>
+                  <div className="kpi-value-3d">{intFmt(result.requestedPieces)}</div>
+                  <div className="kpi-sub-3d">totale distinta</div>
                 </div>
-              </div>
 
-              <div className="kpi-card-3d accent-amber-3d">
-                <div className="kpi-label-3d">Sfrido Totale</div>
-                <div className="kpi-value-3d">{fmt(result.scrapMeters)} m</div>
-                <div className="kpi-sub-3d nowrap-sub-3d">{fmt(result.scrapPct, 1)}% delle barre utilizzate</div>
-              </div>
+                <div className="kpi-card-3d accent-green-3d">
+                  <div className="kpi-label-3d">Pezzi Evasi</div>
+                  <div className="kpi-value-3d">{intFmt(result.fulfilledPieces)}</div>
+                  <div className="kpi-sub-3d">
+                    {result.allFulfilled
+                      ? '100% evaso'
+                      : `${fmt(
+                          (result.fulfilledPieces / Math.max(1, result.requestedPieces)) * 100,
+                          1
+                        )}% evasione`}
+                  </div>
+                </div>
 
-              <div className="kpi-card-3d">
-                <div className="kpi-label-3d">Peso Acciaio Utilizzato</div>
-                <div className="kpi-value-3d">{fmt(usedWeight)} kg</div>
-                <div className="kpi-sub-3d">Ø: {diaList || '—'} mm</div>
+                <div className="kpi-card-3d accent-amber-3d">
+                  <div className="kpi-label-3d">Sfrido Totale</div>
+                  <div className="kpi-value-3d">{fmt(result.scrapMeters)} m</div>
+                  <div className="kpi-sub-3d nowrap-sub-3d">{fmt(result.scrapPct, 1)}% delle barre utilizzate</div>
+                </div>
+
+                <div className="kpi-card-3d">
+                  <div className="kpi-label-3d">Peso Acciaio Utilizzato</div>
+                  <div className="kpi-value-3d">{fmt(usedWeight)} kg</div>
+                  <div className="kpi-sub-3d">Ø: {diaList || '—'} mm</div>
+                </div>
               </div>
             </div>
 
-            {/* 3) Piano Operativo di Taglio */}
+            {/* 5) Piano Operativo di Taglio: titolo su riga unica + icona info, Esporta/Stampa sopra al widget schede (v. 1.46) */}
             <div className="panel cutting-plan-panel">
               <div className="panel-head plan-head-v137">
-                <div className="plan-title-row-v137">
-                  <h3>Piano Operativo di Taglio</h3>
+                <div className="plan-title-row-v137 plan-title-single-line">
+                  <div className="section-title-with-info">
+                    <h3>Piano Operativo di Taglio</h3>
+                    <InfoTooltip
+                      content="Sequenza cronologica dei pezzi da tagliare, con l'indicazione delle barre da utilizzare, dei tagli da recuperare e degli scarti/sfridi (da recuperare su richiesta)."
+                      label="Informazioni sul Piano Operativo di Taglio"
+                    />
+                  </div>
+                </div>
+
+                <div className="plan-export-row-v146">
                   <button
                     type="button"
                     className="btn outline small export-plan-head-btn"
@@ -332,11 +354,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                     📥 Esporta / Stampa
                   </button>
                 </div>
-
-                <p className="plan-subtitle-v137">
-                  Sequenza cronologica dei pezzi da tagliare, con l'indicazione delle barre da
-                  utilizzare, dei tagli da recuperare e degli scarti/sfridi (da recuperare su richiesta).
-                </p>
 
                 <div className="plan-toggle-row-v137">
                   {/* Widget delle schede Tabella Dati / Diagrammi Visivi */}

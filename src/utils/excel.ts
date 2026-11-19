@@ -199,7 +199,7 @@ export async function exportMasterXls(
       });
       if (result.cancelled) return;
       if (result.supported) {
-        onToast(`${labelName[0].toUpperCase() + labelName.slice(1)} esportata in Excel (.xlsx).`);
+        onToast(`${labelName === 'giacenza' ? 'Giacenza' : 'Richiesta'} esportata`);
         return;
       }
     } catch (e: any) {
@@ -208,7 +208,7 @@ export async function exportMasterXls(
     }
 
     download(`${labelName}.xlsx`, content, mime);
-    onToast('Questo browser non consente di scegliere il percorso dalla pagina: file Excel scaricato nella cartella predefinita.');
+    onToast(`${labelName === 'giacenza' ? 'Giacenza' : 'Richiesta'} esportata`);
   } catch (e: any) {
     alert(`Impossibile esportare il file Excel: ${e.message || 'errore nella creazione del file.'}`);
   }
@@ -314,7 +314,7 @@ export async function exportPlanXls(
       });
       if (saveRes.cancelled) return;
       if (saveRes.supported) {
-        onToast('Piano di taglio esportato in Excel (.xlsx).');
+        onToast('Piano esportato in Excel');
         return;
       }
     } catch (e: any) {
@@ -323,7 +323,7 @@ export async function exportPlanXls(
     }
 
     download('piano-taglio-v1.42.xlsx', content, mime);
-    onToast('Piano di taglio Excel scaricato.');
+    onToast('Piano esportato in Excel');
   } catch (e: any) {
     alert(`Impossibile esportare il Piano di taglio: ${e.message || 'errore nella creazione del file Excel.'}`);
   }

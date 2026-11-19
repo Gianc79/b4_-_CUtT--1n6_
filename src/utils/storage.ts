@@ -256,14 +256,14 @@ export async function saveAsAppFile(state: AppState, onToast: (msg: string) => v
     if (result.cancelled) return;
     if (result.supported) {
       await rememberFileHandle(result.handle);
-      onToast('Salvataggio eseguito con successo.');
+      onToast('File salvato');
       return;
     }
   } catch (e: any) {
     alert('Il salvataggio tramite finestra non è riuscito. Provo a scaricare il file: ' + e.message);
   }
   download('ottimizzazione-barre-ca-v1.25.json', content, 'application/json;charset=utf-8');
-  onToast('File scaricato nella cartella Download predefinita del browser.');
+  onToast('File salvato');
 }
 
 export async function saveCurrentFile(state: AppState, onToast: (msg: string) => void) {
@@ -280,7 +280,7 @@ export async function saveCurrentFile(state: AppState, onToast: (msg: string) =>
       }
       if (permission === 'granted') {
         await writeHandle(handle, content, 'application/json;charset=utf-8');
-        onToast('Salvataggio eseguito con successo.');
+        onToast('File salvato');
         return;
       }
     } catch (e) {}

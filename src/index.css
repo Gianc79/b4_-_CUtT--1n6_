@@ -2437,7 +2437,7 @@ tr.row-applied td {
 .sort-level-actions-group-v4 {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .sort-level-btn-15x {
@@ -3785,9 +3785,12 @@ body.keyboard-input-open .bottom-nav {
   .in-app-toast,
   .section-head,
   .message-banner,
+  .widget-card,
+  .info-tooltip-popover,
   .kpis-modern-3d,
   .plan-head-v137,
   .plan-head-v128,
+  .plan-export-row-v146,
   .optimization-head-actions-row,
   .view-mode-toggle-v128,
   .export-plan-head-btn,
@@ -3939,4 +3942,352 @@ body.keyboard-input-open .bottom-nav {
 .exit-modal-btn-confirm:active {
   transform: translateY(2px);
   box-shadow: 0 1px 0 #991b1b, 0 2px 5px rgba(220, 38, 38, 0.25);
+}
+
+/* ========================================================
+   TAGLIO BARRE C.A. — v. 1.46 UI Refinements
+   ======================================================== */
+
+/* 1) Toast e Popup Annulla scorribili verso destra */
+.toast.show {
+  pointer-events: auto;
+  touch-action: pan-y;
+  user-select: none;
+  cursor: grab;
+}
+
+.undo-delete-toast-spesa {
+  touch-action: pan-y;
+  user-select: none;
+  cursor: grab;
+}
+
+.toast.is-swiping,
+.undo-delete-toast-spesa.is-swiping {
+  cursor: grabbing;
+}
+
+/* 2) Titolo sezione con icona rotonda bianca "i" e commento giallo */
+.section-head-with-xls-icons {
+  align-items: center;
+}
+
+.section-title-with-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+
+.section-title-with-info h2,
+.section-title-with-info h3 {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.info-tooltip-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.info-tooltip-btn {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid #0284c7;
+  color: #0284c7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(15, 41, 66, 0.14);
+  transition: transform 0.14s ease, background-color 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+  cursor: pointer;
+}
+
+.info-tooltip-btn:hover,
+.info-tooltip-btn.active {
+  background: #fef9c3;
+  border-color: #ca8a04;
+  color: #854d0e;
+  box-shadow: 0 3px 8px rgba(202, 138, 4, 0.25);
+  transform: translateY(-1px);
+}
+
+.info-tooltip-glyph {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: 14px;
+  line-height: 1;
+  transform: translateX(-0.5px);
+}
+
+.info-tooltip-popover {
+  position: fixed;
+  z-index: 260;
+  width: max-content;
+  max-width: min(340px, calc(100vw - 24px));
+  background: linear-gradient(180deg, #fefce8 0%, #fef08a 100%);
+  border: 1.5px solid #eab308;
+  color: #713f12;
+  border-radius: 10px;
+  padding: 10px 13px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.45;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2), 0 2px 6px rgba(234, 179, 8, 0.22);
+  animation: infoCommentFadeIn 0.16s ease-out;
+  text-align: left;
+  white-space: normal;
+}
+
+.info-tooltip-arrow {
+  position: absolute;
+  top: -6px;
+  width: 10px;
+  height: 10px;
+  background: #fefce8;
+  border-top: 1.5px solid #eab308;
+  border-left: 1.5px solid #eab308;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.info-tooltip-content {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes infoCommentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 3) Widget / Riquadri per "Filtra Diametri" e KPI (Giacenza, Richiesta, Ottimizza) */
+.widget-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 3px 12px rgba(15, 41, 66, 0.06);
+}
+
+.filter-widget-card .filter-section-header {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #102b46;
+}
+
+.filter-widget-card .diameter-filter-wrap {
+  margin-bottom: 0;
+  overflow-x: visible;
+  padding-bottom: 0;
+}
+
+.filter-widget-card .diameter-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+  width: 100%;
+}
+
+.filter-widget-card .filter-chip {
+  padding: 6px 12px;
+  min-height: 36px;
+  font-size: 13px;
+  max-width: 100%;
+}
+
+.kpis-widget-card {
+  padding: 12px;
+}
+
+.kpis-widget-card .kpis-modern-3d {
+  margin-bottom: 0;
+}
+
+.kpis-widget-card .master-kpis-3d {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+/* 4) Stile tabellare unificato e graficamente accattivante (Giacenza, Richiesta, Ottimizza) */
+.master-table-panel .table-wrap,
+.cutting-plan-panel .table-wrap,
+.result-panel .table-wrap {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(15, 41, 66, 0.07);
+  background: #ffffff;
+}
+
+.master-table thead th,
+.result-table thead th {
+  background: linear-gradient(180deg, #1a456e 0%, #0f2942 100%);
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 10px 6px;
+  border-bottom: 2px solid #0284c7;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.master-table thead th:last-child,
+.result-table thead th:last-child {
+  border-right: 0;
+}
+
+.result-table thead th .th-line1 {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.result-table thead th .th-line2 {
+  color: #bae6fd;
+  font-weight: 650;
+}
+
+.result-table thead th .header-check {
+  width: 17px;
+  height: 17px;
+  accent-color: #38bdf8;
+  cursor: pointer;
+}
+
+.master-table thead th .header-clear {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(254, 202, 202, 0.7);
+  color: #fecaca;
+  transition: all 0.14s ease;
+}
+
+.master-table thead th .header-clear:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #f87171;
+  color: #ffffff;
+}
+
+.master-table thead th .header-clear:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.45);
+  opacity: 0.5;
+}
+
+.master-table tbody td,
+.result-table tbody td {
+  padding: 7px 5px;
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #f1f5f9;
+  color: #1e293b;
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: background-color 0.12s ease;
+}
+
+.master-table tbody td:last-child,
+.result-table tbody td:last-child {
+  border-right: 0;
+}
+
+.master-table tbody tr:nth-child(even) td,
+.result-table tbody tr:nth-child(even):not(.total-row) td {
+  background: #f8fafc;
+}
+
+.master-table tbody tr:hover td,
+.result-table tbody tr:not(.total-row):hover td {
+  background: #eff6ff;
+}
+
+.master-table .weight-cell span {
+  font-weight: 800;
+  color: #0f2942;
+}
+
+.master-table .cell-input {
+  min-height: 34px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 7px;
+  background: #ffffff;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.master-table .cell-input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.16);
+}
+
+.result-table .total-row td {
+  background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%) !important;
+  color: #0f2942 !important;
+  border-top: 2px solid #0284c7;
+  font-weight: 850;
+}
+
+/* 5) Finestra Ordina: icone cerchiate + e - sui pulsanti livello */
+.sort-level-btn-compact {
+  gap: 6px !important;
+}
+
+.sort-level-circle-icon {
+  flex-shrink: 0;
+  display: block;
+}
+
+.sort-level-circle-add {
+  color: #059669;
+}
+
+.sort-level-circle-remove {
+  color: #dc2626;
+}
+
+.sort-level-btn-compact:disabled .sort-level-circle-icon {
+  color: #94a3b8;
+}
+
+/* 6) Piano Operativo di Taglio: titolo su riga unica + Esporta/Stampa sopra widget schede */
+.plan-title-single-line {
+  align-items: center;
+}
+
+.plan-title-single-line h3 {
+  white-space: nowrap;
+}
+
+.plan-export-row-v146 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 2px;
+}
+
+.plan-export-row-v146 .export-plan-head-btn {
+  margin-top: 0;
+}
+
+.export-option-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
 }

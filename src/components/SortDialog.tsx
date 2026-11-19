@@ -103,7 +103,7 @@ export const SortDialog: React.FC<SortDialogProps> = ({
   };
 
   return (
-    <div className="in-app-modal-backdrop sort-dialog-backdrop" onClick={onClose}>
+    <div className="in-app-modal-backdrop sort-dialog-backdrop">
       <div
         className="sort-dialog-card-v4"
         role="dialog"
@@ -112,19 +112,11 @@ export const SortDialog: React.FC<SortDialogProps> = ({
         onClick={e => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit}>
-          {/* Titolo e X allineati verticalmente sulla stessa riga in alto */}
+          {/* Titolo senza icona X di chiusura (v. 1.46) */}
           <div className="sort-dialog-head-v4">
             <h3 id="sort-dialog-title" className="sort-dialog-title-v4">
               {kind === 'stockDetail' ? 'Ordina Giacenza' : 'Ordina Richiesta'}
             </h3>
-            <button
-              type="button"
-              className="sort-dialog-close-v4"
-              onClick={onClose}
-              aria-label="Chiudi finestra"
-            >
-              ×
-            </button>
           </div>
 
           {/* Lista livelli: casella select spostata più a sx vicino all'etichetta per visualizzare tutto il testo */}
@@ -173,7 +165,7 @@ export const SortDialog: React.FC<SortDialogProps> = ({
             })}
           </div>
 
-          {/* 5) Tasti Aggiungi ed Elimina livello su una sola riga con font e altezza ridotti */}
+          {/* Tasti Aggiungi ed Elimina livello con icone + e - cerchiate (v. 1.46) */}
           <div className="sort-level-actions-group-v4">
             <button
               type="button"
@@ -181,7 +173,18 @@ export const SortDialog: React.FC<SortDialogProps> = ({
               onClick={handleAddLevel}
               disabled={levels.length >= SORT_FIELDS.length}
             >
-              ＋ Aggiungi livello
+              <svg
+                className="sort-level-circle-icon sort-level-circle-add"
+                viewBox="0 0 20 20"
+                width="16"
+                height="16"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle cx="10" cy="10" r="8.25" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M10 6.2v7.6M6.2 10h7.6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+              </svg>
+              <span>Aggiungi livello</span>
             </button>
             <button
               type="button"
@@ -189,7 +192,18 @@ export const SortDialog: React.FC<SortDialogProps> = ({
               onClick={handleRemoveLevel}
               disabled={levels.length <= 1}
             >
-              − Elimina livello
+              <svg
+                className="sort-level-circle-icon sort-level-circle-remove"
+                viewBox="0 0 20 20"
+                width="16"
+                height="16"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle cx="10" cy="10" r="8.25" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M6.2 10h7.6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+              </svg>
+              <span>Elimina livello</span>
             </button>
           </div>
 

@@ -12,6 +12,8 @@ import {
 import { DiameterFilter } from './DiameterFilter';
 import { ConfirmModal } from './ConfirmModal';
 import { ExcelImportIcon, ExcelExportIcon, SortTableIcon } from './ExcelIcons';
+import { InfoTooltip } from './InfoTooltip';
+import { useSwipeRightDismiss } from './Toast';
 
 interface MasterTableProps {
   kind: 'stockDetail' | 'demandDetail';
@@ -78,6 +80,19 @@ export const MasterTable: React.FC<MasterTableProps> = ({
   // Undo eliminazione riga
   const [deletedRecord, setDeletedRecord] = useState<DeletedRowRecord | null>(null);
   const undoTimerRef = useRef<number | null>(null);
+
+  const handleDismissDeletedToast = () => {
+    if (undoTimerRef.current) {
+      window.clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = null;
+    }
+    setDeletedRecord(null);
+  };
+
+  const undoSwipe = useSwipeRightDismiss(
+    deletedRecord ? `${deletedRecord.row.id}_${deletedRecord.index}` : null,
+    handleDismissDeletedToast
+  );
 
   // Assistente allo scorrimento stabile: interviene SOLO se la cella è realmente fuori dall'area visibile
   const scrollElementIntoWorkArea = (el: HTMLElement) => {
@@ -191,14 +206,14 @@ export const MasterTable: React.FC<MasterTableProps> = ({
       if (!Number.isInteger(value) || value! < 1 || value! > 10000) {
         const updated = rows.map(r => (r.id === id ? { ...r, qty: prevVal } : r));
         onChangeRows(updated);
-        onToast('Quantità non valida: inserire un intero positivo da 1 a 10.000.');
+        onToast('Quantità non valida');
         return;
       }
     } else if (field === 'length') {
       if (!Number.isInteger(value) || value! < 1 || value! > 1200) {
         const updated = rows.map(r => (r.id === id ? { ...r, length: prevVal } : r));
         onChangeRows(updated);
-        onToast('Lunghezza non valida: inserire un intero in cm da 1 a 1.200.');
+        onToast('Lunghezza non valida');
         return;
       }
     }
@@ -257,7 +272,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     const finalRows = updated.length > 0 ? updated : [blankMaster()];
     onChangeRows(finalRows);
     setDuplicateCandidate(null);
-    onToast(`Quantità (${addQty} pz) aggiunta alla riga esistente.`);
+    onToast('Quantità sommata');
   };
 
   const handleCancelMergeDuplicate = () => {
@@ -406,7 +421,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     if (undoTimerRef.current) {
       window.clearTimeout(undoTimerRef.current);
     }
-    onToast('Riga ripristinata con successo.');
+    onToast('Riga ripristinata');
   };
 
   // Verifica se la tabella è vuota (nessuna riga o righe prive di valori nei campi Nr. e L)
@@ -419,13 +434,13 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     if (selectedDiameter === 'all') {
       onChangeRows([blankMaster()]);
       setClearTableModalOpen(false);
-      onToast(`${kind === 'stockDetail' ? 'Giacenza' : 'Richiesta'}: tabella svuotata.`);
+      onToast('Tabella svuotata');
     } else {
       const remaining = rows.filter(r => inputNumber(r.diameter) !== selectedDiameter);
       const updated = remaining.length > 0 ? remaining : [blankMaster()];
       onChangeRows(updated);
       setClearTableModalOpen(false);
-      onToast(`Eliminati i record con diametro Ø ${selectedDiameter} mm.`);
+      onToast(`Eliminati Ø ${selectedDiameter} mm`);
     }
   };
 
@@ -460,14 +475,16 @@ export const MasterTable: React.FC<MasterTableProps> = ({
 
   return (
     <section className="page active" id={`page-${kind}`}>
-      {/* 1) Testata: Titolo e sottotitolo a sinistra, 2 icone XLS ufficiali a destra */}
+      {/* 1) Testata: Titolo + icona info a sinistra, 2 icone XLS ufficiali a destra (v. 1.46) */}
       <div className="section-head section-head-with-xls-icons">
         <div className="section-head-text">
-          <h2>{title}</h2>
-          <p>{subtitle}</p>
+          <div className="section-title-with-info">
+            <h2>{title}</h2>
+            <InfoTooltip content={subtitle} label={`Informazioni su ${title}`} />
+          </div>
         </div>
 
-        {/* 2 icone XLS ufficiali all'altezza del titolo e del sottotitolo */}
+        {/* 2 icone XLS ufficiali all'altezza del titolo */}
         <div className="section-head-actions-xls">
           <button
             className="xls-action-icon-btn"
@@ -497,44 +514,47 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         </div>
       </div>
 
-      {/* Etichetta in grassetto sopra il filtro dei diametri */}
-      <div className="filter-section-header">
-        <strong>Filtra Diametri</strong>
-      </div>
-
-      {/* Filtro rapido Diametri */}
-      <DiameterFilter
-        rows={rows}
-        selectedDiameter={selectedDiameter}
-        onSelectDiameter={setSelectedDiameter}
-      />
-
-      {/* 3) Widgets SVILUPPO COMPLESSIVO e PESO TOTALE con formattazione 3D piacevole e separatore migliaia */}
-      <div className="kpis-modern-3d master-kpis-3d">
-        <div className="kpi-card-3d">
-          <div className="kpi-label-3d">
-            {isFiltered
-              ? `Sviluppo Barre Ø ${selectedDiameter}`
-              : 'Sviluppo Complessivo'}
-          </div>
-          <div className="kpi-value-3d">
-            {fmt(statsMeters)} <span className="kpi-unit-inline">m</span>
-          </div>
-          <div className="kpi-sub-3d">
-            {isFiltered ? `${intFmt(statsPieces)} pezzi` : `${intFmt(statsPieces)} pezzi totali`}
-          </div>
+      {/* 2) Sezione "Filtra Diametri" racchiusa in un widget/riquadro con wrap automatico (v. 1.46) */}
+      <div className="widget-card filter-widget-card">
+        <div className="filter-section-header">
+          <strong>Filtra Diametri</strong>
         </div>
 
-        <div className="kpi-card-3d accent-green-3d">
-          <div className="kpi-label-3d">
-            {isFiltered
-              ? `Peso Barre Ø ${selectedDiameter}`
-              : 'Peso Totale'}
+        <DiameterFilter
+          rows={rows}
+          selectedDiameter={selectedDiameter}
+          onSelectDiameter={setSelectedDiameter}
+        />
+      </div>
+
+      {/* 3) Widgets SVILUPPO COMPLESSIVO e PESO TOTALE racchiusi in un widget/riquadro (v. 1.46) */}
+      <div className="widget-card kpis-widget-card">
+        <div className="kpis-modern-3d master-kpis-3d">
+          <div className="kpi-card-3d">
+            <div className="kpi-label-3d">
+              {isFiltered
+                ? `Sviluppo Barre Ø ${selectedDiameter}`
+                : 'Sviluppo Complessivo'}
+            </div>
+            <div className="kpi-value-3d">
+              {fmt(statsMeters)} <span className="kpi-unit-inline">m</span>
+            </div>
+            <div className="kpi-sub-3d">
+              {isFiltered ? `${intFmt(statsPieces)} pezzi` : `${intFmt(statsPieces)} pezzi totali`}
+            </div>
           </div>
-          <div className="kpi-value-3d">
-            {fmt(statsWeight)} <span className="kpi-unit-inline">kg</span>
+
+          <div className="kpi-card-3d accent-green-3d">
+            <div className="kpi-label-3d">
+              {isFiltered
+                ? `Peso Barre Ø ${selectedDiameter}`
+                : 'Peso Totale'}
+            </div>
+            <div className="kpi-value-3d">
+              {fmt(statsWeight)} <span className="kpi-unit-inline">kg</span>
+            </div>
+            <div className="kpi-sub-3d">Acciaio B450C</div>
           </div>
-          <div className="kpi-sub-3d">Acciaio B450C</div>
         </div>
       </div>
 
@@ -731,12 +751,16 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         </div>
       </div>
 
-      {/* 2) Toast Annulla (Undo) in stile SpesaSuMisura con riquadro marcato e ombra */}
+      {/* Toast Annulla (Undo) compatto e scorribile verso destra per chiusura anticipata (v. 1.46) */}
       {deletedRecord && (
-        <div className="undo-delete-toast-spesa" role="alert">
+        <div
+          className={`undo-delete-toast-spesa ${undoSwipe.isDragging ? 'is-swiping' : ''}`.trim()}
+          role="alert"
+          style={undoSwipe.style}
+          {...undoSwipe.handlers}
+        >
           <span className="undo-toast-text-spesa">
-            Rimosso: <strong>Ø {deletedRecord.row.diameter || '?'}</strong> · L:{' '}
-            <strong>{deletedRecord.row.length || '?'} cm</strong> ({intFmt(Number(deletedRecord.row.qty) || 0)} pz)
+            Riga eliminata
           </span>
           <button
             type="button"

@@ -27,12 +27,6 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { ConfirmModal } from './components/ConfirmModal';
 import { ExitConfirmModal } from './components/ExitConfirmModal';
 
-const SORT_FIELDS = [
-  { value: 'diameter' as const, label: 'Diametro' },
-  { value: 'qty' as const, label: 'Nr.' },
-  { value: 'length' as const, label: 'Lunghezza' },
-];
-
 export const App: React.FC = () => {
   const [state, setState] = useState<AppState>(() => loadState());
   // 4) Schermata principale dell'app è "Giacenza"
@@ -65,6 +59,14 @@ export const App: React.FC = () => {
   const lastScrollYRef = useRef<number>(0);
 
   const toastTimerRef = useRef<number | null>(null);
+
+  const dismissToast = () => {
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+    setToastMessage(null);
+  };
 
   const showToast = (msg: string) => {
     if (toastTimerRef.current) {
@@ -226,13 +228,7 @@ export const App: React.FC = () => {
     if (lastOptimizationSnapshot) {
       setLastOptimizationSnapshot(null);
     }
-    const descriptions = levels.map(
-      l =>
-        `${SORT_FIELDS.find(f => f.value === l.field)?.label || l.field} ${
-          l.direction === 'asc' ? 'crescente' : 'decrescente'
-        }`
-    );
-    showToast(`Tabella ordinata per ${descriptions.join(' → ')}.`);
+    showToast('Tabella ordinata');
   };
 
   // 12) Ottimizzazione con filtro diametri attivo e scarico automatico delle barre utilizzate dalla Giacenza
@@ -379,7 +375,7 @@ export const App: React.FC = () => {
       result: lastOptimizationSnapshot.result,
     }));
     setLastOptimizationSnapshot(null);
-    showToast('Ultima ottimizzazione annullata: ripristinata la situazione precedente.');
+    showToast('Ottimizzazione annullata');
   };
 
   // 12) Aggiorna Richiesta: sostituisce SOLO i records dei diametri presenti in Richiesta Non Evasa
@@ -416,7 +412,7 @@ export const App: React.FC = () => {
       setLastOptimizationSnapshot(null);
     }
 
-    showToast(`Richiesta aggiornata con i tagli non evasi per i soli diametri interessati.`);
+    showToast('Richiesta aggiornata');
   };
 
   // 12) Aggiorna Giacenza: i pezzi selezionati integrano la Giacenza (sommando o aggiungendo)
@@ -489,7 +485,7 @@ export const App: React.FC = () => {
       setLastOptimizationSnapshot(null);
     }
 
-    showToast(`Pezzi integrati con successo nella Giacenza.`);
+    showToast('Giacenza aggiornata');
   };
 
   // JSON Import (richiede conferma prima di caricare i nuovi dati se valido v. 1.43)
@@ -506,8 +502,8 @@ export const App: React.FC = () => {
       }
       const newState = normalizeNewState(d);
       setPendingJsonImport(newState);
-    } catch (e: any) {
-      showToast('Impossibile caricare il file: ' + e.message);
+    } catch (_e: any) {
+      showToast('Errore caricamento file');
     }
   };
 
@@ -517,7 +513,7 @@ export const App: React.FC = () => {
     if (lastOptimizationSnapshot) {
       setLastOptimizationSnapshot(null);
     }
-    showToast('File caricato correttamente.');
+    showToast('Backup caricato');
     setPendingJsonImport(null);
   };
 
@@ -546,7 +542,7 @@ export const App: React.FC = () => {
     if (lastOptimizationSnapshot) {
       setLastOptimizationSnapshot(null);
     }
-    showToast(`${label}: importati ${rows.length} record dal file Excel.`);
+    showToast(`${label} importata`);
     setPendingXlsImport(null);
   };
 
@@ -589,9 +585,9 @@ export const App: React.FC = () => {
               title="Giacenza"
               subtitle={
                 <>
-                  Gestisci la giacenza delle barre.
+                  Gestisci la Giacenza delle barre.
                   <br />
-                  Possibilità di importare una giacenza da un file Excel o di esportare quella attuale.
+                  E&apos; possibile importare una Giacenza da un file Excel o di esportare quella attuale.
                 </>
               }
               rows={state.stockDetail}
@@ -611,9 +607,9 @@ export const App: React.FC = () => {
               title="Richiesta"
               subtitle={
                 <>
-                  Gestisci la richiesta/Distinta barre.
+                  Gestisci la Richiesta/Distinta barre.
                   <br />
-                  Possibilità di importare una richiesta da un file Excel o di esportare quella attuale.
+                  E&apos; possibile importare una Richiesta da un file Excel o di esportare quella attuale.
                 </>
               }
               rows={state.demandDetail}
@@ -653,9 +649,9 @@ export const App: React.FC = () => {
                     title="Giacenza"
                     subtitle={
                       <>
-                        Gestisci la giacenza delle barre.
+                        Gestisci la Giacenza delle barre.
                         <br />
-                        Possibilità di importare una giacenza da un file Excel o di esportare quella attuale.
+                        E&apos; possibile importare una Giacenza da un file Excel o di esportare quella attuale.
                       </>
                     }
                     rows={state.stockDetail}
@@ -674,9 +670,9 @@ export const App: React.FC = () => {
                     title="Richiesta"
                     subtitle={
                       <>
-                        Gestisci la richiesta/Distinta barre.
+                        Gestisci la Richiesta/Distinta barre.
                         <br />
-                        Possibilità di importare una richiesta da un file Excel o di esportare quella attuale.
+                        E&apos; possibile importare una Richiesta da un file Excel o di esportare quella attuale.
                       </>
                     }
                     rows={state.demandDetail}
@@ -709,9 +705,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.45 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.46 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.45 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.46 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 
@@ -796,7 +792,7 @@ export const App: React.FC = () => {
         onConfirm={handleConfirmExit}
       />
 
-      <Toast message={toastMessage} />
+      <Toast message={toastMessage} onDismiss={dismissToast} />
     </div>
   );
 };

@@ -350,13 +350,13 @@ export async function exportDiagramsAsPng(
       });
       if (saveRes.cancelled) return;
       if (saveRes.supported) {
-        onToast('Diagrammi Visivi esportati come immagine PNG.');
+        onToast('Immagine PNG esportata');
         return;
       }
     } catch (_) {}
 
     download(fileName, new Uint8Array(buffer), mime);
-    onToast('Diagrammi Visivi esportati come immagine PNG.');
+    onToast('Immagine PNG esportata');
   }, 'image/png');
 }
 
