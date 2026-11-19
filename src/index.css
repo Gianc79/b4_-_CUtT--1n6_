@@ -3791,6 +3791,7 @@ body.keyboard-input-open .bottom-nav {
   .plan-head-v137,
   .plan-head-v128,
   .plan-export-row-v146,
+  .plan-export-circular-btn,
   .optimization-head-actions-row,
   .view-mode-toggle-v128,
   .export-plan-head-btn,
@@ -4291,3 +4292,256 @@ body.keyboard-input-open .bottom-nav {
   height: 52px;
   border-radius: 13px;
 }
+
+/* ========================================================
+   TAGLIO BARRE C.A. — v. 1.47 UI Refinements
+   ======================================================== */
+
+/* 1) Icone circolari 3D stile barra superiore (Importa/Esporta XLS + Esporta/Stampa Ottimizza) */
+.xls-action-icon-btn,
+.plan-export-circular-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1.5px solid #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 0 #cbd5e1, 0 4px 10px rgba(15, 41, 66, 0.14);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.xls-action-icon-btn:hover {
+  background: #ffffff;
+  border-color: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #86efac, 0 6px 12px rgba(22, 163, 74, 0.22);
+}
+
+.xls-action-icon-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #86efac;
+}
+
+.plan-export-circular-btn:hover {
+  background: #ffffff;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #93c5fd, 0 6px 12px rgba(37, 99, 235, 0.22);
+}
+
+.plan-export-circular-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #93c5fd;
+}
+
+.export-print-svg-native {
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .xls-action-icon-btn,
+  .plan-export-circular-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* 2) Filtro Diametri a tendina integrato accanto/sotto a "Elenco Giacenza" / "Elenco Richiesta" */
+.master-head-with-sort-right {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.master-head-title-filter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.master-head-title-filter h3 {
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.diameter-filter-dropdown-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.diameter-filter-label {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #475569;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.diameter-filter-select {
+  height: 34px;
+  min-width: 124px;
+  max-width: 190px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  border: 1.5px solid #cbd5e1;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: #0f2942;
+  font-size: 12.5px;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15, 41, 66, 0.06);
+  transition: border-color 0.14s ease, background-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.diameter-filter-select:hover {
+  border-color: #94a3b8;
+}
+
+.diameter-filter-dropdown-wrap.is-filtered .diameter-filter-label {
+  color: #0369a1;
+}
+
+.diameter-filter-dropdown-wrap.is-filtered .diameter-filter-select {
+  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-color: #0284c7;
+  color: #0369a1;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.12);
+}
+
+/* 3) Intestazioni tabelle Giacenza e Richiesta identiche al Piano Operativo di Taglio */
+.master-table col.dia { width: 17%; }
+.master-table col.qty { width: 21%; }
+.master-table col.length { width: 27%; }
+.master-table col.weight { width: 23%; }
+.master-table col.action { width: 12%; }
+
+.master-table thead th {
+  padding: 9px 3px;
+}
+
+.master-table thead th .th-line1 {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.master-table thead th .th-line2 {
+  color: #bae6fd;
+  font-weight: 650;
+}
+
+/* 4) Piano Operativo di Taglio: riga titolo unica con icona Esporta/Stampa allineata a dx */
+.plan-title-single-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.plan-title-single-line .section-title-with-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.plan-title-single-line h3 {
+  font-size: clamp(14.5px, 4.1vw, 17px);
+  white-space: nowrap;
+}
+
+/* 5) Finestra "Esporta / Stampa": icona titolo condivisa, icone opzioni in alto e descrizione giustificata a tutta larghezza */
+.export-plan-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.export-option-card {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 9px;
+  padding: 12px 14px;
+}
+
+.export-option-top-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.export-option-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+.export-option-title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--navy);
+  line-height: 1.25;
+  text-align: left;
+}
+
+.export-option-desc {
+  margin: 0;
+  width: 100%;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.4;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+/* 6) Riquadri KPI in Ottimizza: altezza compatta leggermente superiore al contenuto e uguale per tutti e 4 */
+#page-results .kpis-modern-3d {
+  gap: 10px;
+  grid-auto-rows: 1fr;
+}
+
+#page-results .kpi-card-3d {
+  min-height: 0;
+  height: 100%;
+  padding: 8px 11px;
+  justify-content: center;
+  gap: 2px;
+}
+
+#page-results .kpi-label-3d {
+  min-height: 0;
+  font-size: 10.5px;
+  line-height: 1.2;
+}
+
+#page-results .kpi-value-3d {
+  font-size: 20px;
+  line-height: 1.15;
+  margin: 1px 0;
+}
+
+#page-results .kpi-sub-3d {
+  font-size: 10.5px;
+  line-height: 1.2;
+}
+
+#page-results .nowrap-sub-3d {
+  font-size: clamp(9.5px, 2.7vw, 10.5px);
+}
+

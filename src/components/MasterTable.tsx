@@ -66,6 +66,8 @@ export const MasterTable: React.FC<MasterTableProps> = ({
 
   // Focus management per immissione con Invio e scorrimento controllato
   const nextFocusTargetRef = useRef<{ rowId: string; field: 'diameter' | 'qty' } | null>(null);
+  // Scorrimento senza focus all'aggiunta manuale di una riga (evita apertura tastiera smartphone v. 1.47)
+  const lastAddedRowIdRef = useRef<string | null>(null);
   // Timestamp per prevenire salti multipli e cascate di celle su tastiere virtuali smartphone
   const lastEnterTimestampRef = useRef<number>(0);
 
@@ -133,6 +135,15 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         }, 30);
       }
       nextFocusTargetRef.current = null;
+    } else if (lastAddedRowIdRef.current) {
+      const addedRowId = lastAddedRowIdRef.current;
+      const addedRowEl = document
+        .querySelector<HTMLInputElement>(`input[data-row-id="${addedRowId}"]`)
+        ?.closest('tr');
+      if (addedRowEl) {
+        addedRowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
+      lastAddedRowIdRef.current = null;
     }
   }, [rows]);
 
@@ -375,16 +386,18 @@ export const MasterTable: React.FC<MasterTableProps> = ({
     }
   };
 
-  // Aggiungi riga manuale: precompila Ø con il filtro attivo e porta il cursore alla cella successiva (qty)
+  // Aggiungi riga manuale (v. 1.47): precompila Ø con il filtro attivo senza attivare focus/tastiera smartphone
   const handleAddRow = () => {
+    const activeEl = document.activeElement;
+    if (activeEl instanceof HTMLInputElement || activeEl instanceof HTMLTextAreaElement) {
+      activeEl.blur();
+    }
     const newRow = blankMaster();
     if (isFiltered) {
       newRow.diameter = String(selectedDiameter);
     }
-    nextFocusTargetRef.current = {
-      rowId: newRow.id,
-      field: isFiltered ? 'qty' : 'diameter',
-    };
+    nextFocusTargetRef.current = null;
+    lastAddedRowIdRef.current = newRow.id;
     onChangeRows([...rows, newRow]);
   };
 
@@ -484,7 +497,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
           </div>
         </div>
 
-        {/* 2 icone XLS ufficiali all'altezza del titolo */}
+        {/* 2 icone XLS in stile barra superiore all'altezza del titolo (v. 1.47) */}
         <div className="section-head-actions-xls">
           <button
             className="xls-action-icon-btn"
@@ -493,7 +506,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
             title="Importa da Excel (.xlsx)"
             aria-label="Importa da Excel"
           >
-            <ExcelImportIcon size={38} />
+            <ExcelImportIcon size={26} />
           </button>
           <button
             className="xls-action-icon-btn"
@@ -502,7 +515,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
             title="Esporta in Excel (.xlsx)"
             aria-label="Esporta in Excel"
           >
-            <ExcelExportIcon size={38} />
+            <ExcelExportIcon size={26} />
           </button>
           <input
             ref={fileInputRef}
@@ -512,19 +525,6 @@ export const MasterTable: React.FC<MasterTableProps> = ({
             onChange={handleFileInputChange}
           />
         </div>
-      </div>
-
-      {/* 2) Sezione "Filtra Diametri" racchiusa in un widget/riquadro con wrap automatico (v. 1.46) */}
-      <div className="widget-card filter-widget-card">
-        <div className="filter-section-header">
-          <strong>Filtra Diametri</strong>
-        </div>
-
-        <DiameterFilter
-          rows={rows}
-          selectedDiameter={selectedDiameter}
-          onSelectDiameter={setSelectedDiameter}
-        />
       </div>
 
       {/* 3) Widgets SVILUPPO COMPLESSIVO e PESO TOTALE racchiusi in un widget/riquadro (v. 1.46) */}
@@ -560,15 +560,16 @@ export const MasterTable: React.FC<MasterTableProps> = ({
 
       {/* Pannello Principale Tabella */}
       <div className="panel master-table-panel">
-        {/* 4) Intestazione: Titolo a sinistra e Tasto Ordina ufficiale allegato tutto a destra */}
+        {/* 4) Intestazione: Titolo + Filtro Diametri a tendina a sinistra e Tasto Ordina a destra (v. 1.47) */}
         <div className="panel-head master-head-with-sort-right">
-          <div className="master-head-title-row">
+          <div className="master-head-title-filter">
             <h3>{kind === 'stockDetail' ? 'Elenco Giacenza' : 'Elenco Richiesta'}</h3>
-            {isFiltered && (
-              <span className="active-filter-badge">
-                Filtro attivo: Ø {selectedDiameter} mm ({effectiveRows.length})
-              </span>
-            )}
+            <DiameterFilter
+              rows={rows}
+              selectedDiameter={selectedDiameter}
+              onSelectDiameter={setSelectedDiameter}
+              id={`diameter-filter-${kind}`}
+            />
           </div>
 
           {/* 4) Pulsante Ordina con l'icona ufficiale fornita (Ordina.jpg) */}
@@ -595,10 +596,22 @@ export const MasterTable: React.FC<MasterTableProps> = ({
               </colgroup>
               <thead>
                 <tr>
-                  <th>Ø [mm]</th>
-                  <th>Nr.</th>
-                  <th>L [cm]</th>
-                  <th>P [kg]</th>
+                  <th>
+                    <span className="th-line1">Ø</span>
+                    <span className="th-line2">[mm]</span>
+                  </th>
+                  <th>
+                    <span className="th-line1">Numero</span>
+                    <span className="th-line2">[nr]</span>
+                  </th>
+                  <th>
+                    <span className="th-line1">Lunghezza</span>
+                    <span className="th-line2">[cm]</span>
+                  </th>
+                  <th>
+                    <span className="th-line1">Peso</span>
+                    <span className="th-line2">[kg]</span>
+                  </th>
                   <th>
                     <button
                       className="header-clear"
@@ -783,7 +796,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         onConfirm={() => setInvalidDiaModalOpen(false)}
       />
 
-      {/* Modale Svuota Tabella */}
+      {/* Modale Svuota Tabella / Elimina elementi diametro (v. 1.47: senza X e senza clic esterno) */}
       <ConfirmModal
         isOpen={clearTableModalOpen}
         title={clearModalTitle}
@@ -791,6 +804,8 @@ export const MasterTable: React.FC<MasterTableProps> = ({
         confirmText="Elimina tutti"
         cancelText="Annulla"
         confirmStyle="danger"
+        showCloseButton={false}
+        closeOnBackdrop={false}
         onConfirm={handleConfirmClearTable}
         onCancel={() => setClearTableModalOpen(false)}
       />

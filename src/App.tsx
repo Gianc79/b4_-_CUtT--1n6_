@@ -587,7 +587,7 @@ export const App: React.FC = () => {
                 <>
                   Gestisci la Giacenza delle barre.
                   <br />
-                  E&apos; possibile importare una Giacenza da un file Excel o di esportare quella attuale.
+                  E&apos; possibile importare una Giacenza da un file Excel o esportare quella attuale.
                 </>
               }
               rows={state.stockDetail}
@@ -609,7 +609,7 @@ export const App: React.FC = () => {
                 <>
                   Gestisci la Richiesta/Distinta barre.
                   <br />
-                  E&apos; possibile importare una Richiesta da un file Excel o di esportare quella attuale.
+                  E&apos; possibile importare una Richiesta da un file Excel o esportare quella attuale.
                 </>
               }
               rows={state.demandDetail}
@@ -651,7 +651,7 @@ export const App: React.FC = () => {
                       <>
                         Gestisci la Giacenza delle barre.
                         <br />
-                        E&apos; possibile importare una Giacenza da un file Excel o di esportare quella attuale.
+                        E&apos; possibile importare una Giacenza da un file Excel o esportare quella attuale.
                       </>
                     }
                     rows={state.stockDetail}
@@ -672,7 +672,7 @@ export const App: React.FC = () => {
                       <>
                         Gestisci la Richiesta/Distinta barre.
                         <br />
-                        E&apos; possibile importare una Richiesta da un file Excel o di esportare quella attuale.
+                        E&apos; possibile importare una Richiesta da un file Excel o esportare quella attuale.
                       </>
                     }
                     rows={state.demandDetail}
@@ -705,9 +705,9 @@ export const App: React.FC = () => {
           {activeTab === 'help' && <HelpView />}
         </main>
 
-        {/* Frase in fondo alla pagina aggiornata v. 1.46 */}
+        {/* Frase in fondo alla pagina aggiornata v. 1.47 */}
         <div className="footer-note">
-          TAGLIO BARRE C.A. · v. 1.46 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
+          TAGLIO BARRE C.A. · v. 1.47 · Dati memorizzati localmente nel browser · Progettato per PC e smartphone
         </div>
       </div>
 

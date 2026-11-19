@@ -6,14 +6,16 @@ interface DiameterFilterProps {
   rows: MasterRow[];
   selectedDiameter: number | 'all';
   onSelectDiameter: (dia: number | 'all') => void;
+  id?: string;
 }
 
 export const DiameterFilter: React.FC<DiameterFilterProps> = ({
   rows,
   selectedDiameter,
   onSelectDiameter,
+  id = 'diameter-filter-select',
 }) => {
-  // Calcola i pezzi per ogni diametro presente
+  // Calcola il numero di righe valide per ogni diametro presente
   const counts = new Map<number, number>();
   let totalValid = 0;
 
@@ -27,37 +29,39 @@ export const DiameterFilter: React.FC<DiameterFilterProps> = ({
     }
   }
 
-  // Mostra ESCLUSIVAMENTE i diametri presenti nella tabella
-  const presentDiameters = Array.from(counts.keys()).sort((a, b) => a - b);
+  // Mostra i diametri presenti nella tabella, includendo l'eventuale diametro attualmente filtrato anche se a 0 righe
+  const diameterSet = new Set<number>(counts.keys());
+  if (selectedDiameter !== 'all') {
+    diameterSet.add(selectedDiameter);
+  }
+  const presentDiameters = Array.from(diameterSet).sort((a, b) => a - b);
+  const isFiltered = selectedDiameter !== 'all';
 
   return (
-    <div className="diameter-filter-wrap">
-      <div className="diameter-filter-bar" role="tablist" aria-label="Filtro rapido per diametro">
-        <button
-          type="button"
-          className={`filter-chip ${selectedDiameter === 'all' ? 'active' : ''}`}
-          onClick={() => onSelectDiameter('all')}
-        >
-          <span className="chip-label">Tutti</span>
-          <span className="chip-count">{totalValid}</span>
-        </button>
-
+    <div className={`diameter-filter-dropdown-wrap ${isFiltered ? 'is-filtered' : ''}`.trim()}>
+      <label className="diameter-filter-label" htmlFor={id}>
+        Filtra Ø
+      </label>
+      <select
+        id={id}
+        className="diameter-filter-select"
+        value={selectedDiameter === 'all' ? 'all' : String(selectedDiameter)}
+        onChange={e => {
+          const val = e.target.value;
+          onSelectDiameter(val === 'all' ? 'all' : Number(val));
+        }}
+        aria-label="Filtra Diametri"
+      >
+        <option value="all">Tutti ({totalValid})</option>
         {presentDiameters.map(dia => {
           const count = counts.get(dia) || 0;
-          const isActive = selectedDiameter === dia;
           return (
-            <button
-              key={dia}
-              type="button"
-              className={`filter-chip ${isActive ? 'active' : ''}`}
-              onClick={() => onSelectDiameter(dia)}
-            >
-              <span className="chip-label">Ø {dia}</span>
-              <span className="chip-count">{count}</span>
-            </button>
+            <option key={dia} value={String(dia)}>
+              Ø {dia} mm ({count})
+            </option>
           );
         })}
-      </div>
+      </select>
     </div>
   );
 };

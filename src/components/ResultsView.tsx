@@ -7,6 +7,7 @@ import { ConfirmModal } from './ConfirmModal';
 import { ExportPlanModal } from './ExportPlanModal';
 import { exportDiagramsAsPng, exportDiagramsAsPdf } from '../utils/exportDiagramsImage';
 import { InfoTooltip } from './InfoTooltip';
+import { ExportPrintIcon } from './ExcelIcons';
 
 export interface SelectedStockItem {
   source: 'remaining' | 'scrap';
@@ -26,48 +27,6 @@ interface ResultsViewProps {
   onUpdateStock: (selected: SelectedStockItem[]) => void;
   onToast?: (msg: string) => void;
 }
-
-/**
- * Icona Esporta Piano di Taglio in stile SpesaSuMisura (38x38 px con documento e freccia di esportazione).
- */
-const ExportPlanIcon: React.FC<{ size?: number }> = ({ size = 38 }) => (
-  <svg
-    viewBox="0 0 38 38"
-    width={size}
-    height={size}
-    fill="none"
-    style={{ display: 'block' }}
-  >
-    <rect
-      x="1"
-      y="1"
-      width="36"
-      height="36"
-      rx="9"
-      fill="#ffffff"
-      stroke="#102b46"
-      strokeWidth="1.8"
-    />
-    {/* Foglio / Documento */}
-    <path
-      d="M13 10h8l6 6v12a2 2 0 0 1-2 2H13a2 2 0 0 1-2-2V12a2 2 0 0 1 2-2z"
-      fill="#f1f5f9"
-      stroke="#102b46"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-    <path d="M21 10v6h6" stroke="#102b46" strokeWidth="1.6" strokeLinejoin="round" />
-    {/* Cerchio blu con freccia di esportazione verso il basso */}
-    <circle cx="26" cy="26" r="6.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1.2" />
-    <path
-      d="M26 22.5v7m0 0l-2.2-2.2M26 29.5l2.2-2.2"
-      stroke="#ffffff"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 export const ResultsView: React.FC<ResultsViewProps> = ({
   result,
@@ -331,7 +290,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               </div>
             </div>
 
-            {/* 5) Piano Operativo di Taglio: titolo su riga unica + icona info, Esporta/Stampa sopra al widget schede (v. 1.46) */}
+            {/* 5) Piano Operativo di Taglio: titolo + icona info a sx, icona Esporta/Stampa circolare tutta a dx sulla stessa riga (v. 1.47) */}
             <div className="panel cutting-plan-panel">
               <div className="panel-head plan-head-v137">
                 <div className="plan-title-row-v137 plan-title-single-line">
@@ -342,16 +301,15 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                       label="Informazioni sul Piano Operativo di Taglio"
                     />
                   </div>
-                </div>
 
-                <div className="plan-export-row-v146">
                   <button
                     type="button"
-                    className="btn outline small export-plan-head-btn"
+                    className="plan-export-circular-btn"
                     onClick={() => setExportModalOpen(true)}
-                    title="Esporta o Stampa il Piano di Taglio (PDF, Immagine, Excel)"
+                    title="Esporta / Stampa il Piano di Taglio (PDF, Immagine, Excel)"
+                    aria-label="Esporta o Stampa il Piano di Taglio"
                   >
-                    📥 Esporta / Stampa
+                    <ExportPrintIcon size={26} />
                   </button>
                 </div>
 
@@ -415,7 +373,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                           </th>
                           <th>
                             <span className="th-line1">N. barre</span>
-                            <span className="th-line2">[n]</span>
+                            <span className="th-line2">[nr]</span>
                           </th>
                           <th>
                             <span className="th-line1">Barra</span>
@@ -523,7 +481,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                           </th>
                           <th>
                             <span className="th-line1">Numero</span>
-                            <span className="th-line2">[n]</span>
+                            <span className="th-line2">[nr]</span>
                           </th>
                           <th>
                             <span className="th-line1">Barra</span>
@@ -588,8 +546,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                             <span className="th-line2">[mm]</span>
                           </th>
                           <th>
-                            <span className="th-line1">Mancanti</span>
-                            <span className="th-line2">[n]</span>
+                            <span className="th-line1">Numero</span>
+                            <span className="th-line2">[nr]</span>
                           </th>
                           <th>
                             <span className="th-line1">Taglio</span>
@@ -665,15 +623,15 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                             <span className="th-line2">[mm]</span>
                           </th>
                           <th>
-                            <span className="th-line1">Nr.</span>
-                            <span className="th-line2">[n]</span>
+                            <span className="th-line1">Numero</span>
+                            <span className="th-line2">[nr]</span>
                           </th>
                           <th>
-                            <span className="th-line1">L</span>
+                            <span className="th-line1">Lunghezza</span>
                             <span className="th-line2">[m]</span>
                           </th>
                           <th>
-                            <span className="th-line1">P</span>
+                            <span className="th-line1">Peso</span>
                             <span className="th-line2">[kg]</span>
                           </th>
                         </tr>
@@ -738,14 +696,15 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               </div>
             </div>
 
-            {/* Modali di Conferma In-App */}
-            {/* Frase esplicativa esatta: "Gli sfridi selezionati verranno integrati nella Giacenza. Continuare?" */}
+            {/* Modali di Conferma In-App (v. 1.47: Aggiorna Giacenza senza X e senza clic esterno) */}
             <ConfirmModal
               isOpen={confirmStockModalOpen}
               title="Aggiorna Giacenza"
               message="Gli sfridi selezionati verranno integrati nella Giacenza. Continuare?"
               confirmText="Integra Giacenza"
               cancelText="Annulla"
+              showCloseButton={false}
+              closeOnBackdrop={false}
               onConfirm={() => handleConfirmStockUpdate(stockOptions)}
               onCancel={() => setConfirmStockModalOpen(false)}
             />
